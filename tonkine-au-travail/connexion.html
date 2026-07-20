@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:      #0F1923;
+            --ink-60:   rgba(15,25,35,.6);
+            --ink-30:   rgba(15,25,35,.3);
+            --blue:     #1353A4;
+            --blue-mid: #1C6FD4;
+            --sky:      #D6E8FF;
+            --teal:     #0B9B8A;
+            --teal-bg:  #E0F5F3;
+            --sand:     #F5F1EB;
+            --white:    #FFFFFF;
+            --border:   rgba(15,25,35,.1);
+            --error:    #C0392B;
+            --f-serif:  'Fraunces', Georgia, serif;
+            --f-sans:   'Inter', system-ui, sans-serif;
+        }
+        html, body { height: 100%; }
+        body {
+            font-family: var(--f-sans);
+            color: var(--ink);
+            background: var(--white);
+            -webkit-font-smoothing: antialiased;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 100vh;
+        }
+
+        /* ── PANNEAU PHOTO GAUCHE ── */
+        .photo-panel {
+            position: relative;
+            overflow: hidden;
+            background: var(--ink);
+        }
+        .photo-panel img.bg {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: brightness(.45) saturate(.8);
+        }
+        .photo-overlay {
+            position: relative; z-index: 2;
+            height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            padding: 48px 52px;
+        }
+        .photo-logo {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none;
+        }
+        .photo-logo-mark {
+            width: 38px; height: 38px; border-radius: 8px;
+            overflow: hidden; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .photo-logo-mark img { width:100%; height:100%; object-fit:cover; }
+        .photo-logo-text {
+            font-family: var(--f-serif);
+            font-size: 1rem; font-weight: 600;
+            color: rgba(255,255,255,.9); letter-spacing: -.01em;
+        }
+        .photo-logo-text span { color: rgba(255,255,255,.5); }
+
+        .photo-quote {
+            max-width: 400px;
+        }
+        .photo-quote blockquote {
+            font-family: var(--f-serif);
+            font-size: 1.7rem; font-weight: 300;
+            color: white; line-height: 1.3;
+            letter-spacing: -.02em; margin-bottom: 24px;
+        }
+        .photo-quote blockquote em { font-style: italic; color: rgba(255,255,255,.7); }
+        .photo-author {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .photo-author img {
+            width: 40px; height: 40px; border-radius: 50%;
+            object-fit: cover; border: 2px solid rgba(255,255,255,.3);
+        }
+        .photo-author div h5 { font-size: .83rem; font-weight: 600; color: white; }
+        .photo-author div p  { font-size: .75rem; color: rgba(255,255,255,.5); }
+
+        .photo-stats {
+            display: flex; gap: 40px; padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,.12);
+        }
+        .photo-stat .num {
+            font-family: var(--f-serif);
+            font-size: 1.8rem; font-weight: 300; color: white;
+            line-height: 1;
+        }
+        .photo-stat .lbl { font-size: .75rem; color: rgba(255,255,255,.45); margin-top: 4px; }
+
+        /* ── PANNEAU FORMULAIRE DROIT ── */
+        .form-panel {
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 60px 72px;
+            background: white;
+            overflow-y: auto;
+        }
+        .form-wrap { width: 100%; max-width: 400px; }
+
+        .form-back {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: .8rem; color: var(--ink-60);
+            text-decoration: none; margin-bottom: 40px;
+            transition: color .15s;
+        }
+        .form-back:hover { color: var(--ink); }
+        .form-back i { font-size: .75rem; }
+
+        .form-head { margin-bottom: 36px; }
+        .form-head h1 {
+            font-family: var(--f-serif);
+            font-size: 2rem; font-weight: 300;
+            letter-spacing: -.02em; color: var(--ink);
+            line-height: 1.15; margin-bottom: 8px;
+        }
+        .form-head h1 em { font-style: italic; color: var(--blue); }
+        .form-head p { font-size: .875rem; color: var(--ink-60); line-height: 1.6; }
+
+        /* Sélecteur rôle */
+        .role-tabs {
+            display: grid; grid-template-columns: 1fr 1fr;
+            background: var(--sand); border-radius: 10px; padding: 4px;
+            margin-bottom: 28px;
+        }
+        .role-tab {
+            padding: 10px 16px; border-radius: 7px;
+            border: none; background: transparent;
+            font-family: var(--f-sans); font-size: .83rem; font-weight: 500;
+            color: var(--ink-60); cursor: pointer;
+            transition: all .15s; text-align: left;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .role-tab:hover { color: var(--ink); }
+        .role-tab.active {
+            background: white; color: var(--ink);
+            box-shadow: 0 1px 4px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+        }
+        .role-tab img {
+            width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
+            filter: grayscale(.4);
+        }
+        .role-tab-text { display: flex; flex-direction: column; }
+        .role-tab-text .rt-name { font-size: .83rem; font-weight: 500; }
+        .role-tab-text .rt-sub { font-size: .7rem; color: var(--ink-60); font-weight: 400; }
+
+        /* Champs */
+        .field { margin-bottom: 18px; }
+        .field label {
+            display: block; font-size: .78rem; font-weight: 600;
+            color: var(--ink); margin-bottom: 7px; letter-spacing: .01em;
+        }
+        .field-wrap { position: relative; }
+        .field-wrap input {
+            width: 100%; padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px; font-family: var(--f-sans);
+            font-size: .9rem; color: var(--ink);
+            background: white; outline: none;
+            transition: border-color .15s, box-shadow .15s;
+            -webkit-appearance: none;
+        }
+        .field-wrap input::placeholder { color: var(--ink-30); }
+        .field-wrap input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(19,83,164,.08);
+        }
+        .field-wrap input.error-field { border-color: var(--error); }
+        .field-wrap .eye-btn {
+            position: absolute; right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: var(--ink-30); font-size: .85rem; padding: 4px;
+            transition: color .15s;
+        }
+        .field-wrap .eye-btn:hover { color: var(--ink-60); }
+
+        .field-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 8px;
+        }
+        .check-label {
+            display: flex; align-items: center; gap: 7px;
+            font-size: .8rem; color: var(--ink-60); cursor: pointer;
+        }
+        .check-label input[type="checkbox"] {
+            width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer;
+        }
+        .link-small {
+            font-size: .8rem; color: var(--blue);
+            text-decoration: none; font-weight: 500;
+        }
+        .link-small:hover { text-decoration: underline; }
+
+        /* Erreur */
+        .form-error {
+            display: none; align-items: center; gap: 8px;
+            padding: 10px 14px; border-radius: 7px;
+            background: rgba(192,57,43,.06); border: 1px solid rgba(192,57,43,.18);
+            font-size: .8rem; color: var(--error); margin-bottom: 16px;
+        }
+        .form-error.show { display: flex; }
+
+        /* Bouton submit */
+        .btn-submit {
+            width: 100%; padding: 13px;
+            background: var(--ink); color: white;
+            border: none; border-radius: 8px;
+            font-family: var(--f-sans); font-size: .9rem; font-weight: 600;
+            cursor: pointer; transition: background .15s, transform .1s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 4px;
+        }
+        .btn-submit:hover { background: #1a2e45; transform: translateY(-1px); }
+        .btn-submit:active { transform: translateY(0); }
+        .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+        .spin {
+            width: 16px; height: 16px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.3); border-top-color: white;
+            animation: spin .7s linear infinite; display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 24px 0; color: var(--ink-30); font-size: .75rem;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        /* Comptes démo */
+        .demo-box {
+            border: 1px solid var(--border); border-radius: 10px;
+            overflow: hidden;
+        }
+        .demo-box-head {
+            padding: 10px 16px; background: var(--sand);
+            font-size: .72rem; font-weight: 700;
+            letter-spacing: .05em; text-transform: uppercase; color: var(--ink-60);
+            border-bottom: 1px solid var(--border);
+        }
+        .demo-item {
+            padding: 11px 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px;
+        }
+        .demo-item:last-child { border-bottom: none; }
+        .demo-item-info { display: flex; align-items: center; gap: 10px; }
+        .demo-item-info img {
+            width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
+        }
+        .demo-item-info div .d-name { font-size: .8rem; font-weight: 600; }
+        .demo-item-info div .d-cred { font-size: .7rem; color: var(--ink-60); font-family: monospace; }
+        .demo-fill {
+            padding: 5px 12px; border-radius: 5px;
+            border: 1px solid var(--border); background: white;
+            font-family: var(--f-sans); font-size: .72rem; font-weight: 600;
+            color: var(--ink-60); cursor: pointer; transition: all .15s;
+            white-space: nowrap;
+        }
+        .demo-fill:hover { border-color: var(--blue); color: var(--blue); }
+
+        /* Footer form */
+        .form-footer {
+            text-align: center; margin-top: 28px;
+            font-size: .8rem; color: var(--ink-60);
+        }
+        .form-footer a { color: var(--blue); font-weight: 600; text-decoration: none; }
+        .form-footer a:hover { text-decoration: underline; }
+
+        /* Success */
+        .success-state {
+            display: none; flex-direction: column; align-items: center;
+            text-align: center; padding: 20px 0;
+        }
+        .success-state.show { display: flex; }
+        .success-check {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--teal-bg); border: 2px solid var(--teal);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--teal); font-size: 1.4rem; margin-bottom: 16px;
+        }
+        .success-state h3 {
+            font-family: var(--f-serif); font-size: 1.3rem;
+            font-weight: 300; margin-bottom: 8px;
+        }
+        .success-state p { font-size: .85rem; color: var(--ink-60); }
+
+        @media (max-width: 900px) {
+            body { grid-template-columns: 1fr; }
+            .photo-panel { display: none; }
+            .form-panel { padding: 48px 32px; }
+        }
+        @media (max-width: 480px) {
+            .form-panel { padding: 36px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── PANNEAU PHOTO ── -->
+<div class="photo-panel">
+    <img class="bg"
+        src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=900&h=1200&fit=crop&crop=center"
+        alt="Bureau moderne">
+    <div class="photo-overlay">
+        <a href="index.html" class="photo-logo">
+            <div class="photo-logo-mark">
+                <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=80&h=80&fit=crop" alt="">
+            </div>
+            <span class="photo-logo-text">TonKiné <span>au Travail</span></span>
+        </a>
+
+        <div class="photo-quote">
+            <blockquote>
+                « Votre corps passe 8 heures par jour à votre bureau.<br>
+                Il mérite <em>autant d'attention</em> que votre travail. »
+            </blockquote>
+            <div class="photo-author">
+                <img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face" alt="">
+                <div>
+                    <h5>Dr. Isabelle Mfou</h5>
+                    <p>Kinésithérapeute d'entreprise</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="photo-stats">
+            <div class="photo-stat">
+                <div class="num">87%</div>
+                <div class="lbl">des TMS surviennent<br>au bureau</div>
+            </div>
+            <div class="photo-stat">
+                <div class="num">−60%</div>
+                <div class="lbl">d'arrêts maladie avec<br>prévention active</div>
+            </div>
+            <div class="photo-stat">
+                <div class="num">5 min</div>
+                <div class="lbl">de pause active<br>suffisent</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── PANNEAU FORMULAIRE ── -->
+<div class="form-panel">
+    <div class="form-wrap">
+        <a href="index.html" class="form-back">
+            <i class="fas fa-arrow-left"></i> Retour à l'accueil
+        </a>
+
+        <div class="form-head">
+            <h1>Bon retour,<br><em>connectez-vous</em></h1>
+            <p>Accédez à votre espace TonKiné au Travail selon votre rôle dans l'entreprise.</p>
+        </div>
+
+        <!-- Sélecteur rôle -->
+        <div class="role-tabs" id="role-tabs">
+            <button class="role-tab active" data-role="employe" onclick="selectRole('employe', this)">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=48&h=48&fit=crop&crop=face" alt="">
+                <div class="role-tab-text">
+                    <span class="rt-name">Employé</span>
+                    <span class="rt-sub">Informaticien · Banquier</span>
+                </div>
+            </button>
+            <button class="role-tab" data-role="admin" onclick="selectRole('admin', this)">
+                <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=48&h=48&fit=crop&crop=face" alt="">
+                <div class="role-tab-text">
+                    <span class="rt-name">Admin RH</span>
+                    <span class="rt-sub">Manager · RH</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div class="form-error" id="form-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="error-msg">Identifiant ou mot de passe incorrect.</span>
+        </div>
+
+        <!-- Formulaire -->
+        <form id="login-form" onsubmit="handleLogin(event)" autocomplete="on">
+            <div class="field">
+                <label for="email">Adresse e-mail professionnelle</label>
+                <div class="field-wrap">
+                    <input type="email" id="email" name="email"
+                        placeholder="prenom.nom@entreprise.cm"
+                        required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="password">Mot de passe</label>
+                <div class="field-wrap">
+                    <input type="password" id="password" name="password"
+                        placeholder="••••••••" required autocomplete="current-password"
+                        style="padding-right:40px">
+                    <button type="button" class="eye-btn" onclick="toggleEye()" tabindex="-1">
+                        <i class="fas fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+                <div class="field-row">
+                    <label class="check-label">
+                        <input type="checkbox" id="remember"> Rester connecté
+                    </label>
+                    <a href="#" class="link-small">Mot de passe oublié ?</a>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submit-btn">
+                <div class="spin" id="spin"></div>
+                <span id="btn-label">Se connecter</span>
+            </button>
+        </form>
+
+        <!-- Succès -->
+        <div class="success-state" id="success-state">
+            <div class="success-check"><i class="fas fa-check"></i></div>
+            <h3>Connexion réussie !</h3>
+            <p>Redirection vers votre espace en cours…</p>
+        </div>
+
+        <!-- Démo -->
+        <div class="divider">Accès de démonstration</div>
+        <div class="demo-box">
+            <div class="demo-box-head">Comptes de test — cliquez pour remplir</div>
+            <div class="demo-item">
+                <div class="demo-item-info">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="">
+                    <div>
+                        <div class="d-name">Jean-Paul Kamga — Employé</div>
+                        <div class="d-cred">jean.paul@demo.cm · employe123</div>
+                    </div>
+                </div>
+                <button class="demo-fill" onclick="fillDemo('jean.paul@demo.cm','employe123','employe')">Utiliser</button>
+            </div>
+            <div class="demo-item">
+                <div class="demo-item-info">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=60&h=60&fit=crop&crop=face" alt="">
+                    <div>
+                        <div class="d-name">Marie Ngo Biyong — Admin RH</div>
+                        <div class="d-cred">admin.rh@demo.cm · admin123</div>
+                    </div>
+                </div>
+                <button class="demo-fill" onclick="fillDemo('admin.rh@demo.cm','admin123','admin')">Utiliser</button>
+            </div>
+        </div>
+
+        <div class="form-footer">
+            Première connexion ? <a href="inscription.html">Créer mon profil →</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentRole = 'employe';
+
+    // Pré-sélection depuis URL
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('role') === 'admin') {
+        document.querySelectorAll('.role-tab')[0].classList.remove('active');
+        document.querySelectorAll('.role-tab')[1].classList.add('active');
+        currentRole = 'admin';
+    }
+
+    function selectRole(role, el) {
+        currentRole = role;
+        document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function toggleEye() {
+        const inp = document.getElementById('password');
+        const ico = document.getElementById('eye-icon');
+        if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; }
+        else                         { inp.type = 'password'; ico.className = 'fas fa-eye'; }
+    }
+
+    function fillDemo(email, pass, role) {
+        document.getElementById('email').value    = email;
+        document.getElementById('password').value = pass;
+        const tab = document.querySelector(`[data-role="${role}"]`);
+        selectRole(role, tab);
+        document.getElementById('form-error').classList.remove('show');
+    }
+
+    function setError(msg) {
+        const el = document.getElementById('form-error');
+        document.getElementById('error-msg').textContent = msg;
+        el.classList.add('show');
+        document.getElementById('email').classList.add('error-field');
+        document.getElementById('password').classList.add('error-field');
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        document.getElementById('email').classList.remove('error-field');
+        document.getElementById('password').classList.remove('error-field');
+        document.getElementById('form-error').classList.remove('show');
+
+        const email = document.getElementById('email').value.trim();
+        const pass  = document.getElementById('password').value;
+        const btn   = document.getElementById('submit-btn');
+        const spin  = document.getElementById('spin');
+        const lbl   = document.getElementById('btn-label');
+
+        btn.disabled = true;
+        spin.style.display = 'block';
+        lbl.textContent = 'Vérification…';
+
+        const DEMOS = {
+            'jean.paul@demo.cm': { pass: 'employe123', role: 'employe', dest: 'dashboard-employe.html' },
+            'admin.rh@demo.cm':  { pass: 'admin123',   role: 'admin',   dest: 'dashboard-admin.html'  },
+        };
+
+        setTimeout(() => {
+            const acct = DEMOS[email];
+            if (acct && acct.pass === pass && acct.role === currentRole) {
+                spin.style.display = 'none';
+                lbl.textContent = 'Connexion réussie';
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('success-state').classList.add('show');
+                setTimeout(() => { window.location.href = acct.dest; }, 1000);
+            } else {
+                spin.style.display = 'none';
+                btn.disabled = false;
+                lbl.textContent = 'Se connecter';
+                setError(
+                    !DEMOS[email]        ? 'Aucun compte trouvé avec cet e-mail.' :
+                    acct.role !== currentRole ? 'Rôle incorrect — vérifiez votre sélection.' :
+                    'Mot de passe incorrect.'
+                );
+            }
+        }, 1100);
+    }
+</script>
+</body>
+</html>

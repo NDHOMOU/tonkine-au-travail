@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:      #0F1923;
+            --ink-60:   rgba(15,25,35,.6);
+            --ink-30:   rgba(15,25,35,.3);
+            --ink-08:   rgba(15,25,35,.08);
+            --blue:     #1353A4;
+            --blue-mid: #1C6FD4;
+            --sky:      #D6E8FF;
+            --sky-deep: #B0D0F8;
+            --teal:     #0B9B8A;
+            --teal-bg:  #E0F5F3;
+            --sand:     #F5F1EB;
+            --warn:     #C47A00;
+            --warn-bg:  #FEF3DC;
+            --bad:      #C0392B;
+            --bad-bg:   #FDECEA;
+            --white:    #FFFFFF;
+            --border:   rgba(15,25,35,.1);
+            --sidebar:  #0F1923;
+            --f-serif:  'Fraunces', Georgia, serif;
+            --f-sans:   'Inter', system-ui, sans-serif;
+            --sw:       240px;
+        }
+        html { height: 100%; }
+        body {
+            font-family: var(--f-sans);
+            color: var(--ink);
+            background: #F7F8FC;
+            -webkit-font-smoothing: antialiased;
+            display: flex; min-height: 100vh;
+        }
+
+        /* ══════ SIDEBAR ══════ */
+        .sidebar {
+            width: var(--sw); background: var(--sidebar);
+            position: fixed; top: 0; left: 0; bottom: 0;
+            display: flex; flex-direction: column;
+            overflow-y: auto; z-index: 60;
+        }
+
+        .sb-logo {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none;
+        }
+        .sb-logo-img {
+            width: 32px; height: 32px; border-radius: 7px;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .sb-logo-img img { width:100%; height:100%; object-fit:cover; }
+        .sb-logo-text {
+            font-family: var(--f-serif); font-size: .9rem;
+            font-weight: 600; color: rgba(255,255,255,.85);
+            line-height: 1.2;
+        }
+        .sb-logo-text small { display:block; font-family: var(--f-sans); font-size: .62rem; color: rgba(255,255,255,.35); font-weight: 400; }
+
+        .sb-user {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sb-user-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            overflow: hidden; flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,.15);
+        }
+        .sb-user-avatar img { width:100%; height:100%; object-fit:cover; }
+        .sb-user-name { font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.85); }
+        .sb-user-role { font-size: .68rem; color: rgba(255,255,255,.4); margin-top: 1px; }
+        .sb-user-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--teal); margin-top: 1px;
+            animation: sbpulse 2s ease-in-out infinite;
+        }
+        @keyframes sbpulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+        .sb-section { padding: 20px 0 8px; }
+        .sb-section-label {
+            padding: 0 20px 6px; font-size: .6rem; font-weight: 700;
+            letter-spacing: .1em; text-transform: uppercase;
+            color: rgba(255,255,255,.25);
+        }
+        .sb-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 20px; text-decoration: none;
+            font-size: .82rem; font-weight: 500;
+            color: rgba(255,255,255,.5);
+            border-left: 2px solid transparent;
+            transition: all .15s; cursor: pointer;
+        }
+        .sb-link:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.04); }
+        .sb-link.active {
+            color: white; background: rgba(255,255,255,.07);
+            border-left-color: var(--teal);
+        }
+        .sb-link i { width: 16px; font-size: .8rem; text-align: center; opacity: .8; }
+        .sb-badge {
+            margin-left: auto; background: rgba(255,255,255,.12);
+            color: rgba(255,255,255,.7); font-size: .6rem; font-weight: 700;
+            padding: 2px 6px; border-radius: 4px;
+        }
+        .sb-badge.warn { background: rgba(196,122,0,.3); color: #FFD07B; }
+
+        /* Timer sidebar */
+        .sb-timer {
+            margin: 12px 14px 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+        .sb-timer-head {
+            padding: 10px 14px 0;
+            font-size: .62rem; font-weight: 700;
+            letter-spacing: .08em; text-transform: uppercase;
+            color: rgba(255,255,255,.3);
+        }
+        .sb-timer-val {
+            padding: 4px 14px 10px;
+            font-family: var(--f-serif);
+            font-size: 1.8rem; font-weight: 300;
+            color: white; letter-spacing: -.02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .sb-timer-track {
+            height: 3px; background: rgba(255,255,255,.06);
+        }
+        .sb-timer-fill {
+            height: 100%; background: var(--teal);
+            transition: width .5s, background .5s;
+        }
+        .sb-timer-status {
+            padding: 8px 14px; font-size: .68rem;
+            color: rgba(255,255,255,.4);
+        }
+
+        .sb-bottom {
+            margin-top: auto; padding: 14px 14px 18px;
+            border-top: 1px solid rgba(255,255,255,.06);
+        }
+        .sb-logout {
+            display: flex; align-items: center; gap: 8px;
+            width: 100%; padding: 9px 14px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: transparent; color: rgba(255,255,255,.4);
+            font-family: var(--f-sans); font-size: .78rem; font-weight: 500;
+            cursor: pointer; transition: all .15s;
+        }
+        .sb-logout:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.7); }
+
+        /* ══════ MAIN ══════ */
+        .main {
+            margin-left: var(--sw); flex: 1;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* Topbar */
+        .topbar {
+            background: white; height: 60px; padding: 0 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-left h2 { font-size: .95rem; font-weight: 600; }
+        .topbar-left span { font-size: .8rem; color: var(--ink-60); margin-left: 6px; font-weight: 400; }
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+        .tb-btn {
+            width: 34px; height: 34px; border-radius: 7px;
+            border: 1px solid var(--border); background: white;
+            color: var(--ink-60); cursor: pointer; font-size: .82rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .15s; position: relative;
+        }
+        .tb-btn:hover { border-color: var(--ink-30); color: var(--ink); }
+        .tb-notif-dot {
+            position: absolute; top: 5px; right: 5px;
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--bad); border: 1.5px solid white;
+        }
+        .tb-lang {
+            padding: 0 12px; height: 34px; border-radius: 7px;
+            border: 1px solid var(--border); background: white;
+            font-family: var(--f-sans); font-size: .75rem; font-weight: 600;
+            color: var(--ink-60); cursor: pointer; transition: all .15s;
+        }
+        .tb-lang:hover { border-color: var(--ink-30); color: var(--ink); }
+        .tb-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            overflow: hidden; border: 2px solid var(--border); cursor: pointer;
+            transition: border-color .15s;
+        }
+        .tb-avatar:hover { border-color: var(--blue); }
+        .tb-avatar img { width:100%; height:100%; object-fit:cover; }
+
+        /* ══════ CONTENU ══════ */
+        .content { padding: 28px; flex: 1; }
+
+        /* ── Bannière posture globale ── */
+        .posture-banner {
+            background: white; border: 1px solid var(--border);
+            border-radius: 14px; padding: 24px 28px;
+            display: grid; grid-template-columns: 1fr auto;
+            gap: 24px; align-items: center; margin-bottom: 20px;
+        }
+        .pb-left {}
+        .pb-eyebrow {
+            font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: var(--ink-60);
+            margin-bottom: 6px;
+        }
+        .pb-title {
+            font-family: var(--f-serif);
+            font-size: 1.5rem; font-weight: 300; color: var(--ink);
+            letter-spacing: -.015em; margin-bottom: 18px;
+        }
+        .pb-title em { font-style: italic; color: var(--warn); }
+        .pb-scores { display: flex; gap: 24px; flex-wrap: wrap; }
+        .pb-score-item {}
+        .pb-score-item .label { font-size: .7rem; color: var(--ink-60); margin-bottom: 3px; }
+        .pb-score-item .value {
+            font-size: .95rem; font-weight: 600;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .dot-good { color: var(--teal); }
+        .dot-warn { color: var(--warn); }
+        .dot-bad  { color: var(--bad);  }
+
+        .pb-right { text-align: center; }
+        .pb-ring {
+            position: relative; display: inline-block;
+        }
+        .pb-ring svg { transform: rotate(-90deg); }
+        .pb-ring-num {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .pb-ring-num .big { font-family: var(--f-serif); font-size: 1.8rem; font-weight: 300; color: var(--ink); }
+        .pb-ring-num .sml { font-size: .62rem; color: var(--ink-60); }
+
+        /* ── 3 stat cards ── */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(3,1fr);
+            gap: 14px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white; border: 1px solid var(--border);
+            border-radius: 12px; padding: 18px 20px;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .sc-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .sc-icon img { width:100%; height:100%; object-fit:cover; }
+        .sc-val { font-family: var(--f-serif); font-size: 1.4rem; font-weight: 300; color: var(--ink); line-height: 1; }
+        .sc-lbl { font-size: .72rem; color: var(--ink-60); margin-top: 3px; }
+
+        /* ── Layout 2 colonnes ── */
+        .two-col {
+            display: grid; grid-template-columns: 1.4fr 1fr;
+            gap: 14px; margin-bottom: 20px;
+        }
+
+        /* ── Carte générique ── */
+        .card {
+            background: white; border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+        }
+        .card-head {
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-head h3 {
+            font-size: .88rem; font-weight: 600; color: var(--ink);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-head h3 img {
+            width: 22px; height: 22px; border-radius: 5px; object-fit: cover;
+        }
+        .ch-badge {
+            padding: 3px 10px; border-radius: 20px;
+            font-size: .68rem; font-weight: 600;
+        }
+        .ch-badge.green { background: var(--teal-bg); color: var(--teal); }
+        .ch-badge.warn  { background: var(--warn-bg);  color: var(--warn); }
+        .ch-badge.blue  { background: var(--sky);      color: var(--blue); }
+        .card-body { padding: 20px; }
+
+        /* ── Webcam ── */
+        .webcam-block {
+            display: grid; grid-template-columns: 200px 1fr;
+            gap: 20px; align-items: start;
+        }
+        .webcam-frame {
+            aspect-ratio: 4/3; border-radius: 10px;
+            overflow: hidden; position: relative;
+            background: var(--ink); border: 1px solid var(--border);
+        }
+        .webcam-frame video { width:100%; height:100%; object-fit:cover; }
+        .webcam-frame .no-cam {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 8px;
+        }
+        .webcam-frame .no-cam img {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: .4; filter: grayscale(1);
+        }
+        .webcam-frame .no-cam-text {
+            position: absolute; bottom: 10px; left: 0; right: 0;
+            text-align: center; font-size: .65rem; color: rgba(255,255,255,.5);
+        }
+        .webcam-live {
+            position: absolute; top: 8px; left: 8px;
+            background: rgba(192,57,43,.9); color: white;
+            font-size: .6rem; font-weight: 700; padding: 3px 8px;
+            border-radius: 4px; display: none; align-items: center; gap: 4px;
+        }
+        .webcam-live .blink {
+            width: 5px; height: 5px; border-radius: 50%; background: white;
+            animation: sbpulse 1s infinite;
+        }
+        .webcam-skeleton {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: none; align-items: center; justify-content: center;
+        }
+        .webcam-skeleton svg { opacity: .35; }
+
+        .webcam-info h4 { font-size: .88rem; font-weight: 600; margin-bottom: 6px; }
+        .webcam-info p  { font-size: .8rem; color: var(--ink-60); line-height: 1.65; margin-bottom: 14px; }
+        .btn-cam {
+            padding: 9px 18px; border-radius: 7px;
+            background: var(--ink); color: white;
+            border: none; font-family: var(--f-sans);
+            font-size: .82rem; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+            transition: all .15s;
+        }
+        .btn-cam:hover { background: #1a2e45; }
+        .btn-cam.on { background: var(--bad); }
+        .btn-cam.on:hover { background: #a93226; }
+
+        /* ── Barres posture ── */
+        .posture-rows { display: flex; flex-direction: column; gap: 14px; }
+        .pr-item {}
+        .pr-head {
+            display: flex; justify-content: space-between;
+            font-size: .78rem; margin-bottom: 6px;
+        }
+        .pr-head .name { font-weight: 500; display: flex; align-items: center; gap: 7px; }
+        .pr-head .name img { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; }
+        .pr-head .pct { font-weight: 700; font-size: .78rem; }
+        .pr-track {
+            height: 6px; background: #EEF2F7; border-radius: 3px; overflow: hidden;
+        }
+        .pr-fill {
+            height: 100%; border-radius: 3px;
+            transition: width 1.4s cubic-bezier(.4,0,.2,1);
+        }
+        .pr-fill.ok   { background: var(--teal); }
+        .pr-fill.warn { background: var(--warn); }
+        .pr-fill.bad  { background: var(--bad); }
+        .pct.ok   { color: var(--teal); }
+        .pct.warn { color: var(--warn); }
+        .pct.bad  { color: var(--bad);  }
+
+        /* ── Exercices ── */
+        .exercise-list { display: flex; flex-direction: column; gap: 10px; }
+        .ex-item {
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px 14px; display: flex; align-items: center;
+            gap: 12px; cursor: pointer; transition: all .15s;
+        }
+        .ex-item:hover { border-color: var(--blue); background: #F7FAFF; transform: translateX(2px); }
+        .ex-item.done { opacity: .55; background: #F8FFFB; border-color: rgba(11,155,138,.2); }
+        .ex-thumb {
+            width: 44px; height: 44px; border-radius: 9px;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .ex-thumb img { width:100%; height:100%; object-fit:cover; filter: grayscale(.2); }
+        .ex-info h4 { font-size: .8rem; font-weight: 600; margin-bottom: 2px; }
+        .ex-info p  { font-size: .72rem; color: var(--ink-60); }
+        .ex-meta { margin-left: auto; text-align: right; flex-shrink: 0; }
+        .ex-meta .dur { font-size: .75rem; font-weight: 700; color: var(--blue); }
+        .ex-meta .zone { font-size: .65rem; color: var(--ink-60); margin-top: 2px; }
+        .ex-check {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--teal-bg); border: 1.5px solid var(--teal);
+            display: none; align-items: center; justify-content: center;
+            color: var(--teal); font-size: .65rem; flex-shrink: 0;
+        }
+        .ex-item.done .ex-check { display: flex; }
+
+        /* ── Timeline ── */
+        .timeline { display: flex; flex-direction: column; }
+        .tl-item {
+            display: flex; gap: 12px; padding: 11px 0;
+            border-bottom: 1px solid var(--border); align-items: flex-start;
+        }
+        .tl-item:last-child { border-bottom: none; }
+        .tl-dot {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .72rem; flex-shrink: 0; margin-top: 1px;
+            overflow: hidden;
+        }
+        .tl-dot img { width:100%; height:100%; object-fit:cover; }
+        .tl-dot.blue  { background: var(--sky); color: var(--blue); border-color: var(--sky-deep); }
+        .tl-dot.green { background: var(--teal-bg); color: var(--teal); border-color: rgba(11,155,138,.2); }
+        .tl-dot.warn  { background: var(--warn-bg); color: var(--warn); border-color: rgba(196,122,0,.2); }
+        .tl-text h4 { font-size: .78rem; font-weight: 600; }
+        .tl-text p  { font-size: .7rem; color: var(--ink-60); margin-top: 2px; }
+        .tl-time { margin-left: auto; font-size: .68rem; color: var(--ink-60); white-space: nowrap; flex-shrink: 0; }
+
+        /* ══════ ALERTE PAUSE ══════ */
+        .pause-overlay {
+            position: fixed; inset: 0;
+            background: rgba(10,18,28,.75);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none; align-items: center; justify-content: center;
+        }
+        .pause-overlay.show { display: flex; animation: fadein .25s; }
+        @keyframes fadein { from{opacity:0} to{opacity:1} }
+
+        .pause-modal {
+            background: white; border-radius: 20px;
+            width: min(580px, 92vw);
+            box-shadow: 0 40px 100px rgba(0,0,0,.2);
+            overflow: hidden;
+            animation: slideup .3s cubic-bezier(.4,0,.2,1);
+        }
+        @keyframes slideup { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+        .pause-hero {
+            position: relative; height: 200px; overflow: hidden;
+        }
+        .pause-hero img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: brightness(.75);
+        }
+        .pause-hero-text {
+            position: absolute; inset: 0; padding: 24px 28px;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .pause-hero-text .pill-white {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: rgba(255,255,255,.15); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.2);
+            color: white; font-size: .72rem; font-weight: 600;
+            padding: 5px 12px; border-radius: 20px;
+            width: fit-content; margin-bottom: 10px;
+        }
+        .pause-hero-text h2 {
+            font-family: var(--f-serif);
+            font-size: 1.8rem; font-weight: 300;
+            color: white; letter-spacing: -.02em; line-height: 1.2;
+        }
+
+        .pause-body { padding: 24px 28px 28px; }
+        .pause-exercise {
+            background: var(--sand); border-radius: 12px;
+            padding: 18px 20px; margin-bottom: 22px;
+            display: flex; gap: 16px; align-items: flex-start;
+        }
+        .pause-ex-img {
+            width: 80px; height: 80px; border-radius: 10px;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .pause-ex-img img { width:100%; height:100%; object-fit:cover; }
+        .pause-ex-info h3 { font-size: .92rem; font-weight: 600; margin-bottom: 5px; }
+        .pause-ex-info p { font-size: .78rem; color: var(--ink-60); line-height: 1.6; }
+        .pause-steps { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+        .pause-steps li {
+            display: flex; gap: 7px; font-size: .75rem; color: var(--ink);
+            list-style: none;
+        }
+        .pause-steps li::before {
+            content: '→'; color: var(--teal); font-weight: 700; flex-shrink: 0;
+        }
+
+        .pause-actions { display: flex; gap: 10px; }
+        .btn-do {
+            flex: 1; padding: 13px; border-radius: 9px;
+            background: var(--ink); color: white; border: none;
+            font-family: var(--f-sans); font-size: .88rem; font-weight: 600;
+            cursor: pointer; transition: all .15s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-do:hover { background: #1a2e45; }
+        .btn-snooze {
+            padding: 13px 20px; border-radius: 9px;
+            border: 1px solid var(--border); background: white;
+            font-family: var(--f-sans); font-size: .82rem; font-weight: 500;
+            color: var(--ink-60); cursor: pointer; transition: all .15s;
+        }
+        .btn-snooze:hover { border-color: var(--ink-30); color: var(--ink); }
+        .pause-footer {
+            text-align: center; margin-top: 14px;
+            font-size: .72rem; color: var(--ink-60);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--ink); color: white;
+            padding: 13px 18px; border-radius: 10px;
+            font-size: .82rem; font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,.2);
+            display: none; align-items: center; gap: 10px;
+            z-index: 300; max-width: 340px;
+            animation: slideup .25s;
+        }
+        .toast.show { display: flex; }
+        .toast-icon {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--teal-bg); color: var(--teal);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .7rem; flex-shrink: 0;
+        }
+
+        @media (max-width: 1100px) {
+            .two-col { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 800px) {
+            .sidebar { transform: translateX(-100%); transition: transform .25s; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .stats-row { grid-template-columns: 1fr; }
+            .webcam-block { grid-template-columns: 1fr; }
+            .posture-banner { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sb-logo">
+        <div class="sb-logo-img">
+            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=64&h=64&fit=crop" alt="">
+        </div>
+        <div class="sb-logo-text">
+            TonKiné au Travail
+            <small>Espace Employé</small>
+        </div>
+    </a>
+
+    <div class="sb-user">
+        <div class="sb-user-avatar">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=72&h=72&fit=crop&crop=face" alt="">
+        </div>
+        <div style="flex:1">
+            <div class="sb-user-name">Jean-Paul Kamga</div>
+            <div class="sb-user-role">Développeur · IT</div>
+        </div>
+        <div class="sb-user-dot"></div>
+    </div>
+
+    <div class="sb-section">
+        <div class="sb-section-label">Principal</div>
+        <a class="sb-link active" href="#"><i class="fas fa-home"></i> Tableau de bord</a>
+        <a class="sb-link" href="#"><i class="fas fa-camera"></i> Ma posture <span class="sb-badge warn">⚠</span></a>
+        <a class="sb-link" href="#"><i class="fas fa-dumbbell"></i> Mes exercices</a>
+        <a class="sb-link" href="#"><i class="fas fa-clock"></i> Minuteur pause</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-section-label">Santé</div>
+        <a class="sb-link" href="#"><i class="fas fa-chart-line"></i> Mon historique</a>
+        <a class="sb-link" href="#"><i class="fas fa-file-medical"></i> Protocoles curatifs</a>
+        <a class="sb-link" href="#"><i class="fas fa-calendar-check"></i> Prendre un RDV kiné</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-section-label">Compte</div>
+        <a class="sb-link" href="#"><i class="fas fa-user"></i> Mon profil</a>
+        <a class="sb-link" href="#"><i class="fas fa-heart"></i> Mes hobbies</a>
+        <a class="sb-link" href="#"><i class="fas fa-cog"></i> Paramètres</a>
+    </div>
+
+    <div class="sb-timer">
+        <div class="sb-timer-head">Assis depuis</div>
+        <div class="sb-timer-val" id="sb-timer">00:00:00</div>
+        <div class="sb-timer-track">
+            <div class="sb-timer-fill" id="sb-bar" style="width:0%"></div>
+        </div>
+        <div class="sb-timer-status" id="sb-status">En surveillance…</div>
+    </div>
+
+    <div class="sb-bottom">
+        <button class="sb-logout" onclick="window.location.href='connexion.html'">
+            <i class="fas fa-sign-out-alt"></i> Se déconnecter
+        </button>
+    </div>
+</aside>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+    <div class="topbar">
+        <div class="topbar-left">
+            <h2>Tableau de bord <span>— Bonjour Jean-Paul</span></h2>
+        </div>
+        <div class="topbar-right">
+            <button class="tb-lang">🌐 FR</button>
+            <button class="tb-btn" onclick="triggerAlert()" title="Tester alerte pause">
+                <i class="fas fa-bell"></i>
+                <span class="tb-notif-dot"></span>
+            </button>
+            <div class="tb-avatar">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=68&h=68&fit=crop&crop=face" alt="">
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Bannière posture globale -->
+        <div class="posture-banner">
+            <div class="pb-left">
+                <div class="pb-eyebrow">Analyse du jour · Lundi 2 juin 2026</div>
+                <div class="pb-title">
+                    Posture globalement bonne — <em>surveillez votre nuque</em>
+                </div>
+                <div class="pb-scores">
+                    <div class="pb-score-item">
+                        <div class="label">Dos / Colonne</div>
+                        <div class="value dot-good"><i class="fas fa-circle" style="font-size:.4rem"></i> 92%</div>
+                    </div>
+                    <div class="pb-score-item">
+                        <div class="label">Nuque</div>
+                        <div class="value dot-warn"><i class="fas fa-circle" style="font-size:.4rem"></i> 64%</div>
+                    </div>
+                    <div class="pb-score-item">
+                        <div class="label">Poignets</div>
+                        <div class="value dot-good"><i class="fas fa-circle" style="font-size:.4rem"></i> 88%</div>
+                    </div>
+                    <div class="pb-score-item">
+                        <div class="label">Épaules</div>
+                        <div class="value dot-good"><i class="fas fa-circle" style="font-size:.4rem"></i> 90%</div>
+                    </div>
+                    <div class="pb-score-item">
+                        <div class="label">Hanches</div>
+                        <div class="value dot-warn"><i class="fas fa-circle" style="font-size:.4rem"></i> 71%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="pb-right">
+                <div class="pb-ring">
+                    <svg width="90" height="90" viewBox="0 0 90 90">
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="#EEF2F7" stroke-width="6"/>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="#1353A4" stroke-width="6"
+                            stroke-dasharray="238.76" stroke-dashoffset="33.4"
+                            stroke-linecap="round"/>
+                    </svg>
+                    <div class="pb-ring-num">
+                        <span class="big">84</span>
+                        <span class="sml">/100</span>
+                    </div>
+                </div>
+                <div style="font-size:.7rem;color:var(--ink-60);margin-top:6px">Score global</div>
+            </div>
+        </div>
+
+        <!-- Stats rapides -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="sc-icon">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=80&h=80&fit=crop" alt="">
+                </div>
+                <div>
+                    <div class="sc-val" id="seated-today">0h 00m</div>
+                    <div class="sc-lbl">Position assise aujourd'hui</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon">
+                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=80&h=80&fit=crop" alt="">
+                </div>
+                <div>
+                    <div class="sc-val">2 / 4</div>
+                    <div class="sc-lbl">Pauses actives effectuées</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon">
+                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=80&h=80&fit=crop" alt="">
+                </div>
+                <div>
+                    <div class="sc-val">5 jours</div>
+                    <div class="sc-lbl">Sans alerte critique consécutifs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Webcam + posture -->
+        <div class="card" style="margin-bottom:20px">
+            <div class="card-head">
+                <h3>
+                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=44&h=44&fit=crop" alt="">
+                    Surveillance posturale en direct
+                </h3>
+                <span class="ch-badge blue" id="cam-badge">Caméra inactive</span>
+            </div>
+            <div class="card-body">
+                <div class="webcam-block">
+                    <div class="webcam-frame">
+                        <img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=400&h=300&fit=crop&crop=top"
+                            alt="" style="width:100%;height:100%;object-fit:cover;opacity:.3;filter:grayscale(1)">
+                        <div class="webcam-live" id="live-badge">
+                            <span class="blink"></span> LIVE
+                        </div>
+                        <video id="cam-video" autoplay muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none"></video>
+                        <div class="webcam-skeleton" id="cam-skeleton">
+                            <svg width="60" height="120" viewBox="0 0 60 120" fill="none">
+                                <circle cx="30" cy="10" r="8" stroke="white" stroke-width="1.5"/>
+                                <line x1="30" y1="18" x2="30" y2="60" stroke="white" stroke-width="1.5"/>
+                                <line x1="30" y1="28" x2="12" y2="50" stroke="white" stroke-width="1.5"/>
+                                <line x1="30" y1="28" x2="48" y2="50" stroke="white" stroke-width="1.5"/>
+                                <line x1="30" y1="60" x2="18" y2="90" stroke="white" stroke-width="1.5"/>
+                                <line x1="30" y1="60" x2="42" y2="90" stroke="white" stroke-width="1.5"/>
+                                <line x1="18" y1="90" x2="16" y2="112" stroke="white" stroke-width="1.5"/>
+                                <line x1="42" y1="90" x2="44" y2="112" stroke="white" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <div class="no-cam-text" id="cam-label-off">Activez la webcam pour la surveillance</div>
+                    </div>
+                    <div class="webcam-info">
+                        <h4>Analyse posturale par webcam</h4>
+                        <p>TonKiné utilise TensorFlow.js et MoveNet pour analyser votre posture en temps réel directement sur votre poste, sans envoyer la moindre image sur Internet. Dès que vous vous levez, le minuteur de pause se remet automatiquement à zéro.</p>
+                        <button class="btn-cam" id="cam-btn" onclick="toggleWebcam()">
+                            <i class="fas fa-camera" id="cam-icon"></i>
+                            <span id="cam-btn-lbl">Activer la surveillance</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Posture + Exercices -->
+        <div class="two-col">
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=44&h=44&fit=crop" alt="">
+                        Analyse posturale détaillée
+                    </h3>
+                    <span class="ch-badge warn">Nuque à surveiller</span>
+                </div>
+                <div class="card-body">
+                    <div class="posture-rows">
+                        <div class="pr-item">
+                            <div class="pr-head">
+                                <span class="name">
+                                    <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=36&h=36&fit=crop" alt="">
+                                    Dos / Colonne vertébrale
+                                </span>
+                                <span class="pct ok">92%</span>
+                            </div>
+                            <div class="pr-track"><div class="pr-fill ok" style="width:0%" data-w="92"></div></div>
+                        </div>
+                        <div class="pr-item">
+                            <div class="pr-head">
+                                <span class="name">
+                                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=36&h=36&fit=crop" alt="">
+                                    Nuque / Cervicales
+                                </span>
+                                <span class="pct warn">64%</span>
+                            </div>
+                            <div class="pr-track"><div class="pr-fill warn" style="width:0%" data-w="64"></div></div>
+                        </div>
+                        <div class="pr-item">
+                            <div class="pr-head">
+                                <span class="name">
+                                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=36&h=36&fit=crop" alt="">
+                                    Épaules
+                                </span>
+                                <span class="pct ok">90%</span>
+                            </div>
+                            <div class="pr-track"><div class="pr-fill ok" style="width:0%" data-w="90"></div></div>
+                        </div>
+                        <div class="pr-item">
+                            <div class="pr-head">
+                                <span class="name">
+                                    <img src="https://images.unsplash.com/photo-1616279969965-9ac56ade3e24?w=36&h=36&fit=crop" alt="">
+                                    Poignets / Avant-bras
+                                </span>
+                                <span class="pct ok">88%</span>
+                            </div>
+                            <div class="pr-track"><div class="pr-fill ok" style="width:0%" data-w="88"></div></div>
+                        </div>
+                        <div class="pr-item">
+                            <div class="pr-head">
+                                <span class="name">
+                                    <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=36&h=36&fit=crop" alt="">
+                                    Hanches / Bassin
+                                </span>
+                                <span class="pct warn">71%</span>
+                            </div>
+                            <div class="pr-track"><div class="pr-fill warn" style="width:0%" data-w="71"></div></div>
+                        </div>
+                        <div class="pr-item">
+                            <div class="pr-head">
+                                <span class="name">
+                                    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=36&h=36&fit=crop" alt="">
+                                    Yeux / Distance écran
+                                </span>
+                                <span class="pct ok">85%</span>
+                            </div>
+                            <div class="pr-track"><div class="pr-fill ok" style="width:0%" data-w="85"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=44&h=44&fit=crop" alt="">
+                        Exercices du jour
+                    </h3>
+                    <span class="ch-badge blue">Selon vos hobbies</span>
+                </div>
+                <div class="card-body">
+                    <div class="exercise-list">
+                        <div class="ex-item done">
+                            <div class="ex-thumb">
+                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=88&h=88&fit=crop" alt="">
+                            </div>
+                            <div class="ex-info">
+                                <h4>Rotation nuque — Musique</h4>
+                                <p>Rotation lente sur rythme musical</p>
+                            </div>
+                            <div class="ex-meta">
+                                <div class="dur">5 min</div>
+                                <div class="zone">Nuque</div>
+                            </div>
+                            <div class="ex-check"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="ex-item" onclick="markDone(this)">
+                            <div class="ex-thumb">
+                                <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=88&h=88&fit=crop" alt="">
+                            </div>
+                            <div class="ex-info">
+                                <h4>Étirements dorsaux</h4>
+                                <p>Inspiré de vos playlists</p>
+                            </div>
+                            <div class="ex-meta">
+                                <div class="dur">7 min</div>
+                                <div class="zone">Dos</div>
+                            </div>
+                            <div class="ex-check"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="ex-item" onclick="markDone(this)">
+                            <div class="ex-thumb">
+                                <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=88&h=88&fit=crop" alt="">
+                            </div>
+                            <div class="ex-info">
+                                <h4>Marche au bureau</h4>
+                                <p>2 tours de couloir — café ou eau</p>
+                            </div>
+                            <div class="ex-meta">
+                                <div class="dur">3 min</div>
+                                <div class="zone">Circulation</div>
+                            </div>
+                            <div class="ex-check"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="ex-item" onclick="markDone(this)">
+                            <div class="ex-thumb">
+                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=88&h=88&fit=crop" alt="">
+                            </div>
+                            <div class="ex-info">
+                                <h4>Règle 20-20-20</h4>
+                                <p>Repos visuel — repos yeux</p>
+                            </div>
+                            <div class="ex-meta">
+                                <div class="dur">2 min</div>
+                                <div class="zone">Yeux</div>
+                            </div>
+                            <div class="ex-check"><i class="fas fa-check"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historique -->
+        <div class="card">
+            <div class="card-head">
+                <h3>
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=44&h=44&fit=crop" alt="">
+                    Activité d'aujourd'hui
+                </h3>
+                <span class="ch-badge green">En direct</span>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-dot blue"><i class="fas fa-sign-in-alt"></i></div>
+                        <div class="tl-text"><h4>Connexion à l'application</h4><p>Début de surveillance posturale active</p></div>
+                        <span class="tl-time">08:02</span>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot warn"><i class="fas fa-bell"></i></div>
+                        <div class="tl-text"><h4>Alerte posture — Nuque penchée</h4><p>Inclinaison cervicale de 32° détectée (norme recommandée : &lt; 20°)</p></div>
+                        <span class="tl-time">09:45</span>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot green"><i class="fas fa-running"></i></div>
+                        <div class="tl-text"><h4>Pause active effectuée</h4><p>Rotation nuque + étirements épaules — 5 min · Minuteur remis à zéro</p></div>
+                        <span class="tl-time">10:03</span>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot blue"><i class="fas fa-clock"></i></div>
+                        <div class="tl-text"><h4>Alerte 2h — Pause recommandée</h4><p>Changement de posture détecté par webcam — minuteur réinitialisé</p></div>
+                        <span class="tl-time">12:11</span>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot green"><i class="fas fa-utensils"></i></div>
+                        <div class="tl-text"><h4>Pause déjeuner</h4><p>Surveillance suspendue — reprise à 14h00</p></div>
+                        <span class="tl-time">13:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ══════════ ALERTE PAUSE ══════════ -->
+<div class="pause-overlay" id="pause-overlay">
+    <div class="pause-modal">
+        <div class="pause-hero">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=580&h=200&fit=crop&crop=center" alt="Pause active">
+            <div class="pause-hero-text">
+                <div class="pill-white"><i class="fas fa-clock"></i> 2 heures de position assise</div>
+                <h2>Jean-Paul, il est temps<br>de bouger.</h2>
+            </div>
+        </div>
+        <div class="pause-body">
+            <div class="pause-exercise">
+                <div class="pause-ex-img">
+                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=160&h=160&fit=crop" alt="">
+                </div>
+                <div class="pause-ex-info">
+                    <h3>Étirements rythmés — 5 minutes</h3>
+                    <p>Adapté à votre profil musical. Mettez votre musique et suivez :</p>
+                    <ul class="pause-steps">
+                        <li>Levez-vous, écartez les pieds à largeur d'épaules</li>
+                        <li>Roulez les épaules en arrière, lentement (×8)</li>
+                        <li>Inclinez la tête à gauche, tenez 20 secondes — puis droite</li>
+                        <li>Allez chercher un verre d'eau ou un café ☕</li>
+                        <li>Au retour, vérifiez la hauteur de votre écran</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pause-actions">
+                <button class="btn-do" onclick="doPause()">
+                    <i class="fas fa-play"></i> Commencer ma pause
+                </button>
+                <button class="btn-snooze" onclick="snooze()">Dans 10 min</button>
+            </div>
+            <div class="pause-footer">
+                Cette alerte se ferme automatiquement quand votre webcam détecte un changement de posture
+                — <span id="cd-val">60</span>s
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <div class="toast-icon"><i class="fas fa-check"></i></div>
+    <span id="toast-msg">Action enregistrée</span>
+</div>
+
+<script>
+    // ── TIMER ──
+    let secs = 0, total = 0, alertFired = false, cdInt;
+    const TWO_H = 7200;
+
+    setInterval(() => {
+        secs++; total++;
+        updateTimer();
+        if (secs >= TWO_H && !alertFired) { alertFired = true; triggerAlert(); }
+    }, 1000);
+
+    function updateTimer() {
+        const h = String(Math.floor(secs/3600)).padStart(2,'0');
+        const m = String(Math.floor((secs%3600)/60)).padStart(2,'0');
+        const s = String(secs%60).padStart(2,'0');
+        document.getElementById('sb-timer').textContent = `${h}:${m}:${s}`;
+
+        const pct = Math.min((secs/TWO_H)*100, 100);
+        const bar = document.getElementById('sb-bar');
+        bar.style.width = pct + '%';
+        bar.style.background = pct < 50 ? 'var(--teal)' : pct < 80 ? 'var(--warn)' : 'var(--bad)';
+
+        const st = document.getElementById('sb-status');
+        st.style.color = pct < 50 ? 'rgba(255,255,255,.35)' : pct < 80 ? '#FFD07B' : '#FF8A80';
+        st.textContent = pct < 50 ? 'Tout va bien' : pct < 80 ? '⚠ Pensez à bouger bientôt' : '🔴 Pause recommandée !';
+
+        const th = Math.floor(total/3600), tm = Math.floor((total%3600)/60);
+        document.getElementById('seated-today').textContent = `${th}h ${String(tm).padStart(2,'0')}m`;
+    }
+
+    function resetTimer() { secs = 0; alertFired = false; updateTimer(); }
+
+    // ── ALERTE ──
+    function triggerAlert() {
+        document.getElementById('pause-overlay').classList.add('show');
+        playChime();
+        let cd = 60;
+        document.getElementById('cd-val').textContent = cd;
+        cdInt = setInterval(() => {
+            cd--;
+            document.getElementById('cd-val').textContent = cd;
+            if (cd <= 0) { clearInterval(cdInt); closeOverlay(); }
+        }, 1000);
+    }
+
+    function doPause() { clearInterval(cdInt); closeOverlay(); resetTimer(); showToast('Pause enregistrée — bon courage !'); }
+    function snooze()  { clearInterval(cdInt); closeOverlay(); secs = TWO_H - 600; alertFired = false; showToast('Rappel dans 10 minutes'); }
+    function closeOverlay() { document.getElementById('pause-overlay').classList.remove('show'); }
+
+    function playChime() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [523.25, 659.25, 783.99].forEach((f, i) => {
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.type = 'sine'; o.frequency.value = f;
+                const t = ctx.currentTime + i * .18;
+                g.gain.setValueAtTime(0, t);
+                g.gain.linearRampToValueAtTime(.15, t + .06);
+                g.gain.exponentialRampToValueAtTime(.001, t + .45);
+                o.start(t); o.stop(t + .5);
+            });
+        } catch(e){}
+    }
+
+    // ── WEBCAM ──
+    let stream = null;
+    async function toggleWebcam() {
+        const btn   = document.getElementById('cam-btn');
+        const ico   = document.getElementById('cam-icon');
+        const lbl   = document.getElementById('cam-btn-lbl');
+        const badge = document.getElementById('cam-badge');
+        const vid   = document.getElementById('cam-video');
+        const live  = document.getElementById('live-badge');
+        const skel  = document.getElementById('cam-skeleton');
+        const off   = document.getElementById('cam-label-off');
+
+        if (!stream) {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
+                vid.srcObject = stream;
+                vid.style.display = 'block';
+                live.style.display = 'flex';
+                skel.style.display = 'flex';
+                if(off) off.style.display = 'none';
+                btn.classList.add('on');
+                ico.className = 'fas fa-video-slash';
+                lbl.textContent = 'Désactiver la surveillance';
+                badge.textContent = '🟢 Surveillance active';
+                badge.className = 'ch-badge green';
+            } catch(e) {
+                badge.textContent = 'Accès refusé';
+                badge.className = 'ch-badge warn';
+                showToast('Veuillez autoriser l\'accès à la webcam dans les paramètres du navigateur.');
+            }
+        } else {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            vid.srcObject = null;
+            vid.style.display = 'none';
+            live.style.display = 'none';
+            skel.style.display = 'none';
+            if(off) off.style.display = 'block';
+            btn.classList.remove('on');
+            ico.className = 'fas fa-camera';
+            lbl.textContent = 'Activer la surveillance';
+            badge.textContent = 'Caméra inactive';
+            badge.className = 'ch-badge blue';
+        }
+    }
+
+    // ── EXERCICES ──
+    function markDone(el) {
+        if (el.classList.contains('done')) return;
+        el.classList.add('done');
+        const name = el.querySelector('h4').textContent;
+        showToast(`"${name}" — marqué comme fait`);
+    }
+
+    // ── TOAST ──
+    let toastTimer;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ── BARRES ──
+    setTimeout(() => {
+        document.querySelectorAll('.pr-fill[data-w]').forEach(b => {
+            b.style.width = b.dataset.w + '%';
+        });
+    }, 400);
+</script>
+</body>
+</html>

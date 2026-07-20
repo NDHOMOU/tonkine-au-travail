@@ -1,0 +1,39 @@
+{
+  "name": "TonKiné au Travail",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "runServices": ["db"],
+  "shutdownAction": "stopCompose",
+
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "jdkDistro": "tem"
+    },
+    "ghcr.io/devcontainers/features/maven:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+
+  "forwardPorts": [3000, 8080, 5432],
+  "portsAttributes": {
+    "3000": { "label": "Frontend (Vite)" },
+    "8080": { "label": "Backend (Spring Boot)" },
+    "5432": { "label": "PostgreSQL" }
+  },
+
+  "postCreateCommand": "cd tonkine-frontend && npm install",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-spring-boot",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocoles Curatifs — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:     #0F1923; --ink-60:rgba(15,25,35,.6); --ink-30:rgba(15,25,35,.3);
+            --blue:    #1353A4; --sky:#D6E8FF; --teal:#0B9B8A; --teal-bg:#E0F5F3;
+            --sand:    #F5F1EB; --warn:#C47A00; --warn-bg:#FEF3DC;
+            --bad:     #C0392B; --bad-bg:#FDECEA;
+            --border:  rgba(15,25,35,.1);
+            --f-serif: 'Fraunces', Georgia, serif; --f-sans:'Inter', system-ui, sans-serif;
+            --sw:240px;
+        }
+        body { font-family:var(--f-sans); color:var(--ink); background:#F7F8FC; display:flex; min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+        /* ── Sidebar ── */
+        .sidebar { width:var(--sw); background:#0F1923; position:fixed; top:0; left:0; bottom:0; display:flex; flex-direction:column; z-index:60; overflow-y:auto; }
+        .sb-logo { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .sb-logo img { width:32px; height:32px; border-radius:7px; object-fit:cover; }
+        .sb-logo-text { font-family:var(--f-serif); font-size:.9rem; font-weight:600; color:rgba(255,255,255,.85); line-height:1.2; }
+        .sb-logo-text small { display:block; font-family:var(--f-sans); font-size:.62rem; color:rgba(255,255,255,.35); font-weight:400; }
+        .sb-user { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:10px; }
+        .sb-user img { width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,.15); object-fit:cover; }
+        .sb-user-name { font-size:.8rem; font-weight:600; color:rgba(255,255,255,.85); }
+        .sb-user-role { font-size:.68rem; color:rgba(255,255,255,.4); margin-top:1px; }
+        .sb-section { padding:20px 0 8px; }
+        .sb-lbl { padding:0 20px 6px; font-size:.6rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.25); }
+        .sb-link { display:flex; align-items:center; gap:10px; padding:9px 20px; text-decoration:none; font-size:.82rem; font-weight:500; color:rgba(255,255,255,.5); border-left:2px solid transparent; transition:all .15s; }
+        .sb-link:hover { color:rgba(255,255,255,.85); background:rgba(255,255,255,.04); }
+        .sb-link.active { color:white; background:rgba(255,255,255,.07); border-left-color:var(--teal); }
+        .sb-link i { width:16px; font-size:.8rem; text-align:center; }
+        .sb-bottom { margin-top:auto; padding:14px 14px 18px; border-top:1px solid rgba(255,255,255,.06); }
+        .sb-logout { display:flex; align-items:center; gap:8px; width:100%; padding:9px 14px; border-radius:8px; border:1px solid rgba(255,255,255,.08); background:transparent; color:rgba(255,255,255,.4); font-family:var(--f-sans); font-size:.78rem; font-weight:500; cursor:pointer; transition:all .15s; }
+        .sb-logout:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.7); }
+
+        /* ── Main ── */
+        .main { margin-left:var(--sw); flex:1; display:flex; flex-direction:column; }
+        .topbar { background:white; height:60px; padding:0 28px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .topbar h2 { font-size:.95rem; font-weight:600; }
+        .topbar-right { display:flex; gap:10px; align-items:center; }
+        .tb-lang { padding:0 12px; height:32px; border-radius:6px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.75rem; font-weight:600; color:var(--ink-60); cursor:pointer; }
+        .tb-avatar { width:34px; height:34px; border-radius:50%; overflow:hidden; border:2px solid var(--border); }
+        .tb-avatar img { width:100%; height:100%; object-fit:cover; }
+
+        .content { padding:28px; }
+
+        /* ── Alerte douleur active ── */
+        .pain-alert {
+            background:var(--bad-bg); border:1px solid rgba(192,57,43,.2);
+            border-radius:14px; padding:18px 22px; margin-bottom:24px;
+            display:flex; align-items:center; gap:16px;
+        }
+        .pain-alert-icon { width:44px; height:44px; border-radius:10px; overflow:hidden; flex-shrink:0; }
+        .pain-alert-icon img { width:100%; height:100%; object-fit:cover; }
+        .pain-alert h3 { font-size:.9rem; font-weight:700; color:var(--bad); margin-bottom:3px; }
+        .pain-alert p { font-size:.78rem; color:var(--ink-60); line-height:1.5; }
+        .pain-alert-actions { margin-left:auto; display:flex; gap:8px; flex-shrink:0; }
+        .btn-alert-rdv { padding:9px 16px; border-radius:8px; background:var(--bad); color:white; border:none; font-family:var(--f-sans); font-size:.78rem; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+        .btn-alert-rdv:hover { background:#a93226; }
+        .btn-alert-dismiss { padding:9px 14px; border-radius:8px; border:1px solid rgba(192,57,43,.2); background:transparent; font-family:var(--f-sans); font-size:.78rem; color:var(--bad); cursor:pointer; transition:all .15s; }
+        .btn-alert-dismiss:hover { background:rgba(192,57,43,.06); }
+
+        /* ── Layout ── */
+        .curatif-layout { display:grid; grid-template-columns:220px 1fr; gap:20px; }
+
+        /* ── Menu zones ── */
+        .zones-menu { position:sticky; top:88px; }
+        .zones-menu h3 { font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); margin-bottom:10px; padding-left:4px; }
+        .zone-item {
+            display:flex; align-items:center; gap:10px; padding:10px 12px;
+            border-radius:9px; cursor:pointer; transition:all .15s; margin-bottom:4px;
+            border:1px solid transparent;
+        }
+        .zone-item:hover { background:white; border-color:var(--border); }
+        .zone-item.active { background:white; border-color:var(--blue); box-shadow:0 2px 8px rgba(19,83,164,.08); }
+        .zone-thumb { width:36px; height:36px; border-radius:8px; overflow:hidden; flex-shrink:0; }
+        .zone-thumb img { width:100%; height:100%; object-fit:cover; }
+        .zone-info .zname { font-size:.8rem; font-weight:600; }
+        .zone-info .zsub  { font-size:.65rem; color:var(--ink-60); margin-top:1px; }
+        .zone-risk { margin-left:auto; width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .zone-risk.high { background:var(--bad); }
+        .zone-risk.med  { background:var(--warn); }
+        .zone-risk.ok   { background:var(--teal); }
+
+        .zones-menu-footer { margin-top:16px; padding:14px; background:var(--sand); border-radius:10px; }
+        .zones-menu-footer p { font-size:.72rem; color:var(--ink-60); line-height:1.6; margin-bottom:10px; }
+        .btn-rdv-mini { width:100%; padding:9px; border-radius:7px; background:var(--ink); color:white; border:none; font-family:var(--f-sans); font-size:.75rem; font-weight:600; cursor:pointer; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; transition:all .15s; }
+        .btn-rdv-mini:hover { background:#1a2e45; }
+
+        /* ── Protocoles ── */
+        .protocols-area {}
+
+        /* Hero zone */
+        .zone-hero {
+            background:white; border:1px solid var(--border); border-radius:16px;
+            overflow:hidden; margin-bottom:20px; display:none;
+        }
+        .zone-hero.active { display:block; }
+        .zh-img { height:220px; overflow:hidden; position:relative; }
+        .zh-img img { width:100%; height:100%; object-fit:cover; filter:brightness(.75); }
+        .zh-img-text { position:absolute; inset:0; padding:28px 32px; display:flex; flex-direction:column; justify-content:flex-end; }
+        .zh-img-text .eyebrow { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:6px; }
+        .zh-img-text h2 { font-family:var(--f-serif); font-size:2rem; font-weight:300; color:white; letter-spacing:-.02em; line-height:1.2; }
+        .zh-img-text h2 em { font-style:italic; }
+        .zh-body { padding:22px 28px; display:grid; grid-template-columns:1fr 260px; gap:24px; align-items:start; }
+        .zh-desc p { font-size:.875rem; color:var(--ink-60); line-height:1.75; margin-bottom:14px; }
+        .zh-warning { background:var(--warn-bg); border:1px solid rgba(196,122,0,.18); border-radius:9px; padding:12px 15px; display:flex; gap:9px; font-size:.78rem; color:var(--warn); line-height:1.55; }
+        .zh-stats { background:var(--sand); border-radius:12px; padding:18px; }
+        .zh-stats h4 { font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-60); margin-bottom:12px; }
+        .zh-stat-row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid rgba(15,25,35,.06); font-size:.78rem; }
+        .zh-stat-row:last-child { border-bottom:none; }
+        .zh-stat-row .key { color:var(--ink-60); }
+        .zh-stat-row .val { font-weight:700; }
+        .val.bad  { color:var(--bad); }
+        .val.warn { color:var(--warn); }
+        .val.ok   { color:var(--teal); }
+
+        /* Protocoles liste */
+        .protocols-list {}
+        .proto-section { margin-bottom:28px; }
+        .proto-section-head { font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+        .proto-card {
+            background:white; border:1px solid var(--border); border-radius:14px;
+            overflow:hidden; margin-bottom:12px; transition:all .15s;
+        }
+        .proto-card:hover { border-color:rgba(15,25,35,.18); box-shadow:0 4px 16px rgba(15,25,35,.06); }
+        .proto-card.locked { opacity:.6; }
+
+        .proto-head { padding:16px 20px; display:flex; align-items:center; gap:14px; cursor:pointer; }
+        .proto-step-num { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; color:var(--ink-60); flex-shrink:0; }
+        .proto-step-num.done { background:var(--teal); border-color:var(--teal); color:white; }
+        .proto-step-num.active { background:var(--blue); border-color:var(--blue); color:white; }
+        .proto-step-num.locked { background:var(--sand); }
+        .proto-thumb { width:52px; height:52px; border-radius:10px; overflow:hidden; flex-shrink:0; }
+        .proto-thumb img { width:100%; height:100%; object-fit:cover; }
+        .proto-info { flex:1; }
+        .proto-info h3 { font-size:.88rem; font-weight:600; margin-bottom:3px; }
+        .proto-info p { font-size:.75rem; color:var(--ink-60); }
+        .proto-meta { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
+        .proto-dur { font-size:.72rem; font-weight:700; color:var(--blue); }
+        .proto-freq { font-size:.65rem; color:var(--ink-60); }
+        .proto-badge { padding:3px 9px; border-radius:10px; font-size:.65rem; font-weight:700; }
+        .proto-badge.done   { background:var(--teal-bg); color:var(--teal); }
+        .proto-badge.active { background:var(--sky);     color:var(--blue); }
+        .proto-badge.locked { background:var(--sand);    color:var(--ink-60); }
+        .chevron { color:var(--ink-30); font-size:.75rem; transition:transform .2s; flex-shrink:0; }
+        .proto-card.open .chevron { transform:rotate(180deg); }
+
+        /* Contenu protocole étendu */
+        .proto-body { display:none; border-top:1px solid var(--border); }
+        .proto-card.open .proto-body { display:block; }
+
+        .proto-body-inner { display:grid; grid-template-columns:280px 1fr; gap:0; }
+        .proto-media { background:var(--sand); padding:20px; }
+        .proto-video-wrap {
+            width:100%; aspect-ratio:4/3; border-radius:10px; overflow:hidden;
+            position:relative; background:var(--ink); margin-bottom:12px;
+        }
+        .proto-video-wrap img { width:100%; height:100%; object-fit:cover; opacity:.6; }
+        .video-play-btn {
+            position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+        }
+        .vpc { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.9); display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:var(--ink); cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.2); transition:all .15s; }
+        .vpc:hover { transform:scale(1.08); }
+        .video-info { font-size:.72rem; color:var(--ink-60); text-align:center; }
+        .video-info strong { display:block; color:var(--ink); font-weight:600; margin-bottom:2px; }
+
+        .proto-content { padding:20px 24px; }
+        .proto-content h4 { font-size:.82rem; font-weight:700; margin-bottom:10px; color:var(--ink); }
+        .steps-ol { list-style:none; display:flex; flex-direction:column; gap:9px; margin-bottom:20px; }
+        .steps-ol li { display:flex; gap:11px; font-size:.82rem; line-height:1.6; }
+        .s-num { width:22px; height:22px; border-radius:50%; background:var(--sky); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:.68rem; font-weight:700; flex-shrink:0; margin-top:2px; }
+
+        .proto-tips { background:var(--teal-bg); border-radius:9px; padding:13px 15px; margin-bottom:16px; }
+        .proto-tips h5 { font-size:.72rem; font-weight:700; color:var(--teal); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+        .proto-tips ul { list-style:none; display:flex; flex-direction:column; gap:5px; }
+        .proto-tips ul li { font-size:.75rem; color:var(--ink); display:flex; gap:7px; }
+        .proto-tips ul li::before { content:'→'; color:var(--teal); font-weight:700; flex-shrink:0; }
+
+        .proto-actions { display:flex; gap:9px; }
+        .btn-do-proto { padding:10px 20px; border-radius:8px; background:var(--ink); color:white; border:none; font-family:var(--f-sans); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px; }
+        .btn-do-proto:hover { background:#1a2e45; }
+        .btn-done-proto { padding:10px 16px; border-radius:8px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.78rem; font-weight:500; color:var(--ink-60); cursor:pointer; transition:all .15s; }
+        .btn-done-proto:hover { border-color:var(--teal); color:var(--teal); }
+
+        /* Progression */
+        .progress-bar-wrap { background:white; border:1px solid var(--border); border-radius:12px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; gap:16px; }
+        .pb-info { flex:1; }
+        .pb-info h4 { font-size:.82rem; font-weight:600; margin-bottom:6px; }
+        .pb-info p { font-size:.72rem; color:var(--ink-60); }
+        .pb-track { flex:2; height:8px; background:#EEF2F7; border-radius:4px; overflow:hidden; }
+        .pb-fill { height:100%; background:var(--teal); border-radius:4px; transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+        .pb-pct { font-family:var(--f-serif); font-size:1.2rem; font-weight:300; color:var(--teal); min-width:48px; text-align:right; }
+
+        /* Toast */
+        .toast { position:fixed; bottom:24px; right:24px; background:var(--ink); color:white; padding:12px 18px; border-radius:10px; font-size:.82rem; font-weight:500; box-shadow:0 8px 30px rgba(0,0,0,.2); display:none; align-items:center; gap:10px; z-index:300; }
+        .toast.show { display:flex; animation:sup .2s; }
+        @keyframes sup { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+        @media (max-width:1100px) { .curatif-layout { grid-template-columns:1fr; } .zones-menu { position:static; display:flex; gap:8px; flex-wrap:wrap; } .zones-menu h3 { display:none; } }
+        @media (max-width:800px)  { .zh-body { grid-template-columns:1fr; } .proto-body-inner { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <a href="index.html" class="sb-logo">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=64&h=64&fit=crop" alt="">
+        <div class="sb-logo-text">TonKiné au Travail<small>Espace Employé</small></div>
+    </a>
+    <div class="sb-user">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=72&h=72&fit=crop&crop=face" alt="">
+        <div><div class="sb-user-name">Jean-Paul Kamga</div><div class="sb-user-role">Développeur · IT</div></div>
+    </div>
+    <div class="sb-section">
+        <div class="sb-lbl">Principal</div>
+        <a class="sb-link" href="dashboard-employe.html"><i class="fas fa-home"></i> Tableau de bord</a>
+        <a class="sb-link" href="#"><i class="fas fa-camera"></i> Ma posture</a>
+        <a class="sb-link" href="exercices.html"><i class="fas fa-dumbbell"></i> Mes exercices</a>
+        <a class="sb-link" href="#"><i class="fas fa-clock"></i> Minuteur pause</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-lbl">Santé</div>
+        <a class="sb-link" href="#"><i class="fas fa-chart-line"></i> Mon historique</a>
+        <a class="sb-link active" href="curatif.html"><i class="fas fa-file-medical"></i> Protocoles curatifs</a>
+        <a class="sb-link" href="rdv-kine.html"><i class="fas fa-calendar-check"></i> Prendre un RDV kiné</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-lbl">Compte</div>
+        <a class="sb-link" href="#"><i class="fas fa-user"></i> Mon profil</a>
+        <a class="sb-link" href="#"><i class="fas fa-heart"></i> Mes hobbies</a>
+    </div>
+    <div class="sb-bottom">
+        <button class="sb-logout" onclick="window.location.href='connexion.html'"><i class="fas fa-sign-out-alt"></i> Se déconnecter</button>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <h2>Protocoles curatifs</h2>
+        <div class="topbar-right">
+            <button class="tb-lang">🌐 FR</button>
+            <div class="tb-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=68&h=68&fit=crop&crop=face" alt=""></div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Alerte douleur active -->
+        <div class="pain-alert">
+            <div class="pain-alert-icon"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=88&h=88&fit=crop" alt=""></div>
+            <div>
+                <h3>Douleur cervicale signalée lors de votre inscription</h3>
+                <p>Votre profil indique des douleurs cervicales récurrentes. Un protocole curatif adapté a été créé pour vous. Consultez-le en priorité, ou prenez un RDV kiné si les douleurs persistent.</p>
+            </div>
+            <div class="pain-alert-actions">
+                <a href="rdv-kine.html" class="btn-alert-rdv"><i class="fas fa-calendar-check"></i> RDV kiné</a>
+                <button class="btn-alert-dismiss" onclick="this.closest('.pain-alert').style.display='none'">Ignorer</button>
+            </div>
+        </div>
+
+        <div class="curatif-layout">
+
+            <!-- Menu zones latéral -->
+            <div class="zones-menu">
+                <h3>Zones du corps</h3>
+
+                <div class="zone-item active" id="zm-nuque" onclick="selectZone('nuque',this)">
+                    <div class="zone-thumb"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=72&h=72&fit=crop" alt=""></div>
+                    <div class="zone-info"><div class="zname">Nuque &amp; Cervicales</div><div class="zsub">Score 64% — Prioritaire</div></div>
+                    <div class="zone-risk high"></div>
+                </div>
+                <div class="zone-item" id="zm-dos" onclick="selectZone('dos',this)">
+                    <div class="zone-thumb"><img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=72&h=72&fit=crop" alt=""></div>
+                    <div class="zone-info"><div class="zname">Dos &amp; Lombaires</div><div class="zsub">Score 92% — Entretien</div></div>
+                    <div class="zone-risk ok"></div>
+                </div>
+                <div class="zone-item" id="zm-epaules" onclick="selectZone('epaules',this)">
+                    <div class="zone-thumb"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=72&h=72&fit=crop" alt=""></div>
+                    <div class="zone-info"><div class="zname">Épaules</div><div class="zsub">Score 90% — Bon état</div></div>
+                    <div class="zone-risk ok"></div>
+                </div>
+                <div class="zone-item" id="zm-poignets" onclick="selectZone('poignets',this)">
+                    <div class="zone-thumb"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=72&h=72&fit=crop" alt=""></div>
+                    <div class="zone-info"><div class="zname">Poignets &amp; Mains</div><div class="zsub">Score 88% — Surveiller</div></div>
+                    <div class="zone-risk med"></div>
+                </div>
+                <div class="zone-item" id="zm-hanches" onclick="selectZone('hanches',this)">
+                    <div class="zone-thumb"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=72&h=72&fit=crop" alt=""></div>
+                    <div class="zone-info"><div class="zname">Hanches &amp; Bassin</div><div class="zsub">Score 71% — Attention</div></div>
+                    <div class="zone-risk med"></div>
+                </div>
+                <div class="zone-item" id="zm-yeux" onclick="selectZone('yeux',this)">
+                    <div class="zone-thumb"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=72&h=72&fit=crop" alt=""></div>
+                    <div class="zone-info"><div class="zname">Yeux &amp; Vision</div><div class="zsub">Score 85% — Bon état</div></div>
+                    <div class="zone-risk ok"></div>
+                </div>
+
+                <div class="zones-menu-footer">
+                    <p>Ces protocoles sont des guides préventifs. En cas de douleur aiguë, consultez un professionnel.</p>
+                    <a href="rdv-kine.html" class="btn-rdv-mini"><i class="fas fa-user-md"></i> Prendre un RDV kiné</a>
+                </div>
+            </div>
+
+            <!-- Zone protocoles -->
+            <div class="protocols-area">
+
+                <!-- ══ NUQUE ══ -->
+                <div class="zone-hero active" id="zh-nuque">
+                    <div class="zh-img">
+                        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&h=440&fit=crop&crop=center" alt="Nuque">
+                        <div class="zh-img-text">
+                            <div class="eyebrow">Protocole curatif · Zone prioritaire</div>
+                            <h2>Nuque &amp; <em>Cervicales</em></h2>
+                        </div>
+                    </div>
+                    <div class="zh-body">
+                        <div class="zh-desc">
+                            <p>La nuque est la zone la plus touchée chez les développeurs et banquiers. La position "tête en avant" devant l'écran crée une tension chronique sur les vertèbres cervicales. Ce protocole progressif en 4 semaines vise à éliminer les douleurs et retrouver une posture saine.</p>
+                            <div class="zh-warning"><i class="fas fa-exclamation-triangle" style="flex-shrink:0;margin-top:2px"></i> Si vous ressentez des douleurs irradiantes dans le bras, des fourmillements ou des maux de tête persistants, consultez un kinésithérapeute avant de continuer.</div>
+                        </div>
+                        <div class="zh-stats">
+                            <h4>Votre bilan cervical</h4>
+                            <div class="zh-stat-row"><span class="key">Score actuel</span><span class="val warn">64 / 100</span></div>
+                            <div class="zh-stat-row"><span class="key">Inclinaison max</span><span class="val bad">32°</span></div>
+                            <div class="zh-stat-row"><span class="key">Norme recommandée</span><span class="val ok">≤ 20°</span></div>
+                            <div class="zh-stat-row"><span class="key">Protocoles actifs</span><span class="val">4 semaines</span></div>
+                            <div class="zh-stat-row"><span class="key">Progression</span><span class="val ok">Semaine 1 / 4</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-nuque">
+                    <!-- Barre de progression -->
+                    <div class="progress-bar-wrap">
+                        <div class="pb-info">
+                            <h4>Progression du protocole cervical</h4>
+                            <p>Semaine 1 sur 4 — 2 exercices complétés sur 8</p>
+                        </div>
+                        <div class="pb-track"><div class="pb-fill" style="width:0%" data-w="25"></div></div>
+                        <div class="pb-pct">25%</div>
+                    </div>
+
+                    <div class="protocols-list">
+                        <div class="proto-section">
+                            <div class="proto-section-head">Semaine 1 — Relâchement et mobilité douce</div>
+
+                            <!-- Protocole 1 -->
+                            <div class="proto-card open">
+                                <div class="proto-head" onclick="toggleProto(this.closest('.proto-card'))">
+                                    <div class="proto-step-num done"><i class="fas fa-check" style="font-size:.55rem"></i></div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Étirement latéral cervical</h3><p>Mobilisation douce — matin et soir, 3 jours</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">8 min</div><div class="proto-freq">2× / jour · 3 jours</div><span class="proto-badge done">✓ Terminé</span></div>
+                                    <i class="fas fa-chevron-down chevron"></i>
+                                </div>
+                                <div class="proto-body">
+                                    <div class="proto-body-inner">
+                                        <div class="proto-media">
+                                            <div class="proto-video-wrap">
+                                                <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=560&h=420&fit=crop" alt="">
+                                                <div class="video-play-btn"><div class="vpc" onclick="playVideo(this,'Étirement latéral cervical')"><i class="fas fa-play" style="font-size:.8rem;margin-left:2px"></i></div></div>
+                                            </div>
+                                            <div class="video-info"><strong>Étirement latéral cervical</strong>Durée : 8 min · Guidé par kinésithérapeute</div>
+                                        </div>
+                                        <div class="proto-content">
+                                            <h4>Protocole étape par étape</h4>
+                                            <ol class="steps-ol">
+                                                <li><div class="s-num">1</div>Asseyez-vous droit sur votre chaise, pieds à plat sur le sol. Dos contre le dossier.</li>
+                                                <li><div class="s-num">2</div>Posez la main droite à plat sur la table — sans appuyer. Cela fixe l'épaule.</li>
+                                                <li><div class="s-num">3</div>Inclinez lentement la tête vers l'épaule gauche jusqu'à ressentir un étirement doux sous l'oreille droite.</li>
+                                                <li><div class="s-num">4</div>Tenez 30 secondes en respirant normalement. Ne forcez jamais.</li>
+                                                <li><div class="s-num">5</div>Remontez très lentement au centre. Répétez de l'autre côté.</li>
+                                                <li><div class="s-num">6</div>Effectuez 3 répétitions par côté. Durée totale : 3 min par séance.</li>
+                                            </ol>
+                                            <div class="proto-tips">
+                                                <h5><i class="fas fa-lightbulb"></i> Conseils du kinésithérapeute</h5>
+                                                <ul>
+                                                    <li>Faites cet exercice le matin avant d'allumer votre écran</li>
+                                                    <li>Ne descendez jamais l'oreille jusqu'à l'épaule — l'étirement doit être léger</li>
+                                                    <li>Si vous sentez une douleur aiguë, arrêtez immédiatement</li>
+                                                </ul>
+                                            </div>
+                                            <div class="proto-actions">
+                                                <button class="btn-do-proto" onclick="toast('Exercice marqué comme terminé ✓')"><i class="fas fa-check"></i> Marquer comme fait aujourd'hui</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Protocole 2 -->
+                            <div class="proto-card">
+                                <div class="proto-head" onclick="toggleProto(this.closest('.proto-card'))">
+                                    <div class="proto-step-num active">2</div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Rotation cervicale progressive</h3><p>Récupération de l'amplitude de rotation — 5 jours</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">10 min</div><div class="proto-freq">1× / jour · 5 jours</div><span class="proto-badge active">En cours</span></div>
+                                    <i class="fas fa-chevron-down chevron"></i>
+                                </div>
+                                <div class="proto-body">
+                                    <div class="proto-body-inner">
+                                        <div class="proto-media">
+                                            <div class="proto-video-wrap">
+                                                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=560&h=420&fit=crop" alt="">
+                                                <div class="video-play-btn"><div class="vpc" onclick="playVideo(this,'Rotation cervicale progressive')"><i class="fas fa-play" style="font-size:.8rem;margin-left:2px"></i></div></div>
+                                            </div>
+                                            <div class="video-info"><strong>Rotation cervicale progressive</strong>Durée : 10 min · Niveau débutant</div>
+                                        </div>
+                                        <div class="proto-content">
+                                            <h4>Protocole étape par étape</h4>
+                                            <ol class="steps-ol">
+                                                <li><div class="s-num">1</div>Debout ou assis, regard horizontal. Épaules basses et relâchées.</li>
+                                                <li><div class="s-num">2</div>Tournez très lentement la tête vers la droite — aussi loin que possible sans douleur.</li>
+                                                <li><div class="s-num">3</div>Tenez la position 5 secondes, regardez par-dessus votre épaule.</li>
+                                                <li><div class="s-num">4</div>Revenez au centre, pause de 3 secondes.</li>
+                                                <li><div class="s-num">5</div>Même exercice vers la gauche. Répétez 8 fois de chaque côté.</li>
+                                                <li><div class="s-num">6</div>Terminez par 5 rotations complètes lentes dans chaque sens.</li>
+                                            </ol>
+                                            <div class="proto-tips">
+                                                <h5><i class="fas fa-lightbulb"></i> Conseils du kinésithérapeute</h5>
+                                                <ul>
+                                                    <li>Augmentez progressivement l'amplitude chaque jour</li>
+                                                    <li>Ne pas faire de rotations rapides ou saccadées</li>
+                                                    <li>Idéalement après une douche chaude : les muscles sont plus souples</li>
+                                                </ul>
+                                            </div>
+                                            <div class="proto-actions">
+                                                <button class="btn-do-proto" onclick="markProtoDone(this)"><i class="fas fa-play"></i> Commencer maintenant</button>
+                                                <button class="btn-done-proto" onclick="toast('Progression enregistrée')">Déjà fait aujourd'hui</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="proto-section">
+                            <div class="proto-section-head">Semaine 2 — Renforcement et stabilisation</div>
+
+                            <!-- Protocole 3 — verrouillé -->
+                            <div class="proto-card locked">
+                                <div class="proto-head">
+                                    <div class="proto-step-num locked"><i class="fas fa-lock" style="font-size:.55rem"></i></div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Gainage cervical isométrique</h3><p>Renforcement des muscles profonds du cou — disponible semaine 2</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">12 min</div><div class="proto-freq">1× / jour · 5 jours</div><span class="proto-badge locked">🔒 Sem. 2</span></div>
+                                    <i class="fas fa-chevron-down chevron"></i>
+                                </div>
+                            </div>
+
+                            <div class="proto-card locked">
+                                <div class="proto-head">
+                                    <div class="proto-step-num locked"><i class="fas fa-lock" style="font-size:.55rem"></i></div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Marche avec correction posturale</h3><p>Rééducation de la posture en mouvement — disponible semaine 2</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">15 min</div><div class="proto-freq">3× / semaine</div><span class="proto-badge locked">🔒 Sem. 2</span></div>
+                                    <i class="fas fa-chevron-down chevron"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="proto-section">
+                            <div class="proto-section-head">Semaines 3 & 4 — Autonomie et prévention durable</div>
+                            <div class="proto-card locked">
+                                <div class="proto-head">
+                                    <div class="proto-step-num locked"><i class="fas fa-lock" style="font-size:.55rem"></i></div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Programme d'entretien autonome</h3><p>Routines quotidiennes pour ne plus jamais avoir de douleurs cervicales</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">10 min/j</div><div class="proto-freq">7j / semaine</div><span class="proto-badge locked">🔒 Sem. 3–4</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ DOS (masqué par défaut) ══ -->
+                <div class="zone-hero" id="zh-dos">
+                    <div class="zh-img">
+                        <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=1200&h=440&fit=crop&crop=center" alt="Dos">
+                        <div class="zh-img-text">
+                            <div class="eyebrow">Protocole curatif · Zone entretien</div>
+                            <h2>Dos &amp; <em>Lombaires</em></h2>
+                        </div>
+                    </div>
+                    <div class="zh-body">
+                        <div class="zh-desc">
+                            <p>Votre dos est en bon état (92%). Ce protocole d'entretien préventif maintient cette santé et évite toute dégradation liée à la position assise prolongée. 3 exercices simples par semaine suffisent.</p>
+                        </div>
+                        <div class="zh-stats">
+                            <h4>Votre bilan lombaire</h4>
+                            <div class="zh-stat-row"><span class="key">Score actuel</span><span class="val ok">92 / 100</span></div>
+                            <div class="zh-stat-row"><span class="key">Statut</span><span class="val ok">Excellent</span></div>
+                            <div class="zh-stat-row"><span class="key">Protocole</span><span class="val">Préventif léger</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="content-dos" style="display:none">
+                    <div class="protocols-list">
+                        <div class="proto-section">
+                            <div class="proto-section-head">Entretien hebdomadaire — 3 exercices</div>
+                            <div class="proto-card">
+                                <div class="proto-head" onclick="toggleProto(this.closest('.proto-card'))">
+                                    <div class="proto-step-num active">1</div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Étirements dorsaux debout</h3><p>Décompression vertébrale — 2× par semaine</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">7 min</div><div class="proto-freq">2× / semaine</div><span class="proto-badge active">À faire</span></div>
+                                    <i class="fas fa-chevron-down chevron"></i>
+                                </div>
+                                <div class="proto-body">
+                                    <div class="proto-body-inner">
+                                        <div class="proto-media">
+                                            <div class="proto-video-wrap">
+                                                <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=560&h=420&fit=crop" alt="">
+                                                <div class="video-play-btn"><div class="vpc" onclick="playVideo(this,'Étirements dorsaux debout')"><i class="fas fa-play" style="font-size:.8rem;margin-left:2px"></i></div></div>
+                                            </div>
+                                            <div class="video-info"><strong>Étirements dorsaux debout</strong>Durée : 7 min · Entretien</div>
+                                        </div>
+                                        <div class="proto-content">
+                                            <h4>Protocole étape par étape</h4>
+                                            <ol class="steps-ol">
+                                                <li><div class="s-num">1</div>Levez-vous et écartez les pieds à largeur d'épaules.</li>
+                                                <li><div class="s-num">2</div>Posez les mains dans le bas du dos, coudes en arrière.</li>
+                                                <li><div class="s-num">3</div>Inclinez doucement le buste vers l'arrière en regardant le plafond. Tenez 5 secondes.</li>
+                                                <li><div class="s-num">4</div>Revenez droit, puis penchez-vous en avant, mains aux genoux. Arrondissez le dos. Tenez 5 secondes.</li>
+                                                <li><div class="s-num">5</div>Répétez 10 fois ce cycle. Terminez debout, étirez les bras vers le plafond.</li>
+                                            </ol>
+                                            <div class="proto-actions">
+                                                <button class="btn-do-proto" onclick="markProtoDone(this)"><i class="fas fa-play"></i> Commencer maintenant</button>
+                                                <button class="btn-done-proto" onclick="toast('Progression enregistrée')">Déjà fait aujourd'hui</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zones similaires pour épaules, poignets, hanches, yeux — placeholders -->
+                <div class="zone-hero" id="zh-epaules">
+                    <div class="zh-img"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&h=440&fit=crop" alt=""><div class="zh-img-text"><div class="eyebrow">Protocole curatif · Bon état</div><h2>Épaules &amp; <em>Trapèzes</em></h2></div></div>
+                    <div class="zh-body"><div class="zh-desc"><p>Vos épaules sont en bon état (90%). Un protocole d'entretien hebdomadaire de 10 minutes maintient cette santé et prévient les tendinites. Disponible dans votre programme semaine prochaine.</p></div><div class="zh-stats"><div class="zh-stat-row"><span class="key">Score</span><span class="val ok">90 / 100</span></div><div class="zh-stat-row"><span class="key">Statut</span><span class="val ok">Bon état</span></div></div></div>
+                </div>
+                <div id="content-epaules" style="display:none"><div style="padding:24px;background:white;border:1px solid var(--border);border-radius:14px;font-size:.875rem;color:var(--ink-60);text-align:center;"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--teal);display:block;margin-bottom:12px"></i>Vos épaules sont en excellent état. Continuez vos exercices de pause actifs et revenez dans une semaine pour votre protocole d'entretien.</div></div>
+
+                <div class="zone-hero" id="zh-poignets">
+                    <div class="zh-img"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&h=440&fit=crop" alt=""><div class="zh-img-text"><div class="eyebrow">Protocole curatif · Surveiller</div><h2>Poignets &amp; <em>Canal carpien</em></h2></div></div>
+                    <div class="zh-body"><div class="zh-desc"><p>Le score de vos poignets (88%) reste bon mais votre activité intensive de frappe clavier les expose au syndrome du canal carpien. Ce protocole préventif de 3 semaines sécurise vos tendons.</p></div><div class="zh-stats"><div class="zh-stat-row"><span class="key">Score</span><span class="val ok">88 / 100</span></div><div class="zh-stat-row"><span class="key">Risque TCC</span><span class="val warn">Modéré</span></div><div class="zh-stat-row"><span class="key">Protocole</span><span class="val">3 semaines</span></div></div></div>
+                </div>
+                <div id="content-poignets" style="display:none">
+                    <div class="protocols-list">
+                        <div class="proto-section">
+                            <div class="proto-section-head">Prévention canal carpien — Semaine 1</div>
+                            <div class="proto-card">
+                                <div class="proto-head" onclick="toggleProto(this.closest('.proto-card'))">
+                                    <div class="proto-step-num active">1</div>
+                                    <div class="proto-thumb"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=104&h=104&fit=crop" alt=""></div>
+                                    <div class="proto-info"><h3>Étirements extenseurs du poignet</h3><p>Prévention du syndrome du canal carpien</p></div>
+                                    <div class="proto-meta"><div class="proto-dur">5 min</div><div class="proto-freq">3× / jour</div><span class="proto-badge active">À faire</span></div>
+                                    <i class="fas fa-chevron-down chevron"></i>
+                                </div>
+                                <div class="proto-body">
+                                    <div class="proto-body-inner">
+                                        <div class="proto-media">
+                                            <div class="proto-video-wrap"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=560&h=420&fit=crop" alt=""><div class="video-play-btn"><div class="vpc" onclick="playVideo(this,'Étirements extenseurs')"><i class="fas fa-play" style="font-size:.8rem;margin-left:2px"></i></div></div></div>
+                                            <div class="video-info"><strong>Étirements extenseurs</strong>5 min · Prévention TCC</div>
+                                        </div>
+                                        <div class="proto-content">
+                                            <h4>Protocole étape par étape</h4>
+                                            <ol class="steps-ol">
+                                                <li><div class="s-num">1</div>Tendez le bras droit devant vous, paume vers le haut.</li>
+                                                <li><div class="s-num">2</div>Avec l'autre main, repoussez doucement les doigts vers le bas. Tenez 20 s.</li>
+                                                <li><div class="s-num">3</div>Paume vers le bas, repoussez les doigts vers le haut. Tenez 20 s.</li>
+                                                <li><div class="s-num">4</div>Changez de bras. Répétez 2 fois chaque côté.</li>
+                                                <li><div class="s-num">5</div>Terminez par 10 rotations de poignets dans chaque sens.</li>
+                                            </ol>
+                                            <div class="proto-actions">
+                                                <button class="btn-do-proto" onclick="markProtoDone(this)"><i class="fas fa-play"></i> Commencer maintenant</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-hero" id="zh-hanches"><div class="zh-img"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=440&fit=crop" alt=""><div class="zh-img-text"><div class="eyebrow">Protocole curatif · Attention</div><h2>Hanches &amp; <em>Bassin</em></h2></div></div><div class="zh-body"><div class="zh-desc"><p>Score de 71% sur les hanches. La compression prolongée en position assise provoque des tensions dans les fléchisseurs de hanche. Ce protocole de 2 semaines les libère.</p></div><div class="zh-stats"><div class="zh-stat-row"><span class="key">Score</span><span class="val warn">71 / 100</span></div></div></div></div>
+                <div id="content-hanches" style="display:none"><div style="padding:24px;background:white;border:1px solid var(--border);border-radius:14px;text-align:center;"><p style="font-size:.875rem;color:var(--ink-60)">Protocole hanches disponible prochainement. En attendant, consultez la bibliothèque d'exercices pour les mobilisations de hanches.</p><a href="exercices.html" style="display:inline-block;margin-top:14px;padding:10px 20px;background:var(--ink);color:white;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600">Voir les exercices</a></div></div>
+
+                <div class="zone-hero" id="zh-yeux"><div class="zh-img"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=440&fit=crop" alt=""><div class="zh-img-text"><div class="eyebrow">Protocole curatif · Bon état</div><h2>Yeux &amp; <em>Fatigue visuelle</em></h2></div></div><div class="zh-body"><div class="zh-desc"><p>Vos yeux sont en bon état (85%). La règle 20-20-20, intégrée dans vos pauses actives, suffit à maintenir ce score. Pas de protocole curatif nécessaire pour le moment.</p></div><div class="zh-stats"><div class="zh-stat-row"><span class="key">Score</span><span class="val ok">85 / 100</span></div><div class="zh-stat-row"><span class="key">Statut</span><span class="val ok">Bon état</span></div></div></div></div>
+                <div id="content-yeux" style="display:none"><div style="padding:24px;background:white;border:1px solid var(--border);border-radius:14px;text-align:center;font-size:.875rem;color:var(--ink-60)"><i class="fas fa-eye" style="font-size:2rem;color:var(--teal);display:block;margin-bottom:12px"></i>Vos yeux sont en bonne santé. Continuez à appliquer la règle 20-20-20 lors de vos pauses actives — c'est suffisant.</div></div>
+
+            </div><!-- /protocols-area -->
+        </div><!-- /curatif-layout -->
+    </div>
+</main>
+
+<div class="toast" id="toast"><i class="fas fa-check" style="color:var(--teal)"></i><span id="toast-msg"></span></div>
+
+<script>
+    const ZONES = ['nuque','dos','epaules','poignets','hanches','yeux'];
+
+    function selectZone(zone, el) {
+        // Menu
+        document.querySelectorAll('.zone-item').forEach(z => z.classList.remove('active'));
+        el.classList.add('active');
+        // Hero + contenu
+        ZONES.forEach(z => {
+            const hero = document.getElementById('zh-' + z);
+            const cont = document.getElementById('content-' + z);
+            if (hero) hero.classList.toggle('active', z === zone);
+            if (cont) cont.style.display = (z === zone) ? 'block' : 'none';
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleProto(card) {
+        if (card.classList.contains('locked')) return;
+        card.classList.toggle('open');
+    }
+
+    function markProtoDone(btn) {
+        const card = btn.closest('.proto-card');
+        const num  = card.querySelector('.proto-step-num');
+        const badge = card.querySelector('.proto-badge');
+        num.className = 'proto-step-num done';
+        num.innerHTML = '<i class="fas fa-check" style="font-size:.55rem"></i>';
+        if (badge) { badge.className = 'proto-badge done'; badge.textContent = '✓ Terminé'; }
+        toast('Protocole complété — progression enregistrée');
+    }
+
+    function playVideo(btn, title) {
+        btn.innerHTML = '<i class="fas fa-pause" style="font-size:.8rem"></i>';
+        btn.style.background = 'var(--teal)';
+        btn.style.color = 'white';
+        toast('Lecture : "' + title + '" — 🎬 Vidéo guidée en cours');
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-play" style="font-size:.8rem;margin-left:2px"></i>';
+            btn.style.background = 'rgba(255,255,255,.9)';
+            btn.style.color = 'var(--ink)';
+        }, 5000);
+    }
+
+    // Animation barre progression
+    setTimeout(() => {
+        document.querySelectorAll('.pb-fill[data-w]').forEach(b => {
+            b.style.transition = 'width 1.2s cubic-bezier(.4,0,.2,1)';
+            b.style.width = b.dataset.w + '%';
+        });
+    }, 400);
+
+    let tTimer;
+    function toast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(tTimer);
+        tTimer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+</script>
+</body>
+</html>

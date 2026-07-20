@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration RH — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:      #0F1923;
+            --ink-60:   rgba(15,25,35,.6);
+            --ink-30:   rgba(15,25,35,.3);
+            --blue:     #1353A4;
+            --blue-mid: #1C6FD4;
+            --sky:      #D6E8FF;
+            --teal:     #0B9B8A;
+            --teal-bg:  #E0F5F3;
+            --sand:     #F5F1EB;
+            --warn:     #C47A00;
+            --warn-bg:  #FEF3DC;
+            --bad:      #C0392B;
+            --bad-bg:   #FDECEA;
+            --green:    #0B7A3E;
+            --green-bg: #E0F5EC;
+            --white:    #FFFFFF;
+            --border:   rgba(15,25,35,.1);
+            --sidebar:  #0F1923;
+            --f-serif:  'Fraunces', Georgia, serif;
+            --f-sans:   'Inter', system-ui, sans-serif;
+            --sw:       240px;
+        }
+        html { height: 100%; }
+        body {
+            font-family: var(--f-sans); color: var(--ink);
+            background: #F7F8FC; -webkit-font-smoothing: antialiased;
+            display: flex; min-height: 100vh;
+        }
+
+        /* ══ SIDEBAR ══ */
+        .sidebar {
+            width: var(--sw); background: var(--sidebar);
+            position: fixed; top: 0; left: 0; bottom: 0;
+            display: flex; flex-direction: column; overflow-y: auto; z-index: 60;
+        }
+        .sb-logo {
+            padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,.06);
+            display: flex; align-items: center; gap: 10px; text-decoration: none;
+        }
+        .sb-logo-img { width:32px; height:32px; border-radius:7px; overflow:hidden; flex-shrink:0; }
+        .sb-logo-img img { width:100%; height:100%; object-fit:cover; }
+        .sb-logo-text {
+            font-family: var(--f-serif); font-size: .9rem; font-weight: 600;
+            color: rgba(255,255,255,.85); line-height: 1.2;
+        }
+        .sb-logo-text small { display:block; font-family:var(--f-sans); font-size:.62rem; color:rgba(255,255,255,.35); font-weight:400; }
+
+        .sb-user {
+            padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.06);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sb-user-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0; border:2px solid rgba(255,255,255,.15); }
+        .sb-user-avatar img { width:100%; height:100%; object-fit:cover; }
+        .sb-user-name { font-size:.8rem; font-weight:600; color:rgba(255,255,255,.85); }
+        .sb-user-sub  { font-size:.68rem; color:rgba(255,255,255,.35); margin-top:2px; }
+        .sb-admin-chip {
+            display:inline-block; padding:1px 7px; border-radius:4px;
+            background:rgba(196,122,0,.25); color:#FFD07B;
+            font-size:.58rem; font-weight:700; letter-spacing:.05em;
+            text-transform:uppercase; margin-top:3px;
+        }
+
+        .sb-section { padding:20px 0 8px; }
+        .sb-section-label { padding:0 20px 6px; font-size:.6rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.25); }
+        .sb-link {
+            display:flex; align-items:center; gap:10px; padding:9px 20px;
+            text-decoration:none; font-size:.82rem; font-weight:500;
+            color:rgba(255,255,255,.5); border-left:2px solid transparent; transition:all .15s; cursor:pointer;
+        }
+        .sb-link:hover { color:rgba(255,255,255,.85); background:rgba(255,255,255,.04); }
+        .sb-link.active { color:white; background:rgba(255,255,255,.07); border-left-color:#C47A00; }
+        .sb-link i { width:16px; font-size:.8rem; text-align:center; opacity:.8; }
+        .sb-badge-red { margin-left:auto; background:rgba(192,57,43,.35); color:#FF8A80; font-size:.6rem; font-weight:700; padding:2px 6px; border-radius:4px; }
+
+        .sb-bottom { margin-top:auto; padding:14px 14px 18px; border-top:1px solid rgba(255,255,255,.06); }
+        .sb-logout {
+            display:flex; align-items:center; gap:8px; width:100%; padding:9px 14px; border-radius:8px;
+            border:1px solid rgba(255,255,255,.08); background:transparent;
+            color:rgba(255,255,255,.4); font-family:var(--f-sans); font-size:.78rem; font-weight:500; cursor:pointer; transition:all .15s;
+        }
+        .sb-logout:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.7); }
+
+        /* ══ MAIN ══ */
+        .main { margin-left:var(--sw); flex:1; display:flex; flex-direction:column; min-height:100vh; }
+
+        .topbar {
+            background:white; height:60px; padding:0 28px; border-bottom:1px solid var(--border);
+            display:flex; align-items:center; justify-content:space-between;
+            position:sticky; top:0; z-index:50;
+        }
+        .topbar-left h2 { font-size:.95rem; font-weight:600; }
+        .topbar-left p  { font-size:.72rem; color:var(--ink-60); margin-top:1px; }
+        .topbar-right { display:flex; align-items:center; gap:10px; }
+        .tb-btn {
+            height:34px; padding:0 14px; border-radius:7px; border:1px solid var(--border);
+            background:white; color:var(--ink-60); cursor:pointer; font-family:var(--f-sans);
+            font-size:.78rem; font-weight:500; display:flex; align-items:center; gap:7px; transition:all .15s;
+        }
+        .tb-btn:hover { border-color:var(--ink-30); color:var(--ink); }
+        .tb-btn.primary { background:var(--ink); color:white; border-color:var(--ink); }
+        .tb-btn.primary:hover { background:#1a2e45; }
+        .tb-btn-icon { width:34px; height:34px; border-radius:7px; border:1px solid var(--border); background:white; color:var(--ink-60); cursor:pointer; font-size:.82rem; display:flex; align-items:center; justify-content:center; transition:all .15s; position:relative; }
+        .tb-btn-icon:hover { border-color:var(--ink-30); color:var(--ink); }
+        .tb-dot { position:absolute; top:5px; right:5px; width:7px; height:7px; border-radius:50%; background:var(--bad); border:1.5px solid white; }
+        .tb-avatar { width:34px; height:34px; border-radius:50%; overflow:hidden; border:2px solid var(--border); cursor:pointer; }
+        .tb-avatar img { width:100%; height:100%; object-fit:cover; }
+
+        .content { padding:28px; flex:1; }
+
+        /* ── KPIs ── */
+        .kpi-grid {
+            display:grid; grid-template-columns:repeat(4,1fr);
+            gap:14px; margin-bottom:20px;
+        }
+        .kpi-card {
+            background:white; border:1px solid var(--border); border-radius:12px;
+            padding:18px 20px;
+        }
+        .kpi-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+        .kpi-img { width:36px; height:36px; border-radius:8px; overflow:hidden; }
+        .kpi-img img { width:100%; height:100%; object-fit:cover; }
+        .kpi-trend {
+            font-size:.68rem; font-weight:600; padding:3px 8px; border-radius:5px;
+        }
+        .kpi-trend.up   { background:var(--green-bg); color:var(--green); }
+        .kpi-trend.down { background:var(--bad-bg);   color:var(--bad); }
+        .kpi-trend.neu  { background:var(--sand);     color:var(--ink-60); }
+        .kpi-num {
+            font-family:var(--f-serif); font-size:2rem; font-weight:300;
+            color:var(--ink); line-height:1; margin-bottom:5px; letter-spacing:-.02em;
+        }
+        .kpi-lbl { font-size:.72rem; color:var(--ink-60); line-height:1.4; }
+
+        /* ── Layout ── */
+        .row-main { display:grid; grid-template-columns:1.7fr 1fr; gap:14px; margin-bottom:20px; }
+        .row-bottom { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+
+        /* ── Card générique ── */
+        .card { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+        .card-head {
+            padding:16px 20px; border-bottom:1px solid var(--border);
+            display:flex; align-items:center; justify-content:space-between;
+        }
+        .card-head h3 { font-size:.88rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+        .card-head h3 img { width:22px; height:22px; border-radius:5px; object-fit:cover; }
+        .ch-badge { padding:3px 10px; border-radius:20px; font-size:.68rem; font-weight:600; }
+        .ch-badge.green { background:var(--green-bg); color:var(--green); }
+        .ch-badge.warn  { background:var(--warn-bg);  color:var(--warn); }
+        .ch-badge.bad   { background:var(--bad-bg);   color:var(--bad); }
+        .ch-badge.blue  { background:var(--sky);      color:var(--blue); }
+        .card-actions { display:flex; gap:7px; }
+        .card-btn { padding:5px 12px; border-radius:6px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.72rem; font-weight:500; color:var(--ink-60); cursor:pointer; transition:all .15s; }
+        .card-btn:hover { border-color:var(--ink-30); color:var(--ink); }
+        .card-body { padding:0; }
+        .card-body-padded { padding:20px; }
+
+        /* ── Tableau employés ── */
+        .emp-table { width:100%; border-collapse:collapse; }
+        .emp-table thead th {
+            padding:10px 16px; text-align:left; font-size:.68rem; font-weight:700;
+            letter-spacing:.06em; text-transform:uppercase; color:var(--ink-60);
+            border-bottom:1px solid var(--border); white-space:nowrap;
+        }
+        .emp-table tbody td { padding:12px 16px; font-size:.8rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+        .emp-table tbody tr:last-child td { border-bottom:none; }
+        .emp-table tbody tr:hover td { background:#FAFBFD; }
+
+        .emp-cell { display:flex; align-items:center; gap:10px; }
+        .emp-photo { width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1.5px solid var(--border); }
+        .emp-name { font-weight:600; font-size:.8rem; }
+        .emp-sub  { font-size:.68rem; color:var(--ink-60); margin-top:1px; }
+
+        .score-pill {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:3px 9px; border-radius:6px; font-size:.72rem; font-weight:700;
+        }
+        .score-pill.ok   { background:var(--teal-bg);  color:var(--teal); }
+        .score-pill.warn { background:var(--warn-bg);  color:var(--warn); }
+        .score-pill.bad  { background:var(--bad-bg);   color:var(--bad); }
+
+        .timer-pill {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:3px 9px; border-radius:6px; font-size:.72rem; font-weight:700;
+        }
+        .timer-pill.ok   { background:var(--teal-bg);  color:var(--teal); }
+        .timer-pill.warn { background:var(--warn-bg);  color:var(--warn); }
+        .timer-pill.crit { background:var(--bad-bg);   color:var(--bad); }
+
+        .row-action { display:flex; gap:6px; }
+        .action-btn {
+            padding:4px 10px; border-radius:5px; border:none; font-family:var(--f-sans);
+            font-size:.68rem; font-weight:600; cursor:pointer; transition:all .15s;
+        }
+        .action-btn.alert { background:var(--warn-bg); color:var(--warn); }
+        .action-btn.alert:hover { background:var(--warn); color:white; }
+        .action-btn.view  { background:var(--sky); color:var(--blue); }
+        .action-btn.view:hover  { background:var(--blue); color:white; }
+
+        .table-footer { padding:12px 20px; text-align:center; border-top:1px solid var(--border); }
+        .table-footer a { font-size:.78rem; color:var(--blue); font-weight:600; text-decoration:none; }
+        .table-footer a:hover { text-decoration:underline; }
+
+        /* ── Flux alertes ── */
+        .alert-feed { display:flex; flex-direction:column; }
+        .af-item {
+            padding:13px 20px; border-bottom:1px solid var(--border);
+            display:flex; align-items:flex-start; gap:11px;
+        }
+        .af-item:last-child { border-bottom:none; }
+        .af-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+        .af-dot.red    { background:var(--bad); }
+        .af-dot.orange { background:var(--warn); }
+        .af-dot.green  { background:var(--teal); }
+        .af-dot.blue   { background:var(--blue); }
+        .af-photo { width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+        .af-text h4 { font-size:.78rem; font-weight:600; }
+        .af-text p  { font-size:.7rem; color:var(--ink-60); margin-top:2px; line-height:1.5; }
+        .af-time { margin-left:auto; font-size:.68rem; color:var(--ink-60); white-space:nowrap; flex-shrink:0; }
+
+        /* ── Départements ── */
+        .dept-list { display:flex; flex-direction:column; gap:14px; padding:20px; }
+        .dept-item {}
+        .dept-head { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:6px; }
+        .dept-head strong { font-weight:600; }
+        .dept-head span   { font-weight:700; }
+        .dept-head span.ok   { color:var(--teal); }
+        .dept-head span.warn { color:var(--warn); }
+        .dept-head span.bad  { color:var(--bad); }
+        .dept-track { height:6px; background:#EEF2F7; border-radius:3px; overflow:hidden; }
+        .dept-fill  { height:100%; border-radius:3px; transition:width 1.4s cubic-bezier(.4,0,.2,1); }
+        .dept-fill.ok   { background:var(--teal); }
+        .dept-fill.warn { background:var(--warn); }
+        .dept-fill.bad  { background:var(--bad); }
+
+        /* ── Risques ── */
+        .risk-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:20px; }
+        .risk-item {
+            border-radius:10px; padding:14px 16px;
+            border-left:3px solid transparent;
+            background:var(--sand);
+        }
+        .risk-item.high   { border-left-color:var(--bad);  background:var(--bad-bg); }
+        .risk-item.medium { border-left-color:var(--warn); background:var(--warn-bg); }
+        .risk-item.low    { border-left-color:var(--teal); background:var(--teal-bg); }
+        .risk-tag { font-size:.6rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; margin-bottom:5px; display:block; }
+        .risk-tag.high   { color:var(--bad);  }
+        .risk-tag.medium { color:var(--warn); }
+        .risk-tag.low    { color:var(--teal); }
+        .risk-item h5 { font-size:.78rem; font-weight:600; margin-bottom:3px; }
+        .risk-item p  { font-size:.7rem; color:var(--ink-60); line-height:1.5; }
+
+        /* ── Actions rapides ── */
+        .quick-actions { padding:20px; display:flex; flex-direction:column; gap:9px; }
+        .qa-btn {
+            width:100%; padding:11px 14px; border-radius:9px;
+            border:1px solid var(--border); background:white;
+            font-family:var(--f-sans); font-size:.8rem; font-weight:600;
+            color:var(--ink); cursor:pointer; transition:all .15s;
+            display:flex; align-items:center; gap:9px;
+            text-align:left;
+        }
+        .qa-btn:hover { background:var(--sand); border-color:var(--ink-30); }
+        .qa-btn.primary { background:var(--ink); color:white; border-color:var(--ink); }
+        .qa-btn.primary:hover { background:#1a2e45; }
+        .qa-btn-icon { width:28px; height:28px; border-radius:7px; overflow:hidden; flex-shrink:0; }
+        .qa-btn-icon img { width:100%; height:100%; object-fit:cover; }
+
+        /* ── Mini stats semaine ── */
+        .week-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:20px; }
+        .ws-item { background:var(--sand); border-radius:10px; padding:14px; text-align:center; }
+        .ws-num { font-family:var(--f-serif); font-size:1.6rem; font-weight:300; color:var(--ink); line-height:1; }
+        .ws-lbl { font-size:.68rem; color:var(--ink-60); margin-top:4px; line-height:1.4; }
+
+        /* Toast */
+        .toast {
+            position:fixed; bottom:24px; right:24px;
+            background:var(--ink); color:white;
+            padding:12px 18px; border-radius:10px;
+            font-size:.82rem; font-weight:500;
+            box-shadow:0 8px 30px rgba(0,0,0,.2);
+            display:none; align-items:center; gap:10px; z-index:300; max-width:320px;
+        }
+        .toast.show { display:flex; animation:slideup .25s; }
+        @keyframes slideup { from{transform:translateY(12px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .toast-icon { width:22px; height:22px; border-radius:50%; background:var(--teal-bg); color:var(--teal); display:flex; align-items:center; justify-content:center; font-size:.65rem; flex-shrink:0; }
+
+        @media (max-width:1200px) {
+            .kpi-grid { grid-template-columns:1fr 1fr; }
+            .row-main { grid-template-columns:1fr; }
+            .row-bottom { grid-template-columns:1fr 1fr; }
+        }
+        @media (max-width:900px) {
+            .sidebar { transform:translateX(-100%); }
+            .main { margin-left:0; }
+            .kpi-grid { grid-template-columns:1fr 1fr; }
+            .row-bottom { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar">
+    <a href="index.html" class="sb-logo">
+        <div class="sb-logo-img">
+            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=64&h=64&fit=crop" alt="">
+        </div>
+        <div class="sb-logo-text">
+            TonKiné au Travail
+            <small>Administration RH</small>
+        </div>
+    </a>
+    <div class="sb-user">
+        <div class="sb-user-avatar">
+            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=72&h=72&fit=crop&crop=face" alt="">
+        </div>
+        <div>
+            <div class="sb-user-name">Marie Ngo Biyong</div>
+            <div class="sb-user-sub">Responsable RH · DRH</div>
+            <div class="sb-admin-chip">Admin</div>
+        </div>
+    </div>
+
+    <div class="sb-section">
+        <div class="sb-section-label">Tableau de bord</div>
+        <a class="sb-link active" href="#"><i class="fas fa-chart-pie"></i> Vue d'ensemble</a>
+        <a class="sb-link" href="#"><i class="fas fa-bell"></i> Alertes actives <span class="sb-badge-red">3</span></a>
+        <a class="sb-link" href="#"><i class="fas fa-chart-line"></i> Statistiques TMS</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-section-label">Employés</div>
+        <a class="sb-link" href="#"><i class="fas fa-users"></i> Gérer les équipes</a>
+        <a class="sb-link" href="#"><i class="fas fa-user-plus"></i> Inscrire un employé</a>
+        <a class="sb-link" href="#"><i class="fas fa-building"></i> Départements</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-section-label">Rapports</div>
+        <a class="sb-link" href="#"><i class="fas fa-file-pdf"></i> Rapport mensuel</a>
+        <a class="sb-link" href="#"><i class="fas fa-clipboard-list"></i> Historique alertes</a>
+        <a class="sb-link" href="#"><i class="fas fa-cog"></i> Configuration</a>
+    </div>
+
+    <div class="sb-bottom">
+        <button class="sb-logout" onclick="window.location.href='connexion.html'">
+            <i class="fas fa-sign-out-alt"></i> Se déconnecter
+        </button>
+    </div>
+</aside>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+    <div class="topbar">
+        <div class="topbar-left">
+            <h2>Tableau de bord RH</h2>
+            <p>Lundi 2 juin 2026 · 47 employés actifs en ce moment</p>
+        </div>
+        <div class="topbar-right">
+            <button class="tb-btn" onclick="showToast('Rapport en cours de génération…')">
+                <i class="fas fa-download"></i> Exporter
+            </button>
+            <div class="tb-btn-icon">
+                <i class="fas fa-bell"></i>
+                <span class="tb-dot"></span>
+            </div>
+            <button class="tb-btn primary" onclick="showToast('Formulaire d\'inscription ouvert')">
+                <i class="fas fa-user-plus"></i> Inscrire
+            </button>
+            <div class="tb-avatar">
+                <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=68&h=68&fit=crop&crop=face" alt="">
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-img"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=72&h=72&fit=crop" alt=""></div>
+                    <span class="kpi-trend up">▲ +3 ce mois</span>
+                </div>
+                <div class="kpi-num">52</div>
+                <div class="kpi-lbl">Employés inscrits</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-img"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=72&h=72&fit=crop" alt=""></div>
+                    <span class="kpi-trend up">▲ +5%</span>
+                </div>
+                <div class="kpi-num">78<span style="font-size:1rem">%</span></div>
+                <div class="kpi-lbl">Score posture moyen de l'équipe</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-img"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=72&h=72&fit=crop" alt=""></div>
+                    <span class="kpi-trend down">▼ −8 vs hier</span>
+                </div>
+                <div class="kpi-num">3</div>
+                <div class="kpi-lbl">Alertes actives maintenant</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-img"><img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=72&h=72&fit=crop" alt=""></div>
+                    <span class="kpi-trend neu">= stable</span>
+                </div>
+                <div class="kpi-num">7</div>
+                <div class="kpi-lbl">Employés à risque TMS élevé</div>
+            </div>
+        </div>
+
+        <!-- Tableau + Alertes -->
+        <div class="row-main">
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=44&h=44&fit=crop" alt="">
+                        Suivi posture — équipes en direct
+                    </h3>
+                    <div class="card-actions">
+                        <button class="card-btn"><i class="fas fa-filter"></i> Filtrer</button>
+                        <button class="card-btn"><i class="fas fa-search"></i> Chercher</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="emp-table">
+                        <thead>
+                            <tr>
+                                <th>Collaborateur</th>
+                                <th>Score posture</th>
+                                <th>Assis depuis</th>
+                                <th>Pauses</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="emp-cell">
+                                        <img class="emp-photo" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face" alt="">
+                                        <div><div class="emp-name">Jean-Paul Kamga</div><div class="emp-sub">Développeur · IT</div></div>
+                                    </div>
+                                </td>
+                                <td><span class="score-pill ok"><i class="fas fa-circle" style="font-size:.35rem"></i> 84%</span></td>
+                                <td><span class="timer-pill ok">1h 24m</span></td>
+                                <td style="font-size:.75rem;color:var(--ink-60)">2 / 4 — <span style="color:var(--teal)">✓</span></td>
+                                <td><div class="row-action"><button class="action-btn view">Voir profil</button></div></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="emp-cell">
+                                        <img class="emp-photo" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=64&h=64&fit=crop&crop=face" alt="">
+                                        <div><div class="emp-name">Sylvie Mba</div><div class="emp-sub">Chargée de compte · Banque</div></div>
+                                    </div>
+                                </td>
+                                <td><span class="score-pill warn"><i class="fas fa-circle" style="font-size:.35rem"></i> 61%</span></td>
+                                <td><span class="timer-pill crit">2h 48m</span></td>
+                                <td style="font-size:.75rem;color:var(--bad)">0 / 4 — aucune</td>
+                                <td><div class="row-action"><button class="action-btn alert" onclick="sendAlert('Sylvie Mba')">Alerter</button></div></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="emp-cell">
+                                        <img class="emp-photo" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&crop=face" alt="">
+                                        <div><div class="emp-name">Pierre Essama</div><div class="emp-sub">Analyste financier · Banque</div></div>
+                                    </div>
+                                </td>
+                                <td><span class="score-pill bad"><i class="fas fa-circle" style="font-size:.35rem"></i> 48%</span></td>
+                                <td><span class="timer-pill crit">3h 15m</span></td>
+                                <td style="font-size:.75rem;color:var(--bad)">0 / 4 — aucune</td>
+                                <td><div class="row-action"><button class="action-btn alert" onclick="sendAlert('Pierre Essama')">Alerter</button></div></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="emp-cell">
+                                        <img class="emp-photo" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop&crop=face" alt="">
+                                        <div><div class="emp-name">Awa Diallo</div><div class="emp-sub">Développeuse front-end · IT</div></div>
+                                    </div>
+                                </td>
+                                <td><span class="score-pill ok"><i class="fas fa-circle" style="font-size:.35rem"></i> 91%</span></td>
+                                <td><span class="timer-pill ok">0h 45m</span></td>
+                                <td style="font-size:.75rem;color:var(--teal)">3 / 4 — ✓</td>
+                                <td><div class="row-action"><button class="action-btn view">Voir profil</button></div></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="emp-cell">
+                                        <img class="emp-photo" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face" alt="">
+                                        <div><div class="emp-name">Marc Fono</div><div class="emp-sub">DBA · IT</div></div>
+                                    </div>
+                                </td>
+                                <td><span class="score-pill warn"><i class="fas fa-circle" style="font-size:.35rem"></i> 70%</span></td>
+                                <td><span class="timer-pill warn">1h 52m</span></td>
+                                <td style="font-size:.75rem;color:var(--ink-60)">1 / 4 — ⚠</td>
+                                <td><div class="row-action"><button class="action-btn view">Voir profil</button></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="table-footer"><a href="#">Voir les 52 collaborateurs →</a></div>
+                </div>
+            </div>
+
+            <!-- Flux alertes -->
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=44&h=44&fit=crop" alt="">
+                        Alertes actives
+                    </h3>
+                    <span class="ch-badge bad">3 non traitées</span>
+                </div>
+                <div class="card-body">
+                    <div class="alert-feed">
+                        <div class="af-item">
+                            <div class="af-dot red"></div>
+                            <img class="af-photo" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=56&h=56&fit=crop&crop=face" alt="">
+                            <div class="af-text">
+                                <h4>Pierre Essama — 3h 15m assis</h4>
+                                <p>Score critique 48% · Nuque + dos lombaire</p>
+                            </div>
+                            <span class="af-time">5 min</span>
+                        </div>
+                        <div class="af-item">
+                            <div class="af-dot orange"></div>
+                            <img class="af-photo" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=56&h=56&fit=crop&crop=face" alt="">
+                            <div class="af-text">
+                                <h4>Sylvie Mba — 2 alertes ignorées</h4>
+                                <p>2h 48m sans pause. Aucun exercice aujourd'hui.</p>
+                            </div>
+                            <span class="af-time">12 min</span>
+                        </div>
+                        <div class="af-item">
+                            <div class="af-dot orange"></div>
+                            <img class="af-photo" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=56&h=56&fit=crop&crop=face" alt="">
+                            <div class="af-text">
+                                <h4>Marc Fono — Posture nuque</h4>
+                                <p>Inclinaison 38° détectée (norme : &lt; 20°)</p>
+                            </div>
+                            <span class="af-time">28 min</span>
+                        </div>
+                        <div class="af-item">
+                            <div class="af-dot green"></div>
+                            <img class="af-photo" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=56&h=56&fit=crop&crop=face" alt="">
+                            <div class="af-text">
+                                <h4>Jean-Paul Kamga — Pause effectuée</h4>
+                                <p>5 min d'étirements · minuteur réinitialisé</p>
+                            </div>
+                            <span class="af-time">41 min</span>
+                        </div>
+                        <div class="af-item">
+                            <div class="af-dot blue"></div>
+                            <img class="af-photo" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=56&h=56&fit=crop&crop=face" alt="">
+                            <div class="af-text">
+                                <h4>Awa Diallo — Profil mis à jour</h4>
+                                <p>Nouvelles photos posture téléversées</p>
+                            </div>
+                            <span class="af-time">1h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats dépts + Risques + Actions -->
+        <div class="row-bottom">
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=44&h=44&fit=crop" alt="">
+                        Score moyen par département
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="dept-list">
+                        <div class="dept-item">
+                            <div class="dept-head"><strong>Informatique / IT</strong><span class="ok">82%</span></div>
+                            <div class="dept-track"><div class="dept-fill ok" style="width:0%" data-w="82"></div></div>
+                        </div>
+                        <div class="dept-item">
+                            <div class="dept-head"><strong>Banque / Finance</strong><span class="warn">64%</span></div>
+                            <div class="dept-track"><div class="dept-fill warn" style="width:0%" data-w="64"></div></div>
+                        </div>
+                        <div class="dept-item">
+                            <div class="dept-head"><strong>Service client</strong><span class="ok">79%</span></div>
+                            <div class="dept-track"><div class="dept-fill ok" style="width:0%" data-w="79"></div></div>
+                        </div>
+                        <div class="dept-item">
+                            <div class="dept-head"><strong>Direction / Admin</strong><span class="bad">58%</span></div>
+                            <div class="dept-track"><div class="dept-fill bad" style="width:0%" data-w="58"></div></div>
+                        </div>
+                        <div class="dept-item">
+                            <div class="dept-head"><strong>Support technique</strong><span class="ok">85%</span></div>
+                            <div class="dept-track"><div class="dept-fill ok" style="width:0%" data-w="85"></div></div>
+                        </div>
+                    </div>
+                    <div class="week-stats">
+                        <div class="ws-item">
+                            <div class="ws-num">142</div>
+                            <div class="ws-lbl">Pauses actives cette semaine</div>
+                        </div>
+                        <div class="ws-item">
+                            <div class="ws-num">38</div>
+                            <div class="ws-lbl">Alertes ignorées cette semaine</div>
+                        </div>
+                        <div class="ws-item">
+                            <div class="ws-num">+4%</div>
+                            <div class="ws-lbl">Score posture vs semaine passée</div>
+                        </div>
+                        <div class="ws-item">
+                            <div class="ws-num">2</div>
+                            <div class="ws-lbl">RDV kiné pris ce mois</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=44&h=44&fit=crop" alt="">
+                        Carte des risques TMS
+                    </h3>
+                    <span class="ch-badge warn">7 à risque</span>
+                </div>
+                <div class="card-body">
+                    <div class="risk-grid">
+                        <div class="risk-item high">
+                            <span class="risk-tag high">Risque élevé</span>
+                            <h5>Cervicales / Nuque</h5>
+                            <p>12 employés — tête penchée &gt; 30°</p>
+                        </div>
+                        <div class="risk-item high">
+                            <span class="risk-tag high">Risque élevé</span>
+                            <h5>Dos lombaire</h5>
+                            <p>8 employés — sans soutien lombaire</p>
+                        </div>
+                        <div class="risk-item medium">
+                            <span class="risk-tag medium">Risque moyen</span>
+                            <h5>Poignets / TCC</h5>
+                            <p>6 employés — frappe intensive</p>
+                        </div>
+                        <div class="risk-item medium">
+                            <span class="risk-tag medium">Risque moyen</span>
+                            <h5>Épaules</h5>
+                            <p>5 employés — bras en élévation</p>
+                        </div>
+                        <div class="risk-item low">
+                            <span class="risk-tag low">Risque faible</span>
+                            <h5>Hanches</h5>
+                            <p>3 employés concernés</p>
+                        </div>
+                        <div class="risk-item low">
+                            <span class="risk-tag low">Risque faible</span>
+                            <h5>Fatigue visuelle</h5>
+                            <p>4 employés — pauses régulières</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h3>
+                        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=44&h=44&fit=crop" alt="">
+                        Actions rapides
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <button class="qa-btn primary" onclick="showToast('Alerte collective envoyée à 47 collaborateurs')">
+                            <div class="qa-btn-icon"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=56&h=56&fit=crop" alt=""></div>
+                            Envoyer alerte collective
+                        </button>
+                        <button class="qa-btn" onclick="showToast('Rapport PDF en cours de génération…')">
+                            <div class="qa-btn-icon"><img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=56&h=56&fit=crop" alt=""></div>
+                            Générer rapport mensuel PDF
+                        </button>
+                        <button class="qa-btn" onclick="showToast('Ouverture du calendrier kiné…')">
+                            <div class="qa-btn-icon"><img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=56&h=56&fit=crop" alt=""></div>
+                            Planifier session kiné collective
+                        </button>
+                        <button class="qa-btn" onclick="showToast('Redirection vers l\'inscription…')">
+                            <div class="qa-btn-icon"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=56&h=56&fit=crop" alt=""></div>
+                            Inscrire un nouvel employé
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <div class="toast-icon"><i class="fas fa-check"></i></div>
+    <span id="toast-msg"></span>
+</div>
+
+<script>
+    let toastTimer;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+    function sendAlert(name) { showToast(`Alerte de pause envoyée à ${name}`); }
+
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.querySelectorAll('[data-w]').forEach(b => {
+                b.style.width = b.dataset.w + '%';
+            });
+        }, 400);
+    });
+</script>
+</body>
+</html>

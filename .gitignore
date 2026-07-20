@@ -1,0 +1,18 @@
+# ── Secrets — ne jamais committer ──
+.env
+.env.*
+!.env.example
+
+# ── Node / Frontend ──
+node_modules/
+tonkine-frontend/dist/
+tonkine-frontend/.vercel/
+
+# ── Java / Backend ──
+tonkine-backend/target/
+*.class
+
+# ── Système ──
+.DS_Store
+Thumbs.db
+*.log

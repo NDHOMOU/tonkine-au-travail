@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibliothèque d'exercices — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:     #0F1923; --ink-60:rgba(15,25,35,.6); --ink-30:rgba(15,25,35,.3);
+            --blue:    #1353A4; --sky:#D6E8FF; --teal:#0B9B8A; --teal-bg:#E0F5F3;
+            --sand:    #F5F1EB; --warn:#C47A00; --warn-bg:#FEF3DC;
+            --border:  rgba(15,25,35,.1);
+            --f-serif: 'Fraunces', Georgia, serif; --f-sans:'Inter', system-ui, sans-serif;
+            --sw: 240px;
+        }
+        body { font-family:var(--f-sans); color:var(--ink); background:#F7F8FC; display:flex; min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+        /* Sidebar identique */
+        .sidebar { width:var(--sw); background:#0F1923; position:fixed; top:0; left:0; bottom:0; display:flex; flex-direction:column; z-index:60; overflow-y:auto; }
+        .sb-logo { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .sb-logo img { width:32px; height:32px; border-radius:7px; object-fit:cover; }
+        .sb-logo-text { font-family:var(--f-serif); font-size:.9rem; font-weight:600; color:rgba(255,255,255,.85); line-height:1.2; }
+        .sb-logo-text small { display:block; font-family:var(--f-sans); font-size:.62rem; color:rgba(255,255,255,.35); font-weight:400; }
+        .sb-user { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:10px; }
+        .sb-user img { width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,.15); object-fit:cover; }
+        .sb-user-name { font-size:.8rem; font-weight:600; color:rgba(255,255,255,.85); }
+        .sb-user-role { font-size:.68rem; color:rgba(255,255,255,.4); margin-top:1px; }
+        .sb-section { padding:20px 0 8px; }
+        .sb-label { padding:0 20px 6px; font-size:.6rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.25); }
+        .sb-link { display:flex; align-items:center; gap:10px; padding:9px 20px; text-decoration:none; font-size:.82rem; font-weight:500; color:rgba(255,255,255,.5); border-left:2px solid transparent; transition:all .15s; }
+        .sb-link:hover { color:rgba(255,255,255,.85); background:rgba(255,255,255,.04); }
+        .sb-link.active { color:white; background:rgba(255,255,255,.07); border-left-color:var(--teal); }
+        .sb-link i { width:16px; font-size:.8rem; text-align:center; }
+        .sb-bottom { margin-top:auto; padding:14px 14px 18px; border-top:1px solid rgba(255,255,255,.06); }
+        .sb-logout { display:flex; align-items:center; gap:8px; width:100%; padding:9px 14px; border-radius:8px; border:1px solid rgba(255,255,255,.08); background:transparent; color:rgba(255,255,255,.4); font-family:var(--f-sans); font-size:.78rem; font-weight:500; cursor:pointer; transition:all .15s; }
+        .sb-logout:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.7); }
+
+        .main { margin-left:var(--sw); flex:1; display:flex; flex-direction:column; }
+        .topbar { background:white; height:60px; padding:0 28px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .topbar h2 { font-size:.95rem; font-weight:600; }
+        .topbar-right { display:flex; gap:10px; align-items:center; }
+        .tb-lang { padding:0 12px; height:32px; border-radius:6px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.75rem; font-weight:600; color:var(--ink-60); cursor:pointer; }
+        .tb-avatar { width:34px; height:34px; border-radius:50%; overflow:hidden; border:2px solid var(--border); }
+        .tb-avatar img { width:100%; height:100%; object-fit:cover; }
+
+        .content { padding:28px; }
+
+        /* Filtres */
+        .filters-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:28px; }
+        .filters-bar h1 { font-family:var(--f-serif); font-size:1.5rem; font-weight:300; letter-spacing:-.02em; flex:1; }
+        .filters-bar h1 em { font-style:italic; color:var(--blue); }
+        .filter-group { display:flex; gap:6px; flex-wrap:wrap; }
+        .f-btn { padding:7px 14px; border-radius:20px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.78rem; font-weight:500; color:var(--ink-60); cursor:pointer; transition:all .15s; }
+        .f-btn:hover { border-color:var(--blue); color:var(--blue); }
+        .f-btn.active { background:var(--ink); color:white; border-color:var(--ink); }
+
+        /* Section */
+        .ex-section { margin-bottom:36px; }
+        .ex-section-head { display:flex; align-items:center; gap:14px; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+        .ex-section-head img { width:36px; height:36px; border-radius:9px; object-fit:cover; }
+        .ex-section-head h2 { font-size:.95rem; font-weight:700; }
+        .ex-section-head span { font-size:.75rem; color:var(--ink-60); }
+        .ex-section-head .zone-badge { margin-left:auto; padding:4px 12px; border-radius:20px; font-size:.7rem; font-weight:700; }
+        .ex-section-head .zone-badge.high { background:rgba(192,57,43,.1); color:#C0392B; }
+        .ex-section-head .zone-badge.med  { background:var(--warn-bg); color:var(--warn); }
+
+        .ex-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+
+        .ex-card {
+            background:white; border:1px solid var(--border); border-radius:14px;
+            overflow:hidden; cursor:pointer; transition:all .2s;
+        }
+        .ex-card:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(15,25,35,.08); border-color:rgba(15,25,35,.15); }
+        .ex-card.playing { border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-bg); }
+
+        .ex-card-img { position:relative; aspect-ratio:16/9; overflow:hidden; }
+        .ex-card-img img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+        .ex-card:hover .ex-card-img img { transform:scale(1.04); }
+        .ex-card-img .play-btn {
+            position:absolute; inset:0; background:rgba(15,25,35,.3);
+            display:flex; align-items:center; justify-content:center;
+            opacity:0; transition:opacity .2s;
+        }
+        .ex-card:hover .play-btn { opacity:1; }
+        .play-circle { width:44px; height:44px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-size:.9rem; color:var(--ink); box-shadow:0 4px 14px rgba(0,0,0,.2); }
+        .ex-card-img .duration-badge { position:absolute; bottom:8px; right:8px; background:rgba(15,25,35,.75); color:white; font-size:.68rem; font-weight:700; padding:3px 8px; border-radius:4px; }
+        .ex-card-img .hobby-dot { position:absolute; top:8px; left:8px; padding:3px 9px; border-radius:10px; font-size:.65rem; font-weight:700; background:rgba(255,255,255,.9); color:var(--ink); }
+
+        .ex-card-body { padding:14px 16px; }
+        .ex-card-zone { font-size:.65rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-60); margin-bottom:5px; }
+        .ex-card-body h3 { font-size:.88rem; font-weight:600; margin-bottom:5px; }
+        .ex-card-body p { font-size:.75rem; color:var(--ink-60); line-height:1.5; }
+        .ex-card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+        .ex-card-footer .diff { font-size:.7rem; color:var(--ink-60); display:flex; align-items:center; gap:4px; }
+        .diff-dots { display:flex; gap:2px; }
+        .diff-dots span { width:6px; height:6px; border-radius:50%; background:var(--border); }
+        .diff-dots span.on { background:var(--blue); }
+        .btn-ex { padding:5px 12px; border-radius:6px; background:var(--sky); color:var(--blue); border:none; font-family:var(--f-sans); font-size:.72rem; font-weight:700; cursor:pointer; transition:all .15s; }
+        .btn-ex:hover { background:var(--blue); color:white; }
+
+        /* Modal exercice */
+        .modal-overlay { position:fixed; inset:0; background:rgba(10,18,28,.7); backdrop-filter:blur(8px); z-index:200; display:none; align-items:center; justify-content:center; }
+        .modal-overlay.show { display:flex; animation:fadein .2s; }
+        @keyframes fadein { from{opacity:0} to{opacity:1} }
+        .modal { background:white; border-radius:20px; width:min(660px,94vw); overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,.2); animation:slideup .25s; }
+        @keyframes slideup { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .modal-img { height:260px; overflow:hidden; position:relative; }
+        .modal-img img { width:100%; height:100%; object-fit:cover; }
+        .modal-close { position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.9); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.85rem; color:var(--ink); }
+        .modal-body { padding:26px 28px 28px; }
+        .modal-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+        .modal-top h2 { font-family:var(--f-serif); font-size:1.5rem; font-weight:300; letter-spacing:-.02em; }
+        .modal-meta { display:flex; gap:10px; margin-top:6px; }
+        .meta-chip { padding:4px 12px; border-radius:20px; font-size:.7rem; font-weight:600; background:var(--sand); color:var(--ink-60); }
+        .meta-chip.zone { background:var(--teal-bg); color:var(--teal); }
+        .modal-body p { font-size:.875rem; color:var(--ink-60); line-height:1.75; margin-bottom:20px; }
+        .steps-list { list-style:none; display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+        .steps-list li { display:flex; gap:12px; align-items:flex-start; font-size:.85rem; }
+        .step-circle { width:24px; height:24px; border-radius:50%; background:var(--sky); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0; margin-top:1px; }
+        .modal-footer { display:flex; gap:10px; }
+        .btn-start { flex:1; padding:13px; border-radius:9px; background:var(--ink); color:white; border:none; font-family:var(--f-sans); font-size:.9rem; font-weight:600; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:8px; }
+        .btn-start:hover { background:#1a2e45; }
+        .btn-save { padding:13px 18px; border-radius:9px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.82rem; font-weight:500; color:var(--ink-60); cursor:pointer; transition:all .15s; }
+        .btn-save:hover { border-color:var(--ink-30); color:var(--ink); }
+
+        /* Toast */
+        .toast { position:fixed; bottom:24px; right:24px; background:var(--ink); color:white; padding:12px 18px; border-radius:10px; font-size:.82rem; font-weight:500; box-shadow:0 8px 30px rgba(0,0,0,.2); display:none; align-items:center; gap:10px; z-index:300; }
+        .toast.show { display:flex; animation:slideup .2s; }
+
+        @media (max-width:1000px) { .ex-grid { grid-template-columns:1fr 1fr; } }
+        @media (max-width:700px)  { .ex-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <a href="index.html" class="sb-logo">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=64&h=64&fit=crop" alt="">
+        <div class="sb-logo-text">TonKiné au Travail<small>Espace Employé</small></div>
+    </a>
+    <div class="sb-user">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=72&h=72&fit=crop&crop=face" alt="">
+        <div><div class="sb-user-name">Jean-Paul Kamga</div><div class="sb-user-role">Développeur · IT</div></div>
+    </div>
+    <div class="sb-section">
+        <div class="sb-label">Principal</div>
+        <a class="sb-link" href="dashboard-employe.html"><i class="fas fa-home"></i> Tableau de bord</a>
+        <a class="sb-link" href="#"><i class="fas fa-camera"></i> Ma posture</a>
+        <a class="sb-link active" href="exercices.html"><i class="fas fa-dumbbell"></i> Mes exercices</a>
+        <a class="sb-link" href="#"><i class="fas fa-clock"></i> Minuteur pause</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-label">Santé</div>
+        <a class="sb-link" href="#"><i class="fas fa-chart-line"></i> Mon historique</a>
+        <a class="sb-link" href="curatif.html"><i class="fas fa-file-medical"></i> Protocoles curatifs</a>
+        <a class="sb-link" href="rdv-kine.html"><i class="fas fa-calendar-check"></i> Prendre un RDV kiné</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-label">Compte</div>
+        <a class="sb-link" href="#"><i class="fas fa-user"></i> Mon profil</a>
+        <a class="sb-link" href="#"><i class="fas fa-heart"></i> Mes hobbies</a>
+    </div>
+    <div class="sb-bottom">
+        <button class="sb-logout" onclick="window.location.href='connexion.html'"><i class="fas fa-sign-out-alt"></i> Se déconnecter</button>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <h2>Bibliothèque d'exercices</h2>
+        <div class="topbar-right">
+            <button class="tb-lang">🌐 FR</button>
+            <div class="tb-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=68&h=68&fit=crop&crop=face" alt=""></div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="filters-bar">
+            <h1>Exercices <em>personnalisés</em></h1>
+            <div class="filter-group">
+                <button class="f-btn active" onclick="setFilter('tous',this)">Tous</button>
+                <button class="f-btn" onclick="setFilter('nuque',this)">Nuque</button>
+                <button class="f-btn" onclick="setFilter('dos',this)">Dos</button>
+                <button class="f-btn" onclick="setFilter('epaules',this)">Épaules</button>
+                <button class="f-btn" onclick="setFilter('poignets',this)">Poignets</button>
+                <button class="f-btn" onclick="setFilter('yeux',this)">Yeux</button>
+            </div>
+            <div class="filter-group">
+                <button class="f-btn" onclick="setFilter('musique',this)">🎵 Musique</button>
+                <button class="f-btn" onclick="setFilter('sport',this)">🏃 Sport</button>
+                <button class="f-btn" onclick="setFilter('yoga',this)">🧘 Yoga</button>
+            </div>
+        </div>
+
+        <!-- NUQUE -->
+        <div class="ex-section">
+            <div class="ex-section-head">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=72&h=72&fit=crop" alt="">
+                <div><h2>Nuque &amp; Cervicales</h2><span>Zone prioritaire — Score 64%</span></div>
+                <span class="zone-badge high">Prioritaire</span>
+            </div>
+            <div class="ex-grid">
+                <div class="ex-card" onclick="openModal('Rotation cervicale douce','nuque','5 min','https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=660&h=260&fit=crop','Idéal pour relâcher les tensions cervicales accumulées après une longue session de travail sur écran. Cet exercice peut être fait debout ou assis.','<li><span class=step-circle>1</span>Asseyez-vous droit, pieds à plat sur le sol</li><li><span class=step-circle>2</span>Inclinez lentement la tête vers l\'épaule droite. Tenez 20 secondes.</li><li><span class=step-circle>3</span>Remontez au centre, puis inclinez vers la gauche. Tenez 20 secondes.</li><li><span class=step-circle>4</span>Regardez au-dessus de l\'épaule droite, tenez. Puis gauche.</li><li><span class=step-circle>5</span>Répétez 3 fois chaque côté, lentement.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">5 min</span>
+                        <span class="hobby-dot">🎵 Musique</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Nuque / Cervicales</div>
+                        <h3>Rotation cervicale douce</h3>
+                        <p>Relâchement des tensions du cou après une session prolongée sur écran.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Rotation cervicale douce')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ex-card" onclick="openModal('Étirement trapèze & nuque','nuque','7 min','https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=660&h=260&fit=crop','Étirement en profondeur du muscle trapèze, très sollicité lors du travail sur ordinateur. Cet exercice est inspiré du yoga des bureaux.','<li><span class=step-circle>1</span>Debout ou assis, bras le long du corps</li><li><span class=step-circle>2</span>Posez la main droite sur la tête, au-dessus de l\'oreille gauche</li><li><span class=step-circle>3</span>Laissez le poids de la main incliner doucement la tête — sans forcer</li><li><span class=step-circle>4</span>Tenez 30 secondes en respirant profondément</li><li><span class=step-circle>5</span>Changez de côté. Répétez 2 fois.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">7 min</span>
+                        <span class="hobby-dot">🧘 Yoga</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Nuque / Trapèze</div>
+                        <h3>Étirement trapèze &amp; nuque</h3>
+                        <p>Décompression du trapèze, un des muscles les plus tendus chez les informaticiens.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span class="on"></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Étirement trapèze')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ex-card" onclick="openModal('Règle 20-20-20 — Yeux & nuque','yeux','3 min','https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=660&h=260&fit=crop','La règle 20-20-20 prévient la fatigue visuelle ET la nuque. Toutes les 20 minutes, regardez à 20 pieds (6 mètres) pendant 20 secondes tout en redressant la tête.','<li><span class=step-circle>1</span>Éloignez les yeux de l\'écran</li><li><span class=step-circle>2</span>Regardez un point à au moins 6 mètres de vous</li><li><span class=step-circle>3</span>Clignez des yeux lentement 5 fois</li><li><span class=step-circle>4</span>Redressez la tête et roulez doucement les épaules en arrière</li><li><span class=step-circle>5</span>Respirez profondément 3 fois. Reprenez.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">3 min</span>
+                        <span class="hobby-dot">👁 Yeux</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Yeux / Nuque combiné</div>
+                        <h3>Règle 20-20-20</h3>
+                        <p>Repos visuel et relâchement cervical simultanés. À faire toutes les 20 minutes.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Règle 20-20-20')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOS -->
+        <div class="ex-section">
+            <div class="ex-section-head">
+                <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=72&h=72&fit=crop" alt="">
+                <div><h2>Dos &amp; Colonne vertébrale</h2><span>Score actuel 92% — Entretien préventif</span></div>
+                <span class="zone-badge med">Préventif</span>
+            </div>
+            <div class="ex-grid">
+                <div class="ex-card" onclick="openModal('Étirements dorsaux rythmés','dos','7 min','https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=660&h=260&fit=crop','Exercice inspiré de votre profil musical. Synchronisez les mouvements avec votre musique préférée pour rendre la pause active et agréable.','<li><span class=step-circle>1</span>Mettez votre playlist favorite</li><li><span class=step-circle>2</span>Levez-vous et écartez les pieds à largeur d\'épaules</li><li><span class=step-circle>3</span>Sur le temps fort, inclinez le buste en avant (45°), mains aux genoux</li><li><span class=step-circle>4</span>Sur le temps faible, redressez-vous en arquant légèrement le dos</li><li><span class=step-circle>5</span>Répétez 8 fois au rythme de la musique. Puis marchez 2 minutes.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">7 min</span>
+                        <span class="hobby-dot">🎵 Musique</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Dos / Lombaires</div>
+                        <h3>Étirements dorsaux rythmés</h3>
+                        <p>Mobilisation du dos au rythme de votre musique. Agréable et efficace.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Étirements dorsaux')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ex-card" onclick="openModal('Marche active au bureau','dos','5 min','https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=660&h=260&fit=crop','La marche est le meilleur remède contre la sédentarité. 5 minutes de marche relancent la circulation et décompressent les disques vertébraux.','<li><span class=step-circle>1</span>Levez-vous de votre siège</li><li><span class=step-circle>2</span>Faites 2 tours complets du couloir ou du bureau</li><li><span class=step-circle>3</span>En marchant, redressez le dos, rentrez légèrement le menton</li><li><span class=step-circle>4</span>Si possible, montez un escalier aller-retour</li><li><span class=step-circle>5</span>Au retour, profitez-en pour prendre un verre d\'eau ☕</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">5 min</span>
+                        <span class="hobby-dot">🚶 Marche</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Dos / Circulation</div>
+                        <h3>Marche active au bureau</h3>
+                        <p>2 tours de couloir relancent la circulation et décompressent les vertèbres.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Marche active')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ex-card" onclick="openModal('Cat-Cow debout','dos','4 min','https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=660&h=260&fit=crop','Version debout de l\'exercice cat-cow du yoga. Parfait entre deux réunions, sans matériel.','<li><span class=step-circle>1</span>Debout, pieds écartés, mains sur les genoux fléchis</li><li><span class=step-circle>2</span>Inspirez en creusant le dos (ventre vers le bas, tête levée)</li><li><span class=step-circle>3</span>Expirez en arrondissant le dos (ventre rentré, tête baissée)</li><li><span class=step-circle>4</span>Répétez 10 fois lentement, en suivant votre respiration</li><li><span class=step-circle>5</span>Redressez-vous lentement, étirez les bras vers le haut.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">4 min</span>
+                        <span class="hobby-dot">🧘 Yoga</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Dos / Mobilité vertébrale</div>
+                        <h3>Cat-Cow debout</h3>
+                        <p>Mobilisation de toute la colonne vertébrale. Issu du yoga, adaptée au bureau.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span class="on"></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Cat-Cow debout')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POIGNETS -->
+        <div class="ex-section">
+            <div class="ex-section-head">
+                <img src="https://images.unsplash.com/photo-1616279969965-9ac56ade3e24?w=72&h=72&fit=crop" alt="">
+                <div><h2>Poignets &amp; Avant-bras</h2><span>Score actuel 88% — Frappe clavier intensive</span></div>
+                <span class="zone-badge med">Préventif</span>
+            </div>
+            <div class="ex-grid">
+                <div class="ex-card" onclick="openModal('Étirements extenseurs poignet','poignets','3 min','https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=660&h=260&fit=crop','Prévention du syndrome du canal carpien, très fréquent chez les développeurs et banquiers qui tapent des milliers de touches par jour.','<li><span class=step-circle>1</span>Tendez le bras droit devant vous, paume vers le haut</li><li><span class=step-circle>2</span>Avec la main gauche, repoussez doucement les doigts vers le bas</li><li><span class=step-circle>3</span>Tenez 20 secondes — vous sentez l\'étirement sous l\'avant-bras</li><li><span class=step-circle>4</span>Paume vers le bas, repoussez les doigts vers le haut. Tenez 20s.</li><li><span class=step-circle>5</span>Changez de bras. Répétez 2 fois.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">3 min</span>
+                        <span class="hobby-dot">💪 Prévention TCC</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Poignets / Canal carpien</div>
+                        <h3>Étirements extenseurs poignet</h3>
+                        <p>Prévention du tunnel carpien — à faire après chaque heure de frappe intensive.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Étirements poignet')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ex-card" onclick="openModal('Rotation des poignets','poignets','2 min','https://images.unsplash.com/photo-1616279969965-9ac56ade3e24?w=660&h=260&fit=crop','Exercice simple de mobilité des poignets pour maintenir la souplesse des tendons et prévenir les tendinites.','<li><span class=step-circle>1</span>Tendez les deux bras devant vous</li><li><span class=step-circle>2</span>Fermez les poings sans serrer</li><li><span class=step-circle>3</span>Faites tourner lentement les poignets : 10 fois vers l\'extérieur</li><li><span class=step-circle>4</span>Puis 10 fois vers l\'intérieur</li><li><span class=step-circle>5</span>Secouez les mains 10 secondes pour relâcher.</li>')">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1616279969965-9ac56ade3e24?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">2 min</span>
+                        <span class="hobby-dot">🔄 Mobilité</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Poignets / Tendons</div>
+                        <h3>Rotation des poignets</h3>
+                        <p>Maintien de la souplesse des tendons. À faire avant et après le travail clavier.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="event.stopPropagation();startEx(this,'Rotation poignets')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ex-card">
+                    <div class="ex-card-img">
+                        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=225&fit=crop" alt="">
+                        <div class="play-btn"><div class="play-circle"><i class="fas fa-play" style="font-size:.7rem;margin-left:2px"></i></div></div>
+                        <span class="duration-badge">4 min</span>
+                        <span class="hobby-dot">💆 Relaxation</span>
+                    </div>
+                    <div class="ex-card-body">
+                        <div class="ex-card-zone">Épaules / Trapèzes</div>
+                        <h3>Roulement d'épaules</h3>
+                        <p>Décontraction des trapèzes et épaules. Combiné avec une pause gastronomique.</p>
+                        <div class="ex-card-footer">
+                            <div class="diff">Difficulté <div class="diff-dots"><span class="on"></span><span></span><span></span></div></div>
+                            <button class="btn-ex" onclick="startEx(this,'Roulement épaules')">Commencer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <div class="modal-img">
+            <img id="m-img" src="" alt="">
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-top">
+                <div>
+                    <h2 id="m-title"></h2>
+                    <div class="modal-meta">
+                        <span class="meta-chip zone" id="m-zone"></span>
+                        <span class="meta-chip" id="m-dur"></span>
+                    </div>
+                </div>
+            </div>
+            <p id="m-desc"></p>
+            <ul class="steps-list" id="m-steps"></ul>
+            <div class="modal-footer">
+                <button class="btn-start" id="m-start-btn" onclick="startFromModal()">
+                    <i class="fas fa-play"></i> Commencer cet exercice
+                </button>
+                <button class="btn-save" onclick="closeModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <i class="fas fa-check" style="color:var(--teal)"></i>
+    <span id="toast-msg"></span>
+</div>
+
+<script>
+    let currentExTitle = '';
+
+    function openModal(title, zone, dur, img, desc, stepsHtml) {
+        currentExTitle = title;
+        document.getElementById('m-title').textContent = title;
+        document.getElementById('m-zone').textContent  = zone;
+        document.getElementById('m-dur').textContent   = dur;
+        document.getElementById('m-img').src           = img;
+        document.getElementById('m-desc').textContent  = desc;
+        document.getElementById('m-steps').innerHTML   = stepsHtml;
+        document.getElementById('modal').classList.add('show');
+    }
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
+    document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+    function startFromModal() {
+        closeModal();
+        toast('"' + currentExTitle + '" démarré — bonne pause !');
+    }
+    function startEx(btn, name) {
+        const card = btn.closest('.ex-card');
+        card.classList.add('playing');
+        btn.textContent = '✓ En cours';
+        btn.style.background = 'var(--teal-bg)';
+        btn.style.color = 'var(--teal)';
+        toast('"' + name + '" en cours — 5 min de pause bien méritée !');
+        setTimeout(() => {
+            card.classList.remove('playing');
+            btn.textContent = '✓ Terminé';
+            btn.style.background = 'var(--teal-bg)';
+            btn.style.color = 'var(--teal)';
+        }, 5000);
+    }
+
+    function setFilter(f, btn) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    let toastTimer;
+    function toast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+</script>
+</body>
+</html>

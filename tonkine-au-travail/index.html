@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TonKiné au Travail — Prévention TMS pour vos équipes</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ink:      #0F1923;
+            --ink-60:   rgba(15,25,35,.6);
+            --ink-30:   rgba(15,25,35,.3);
+            --blue:     #1353A4;
+            --blue-mid: #1C6FD4;
+            --sky:      #D6E8FF;
+            --teal:     #0B9B8A;
+            --teal-bg:  #E0F5F3;
+            --sand:     #F5F1EB;
+            --white:    #FFFFFF;
+            --border:   rgba(15,25,35,.1);
+            --f-serif:  'Fraunces', Georgia, serif;
+            --f-sans:   'Inter', system-ui, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--f-sans);
+            color: var(--ink);
+            background: var(--white);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ───── HEADER ───── */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+            padding: 0 40px;
+            background: rgba(255,255,255,.88);
+            backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+            height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .logo {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: var(--ink);
+        }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 8px;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .logo-mark img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .logo-wordmark {
+            font-family: var(--f-serif);
+            font-size: 1.05rem; font-weight: 600;
+            letter-spacing: -.01em; line-height: 1;
+        }
+        .logo-wordmark span { color: var(--blue); }
+
+        nav { display: flex; align-items: center; gap: 2px; }
+        nav a {
+            padding: 7px 14px; border-radius: 6px;
+            font-size: .875rem; color: var(--ink-60);
+            text-decoration: none; font-weight: 500;
+            transition: color .15s, background .15s;
+        }
+        nav a:hover { color: var(--ink); background: rgba(15,25,35,.05); }
+
+        .btn-header {
+            margin-left: 12px;
+            padding: 8px 18px; border-radius: 7px;
+            background: var(--ink); color: white !important;
+            font-size: .875rem; font-weight: 500;
+            transition: background .15s, transform .1s !important;
+        }
+        .btn-header:hover { background: #1a2e45 !important; transform: translateY(-1px); }
+
+        /* ───── HERO ───── */
+        .hero {
+            padding-top: 64px;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--white);
+        }
+
+        .hero-left {
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 80px 60px 80px 80px;
+            border-right: 1px solid var(--border);
+        }
+
+        .pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 100px;
+            background: var(--teal-bg); color: var(--teal);
+            font-size: .75rem; font-weight: 600;
+            letter-spacing: .03em; text-transform: uppercase;
+            margin-bottom: 28px; width: fit-content;
+        }
+        .pill::before {
+            content: '';
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--teal);
+            animation: blink 2s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+        .hero-left h1 {
+            font-family: var(--f-serif);
+            font-size: clamp(2.6rem, 4vw, 3.8rem);
+            font-weight: 300;
+            line-height: 1.12;
+            letter-spacing: -.02em;
+            color: var(--ink);
+            margin-bottom: 24px;
+        }
+        .hero-left h1 em {
+            font-style: italic; color: var(--blue);
+        }
+
+        .hero-left p {
+            font-size: 1.05rem; color: var(--ink-60);
+            line-height: 1.75; max-width: 480px;
+            margin-bottom: 40px;
+        }
+
+        .hero-cta {
+            display: flex; align-items: center; gap: 16px;
+        }
+        .btn-primary {
+            padding: 13px 26px; border-radius: 8px;
+            background: var(--blue); color: white;
+            font-size: .9rem; font-weight: 600;
+            text-decoration: none;
+            transition: background .15s, transform .1s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { background: var(--blue-mid); transform: translateY(-1px); }
+        .btn-ghost {
+            padding: 12px 22px; border-radius: 8px;
+            border: 1px solid var(--border); color: var(--ink-60);
+            font-size: .9rem; font-weight: 500;
+            text-decoration: none;
+            transition: border-color .15s, color .15s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-ghost:hover { border-color: var(--ink-60); color: var(--ink); }
+
+        .hero-social-proof {
+            display: flex; align-items: center; gap: 14px;
+            margin-top: 44px; padding-top: 32px;
+            border-top: 1px solid var(--border);
+        }
+        .avatar-stack {
+            display: flex;
+        }
+        .avatar-stack img {
+            width: 34px; height: 34px; border-radius: 50%;
+            border: 2px solid white; object-fit: cover;
+            margin-right: -10px;
+        }
+        .social-proof-text { font-size: .82rem; color: var(--ink-60); }
+        .social-proof-text strong { color: var(--ink); }
+
+        /* Photo hero droit */
+        .hero-right {
+            position: relative; overflow: hidden;
+            background: var(--sand);
+        }
+        .hero-right img.hero-photo {
+            width: 100%; height: 100%;
+            object-fit: cover; object-position: center top;
+            filter: saturate(.9);
+        }
+        .hero-overlay-card {
+            position: absolute; bottom: 36px; left: 36px; right: 36px;
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(20px);
+            border-radius: 14px; padding: 20px 22px;
+            border: 1px solid rgba(255,255,255,.8);
+            box-shadow: 0 20px 60px rgba(0,0,0,.12);
+        }
+        .overlay-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .overlay-top h4 { font-size: .82rem; font-weight: 600; }
+        .overlay-top span {
+            font-size: .72rem; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .overlay-top span.ok { background: var(--teal-bg); color: var(--teal); }
+        .overlay-top span.warn { background: #FEF3E2; color: #B7680A; }
+
+        .mini-bars { display: flex; flex-direction: column; gap: 8px; }
+        .mini-bar-row {
+            display: flex; align-items: center; gap: 10px;
+            font-size: .75rem; color: var(--ink-60);
+        }
+        .mini-bar-row label { width: 90px; flex-shrink: 0; }
+        .mini-track {
+            flex: 1; height: 5px; background: #EEF2F7; border-radius: 3px; overflow: hidden;
+        }
+        .mini-fill {
+            height: 100%; border-radius: 3px;
+            transition: width 1.5s cubic-bezier(.4,0,.2,1);
+        }
+        .mini-fill.ok   { background: var(--teal); }
+        .mini-fill.warn { background: #F0A030; }
+        .mini-bar-row .pct { width: 30px; text-align: right; font-weight: 600; color: var(--ink); }
+
+        .overlay-timer {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+        }
+        .overlay-timer p { font-size: .75rem; color: var(--ink-60); }
+        .timer-val { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+        /* ───── LOGOS BANDE ───── */
+        .logos-band {
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 28px 80px;
+            display: flex; align-items: center; gap: 60px; flex-wrap: wrap;
+            background: var(--sand);
+        }
+        .logos-band p { font-size: .78rem; color: var(--ink-60); white-space: nowrap; }
+        .company-logos { display: flex; align-items: center; gap: 48px; flex-wrap: wrap; }
+        .company-logo {
+            font-family: var(--f-serif); font-size: .9rem; font-weight: 600;
+            color: var(--ink-30); letter-spacing: .05em; text-transform: uppercase;
+            font-size: .78rem;
+        }
+
+        /* ───── SECTION BASE ───── */
+        .section { padding: 100px 80px; }
+        .section-label {
+            font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--teal);
+            margin-bottom: 20px;
+        }
+        .section-h {
+            font-family: var(--f-serif);
+            font-size: clamp(1.9rem, 3vw, 2.8rem);
+            font-weight: 300; line-height: 1.15;
+            letter-spacing: -.02em; color: var(--ink);
+            margin-bottom: 20px; max-width: 620px;
+        }
+        .section-h em { font-style: italic; color: var(--blue); }
+        .section-p {
+            font-size: .975rem; color: var(--ink-60);
+            line-height: 1.75; max-width: 560px;
+        }
+
+        /* ───── COMMENT ÇA MARCHE ───── */
+        .how-section { background: var(--white); }
+        .how-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+            margin-top: 60px;
+        }
+        .how-visual { position: sticky; top: 100px; }
+        .how-visual img {
+            width: 100%; border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.1);
+            aspect-ratio: 4/3; object-fit: cover;
+        }
+        .how-steps { display: flex; flex-direction: column; gap: 0; }
+        .how-step {
+            padding: 28px 0;
+            border-bottom: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 48px 1fr;
+            gap: 20px;
+            align-items: start;
+            cursor: default;
+        }
+        .how-step:first-child { padding-top: 0; }
+        .how-step:last-child { border-bottom: none; }
+        .step-num {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .82rem; font-weight: 600; color: var(--ink-60);
+            flex-shrink: 0; margin-top: 3px;
+            transition: all .2s;
+        }
+        .how-step:hover .step-num,
+        .how-step.active .step-num {
+            background: var(--blue); border-color: var(--blue);
+            color: white;
+        }
+        .step-content h3 {
+            font-size: 1rem; font-weight: 600;
+            margin-bottom: 8px; transition: color .2s;
+        }
+        .how-step:hover .step-content h3 { color: var(--blue); }
+        .step-content p { font-size: .875rem; color: var(--ink-60); line-height: 1.65; }
+
+        /* ───── FEATURES SPLIT ───── */
+        .features-section { background: var(--sand); }
+        .features-intro {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+            margin-bottom: 80px; align-items: end;
+        }
+        .features-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+            background: var(--border);
+            border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+        }
+        .feature-tile {
+            background: white; padding: 32px 28px;
+            transition: background .2s;
+        }
+        .feature-tile:hover { background: var(--sky); }
+        .feature-icon-wrap {
+            width: 44px; height: 44px; margin-bottom: 18px;
+            border-radius: 10px; overflow: hidden;
+        }
+        .feature-icon-wrap img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .feature-tile h3 {
+            font-size: .95rem; font-weight: 600;
+            margin-bottom: 10px; color: var(--ink);
+        }
+        .feature-tile p {
+            font-size: .825rem; color: var(--ink-60);
+            line-height: 1.65;
+        }
+        .feature-tile .f-tag {
+            display: inline-block; margin-top: 14px;
+            font-size: .68rem; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--blue);
+        }
+
+        /* ───── PHOTO SPLIT ───── */
+        .split-section {
+            display: grid; grid-template-columns: 1fr 1fr; min-height: 560px;
+        }
+        .split-photo { position: relative; overflow: hidden; }
+        .split-photo img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .split-content {
+            padding: 80px;
+            display: flex; flex-direction: column; justify-content: center;
+            background: var(--ink);
+        }
+        .split-content .section-label { color: var(--teal); }
+        .split-content .section-h { color: white; max-width: none; }
+        .split-content .section-p { color: rgba(255,255,255,.6); }
+        .zone-list { margin-top: 36px; display: flex; flex-direction: column; gap: 14px; }
+        .zone-item {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 16px 18px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.04);
+        }
+        .zone-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            margin-top: 4px; flex-shrink: 0;
+        }
+        .zone-dot.red    { background: #E74C3C; }
+        .zone-dot.orange { background: #F0A030; }
+        .zone-dot.green  { background: var(--teal); }
+        .zone-item div h5 {
+            font-size: .875rem; font-weight: 600; color: rgba(255,255,255,.9);
+            margin-bottom: 3px;
+        }
+        .zone-item div p { font-size: .78rem; color: rgba(255,255,255,.45); }
+
+        /* ───── TESTIMONIALS ───── */
+        .testimonials-section { padding: 100px 80px; background: white; }
+        .testimonials-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+            margin-top: 60px;
+        }
+        .testimonial-card {
+            padding: 30px; border-radius: 14px;
+            border: 1px solid var(--border);
+            background: white; transition: box-shadow .2s;
+        }
+        .testimonial-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,.07); }
+        .stars {
+            display: flex; gap: 3px; margin-bottom: 16px;
+            color: #F0A030; font-size: .8rem;
+        }
+        .testimonial-card blockquote {
+            font-size: .9rem; line-height: 1.7; color: var(--ink);
+            font-style: italic; margin-bottom: 22px;
+            font-family: var(--f-serif); font-weight: 300;
+        }
+        .testimonial-author {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .testimonial-author img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+        }
+        .testimonial-author div h5 { font-size: .83rem; font-weight: 600; }
+        .testimonial-author div p { font-size: .75rem; color: var(--ink-60); }
+
+        /* ───── ROLES ───── */
+        .roles-section {
+            display: grid; grid-template-columns: 1fr 1fr; min-height: 500px;
+        }
+        .role-pane {
+            padding: 72px 64px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .role-pane.employee { background: var(--sky); }
+        .role-pane.admin    { background: var(--ink); }
+        .role-pane .role-label {
+            font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; margin-bottom: 20px;
+        }
+        .role-pane.employee .role-label { color: var(--blue); }
+        .role-pane.admin    .role-label { color: var(--teal); }
+        .role-pane h2 {
+            font-family: var(--f-serif);
+            font-size: 2rem; font-weight: 300;
+            line-height: 1.2; letter-spacing: -.02em;
+            margin-bottom: 16px;
+        }
+        .role-pane.employee h2 { color: var(--ink); }
+        .role-pane.admin h2    { color: white; }
+        .role-pane p {
+            font-size: .875rem; line-height: 1.7; margin-bottom: 28px;
+        }
+        .role-pane.employee p { color: var(--ink-60); }
+        .role-pane.admin p    { color: rgba(255,255,255,.55); }
+        .role-features-list { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 36px; }
+        .role-features-list li {
+            display: flex; align-items: center; gap: 10px;
+            font-size: .875rem;
+        }
+        .role-pane.employee .role-features-list li { color: var(--ink); }
+        .role-pane.admin    .role-features-list li { color: rgba(255,255,255,.8); }
+        .role-features-list li::before {
+            content: '';
+            width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+        }
+        .role-pane.employee .role-features-list li::before { background: var(--blue); }
+        .role-pane.admin    .role-features-list li::before { background: var(--teal); }
+        .role-cta {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 22px; border-radius: 8px;
+            font-size: .875rem; font-weight: 600;
+            text-decoration: none; width: fit-content;
+            transition: all .15s;
+        }
+        .role-pane.employee .role-cta {
+            background: var(--blue); color: white;
+        }
+        .role-pane.employee .role-cta:hover { background: var(--blue-mid); }
+        .role-pane.admin .role-cta {
+            background: rgba(255,255,255,.1); color: white;
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .role-pane.admin .role-cta:hover { background: rgba(255,255,255,.18); }
+
+        /* ───── STATS ───── */
+        .stats-section {
+            padding: 80px;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .stat-cell {
+            padding: 20px 0;
+            border-right: 1px solid var(--border);
+        }
+        .stat-cell:last-child { border-right: none; padding-left: 40px; }
+        .stat-cell:first-child { padding-left: 0; }
+        .stat-cell + .stat-cell { padding-left: 40px; }
+        .stat-num {
+            font-family: var(--f-serif);
+            font-size: 2.8rem; font-weight: 300;
+            color: var(--ink); letter-spacing: -.03em;
+            line-height: 1; margin-bottom: 8px;
+        }
+        .stat-num span { color: var(--blue); }
+        .stat-desc { font-size: .82rem; color: var(--ink-60); line-height: 1.5; max-width: 180px; }
+
+        /* ───── CTA FINAL ───── */
+        .cta-section {
+            padding: 120px 80px;
+            background: var(--sand);
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .cta-section .section-label { margin-bottom: 24px; }
+        .cta-section h2 {
+            font-family: var(--f-serif);
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 300; line-height: 1.15;
+            letter-spacing: -.025em; max-width: 680px;
+            margin-bottom: 20px;
+        }
+        .cta-section h2 em { font-style: italic; color: var(--blue); }
+        .cta-section p {
+            font-size: .975rem; color: var(--ink-60);
+            line-height: 1.75; max-width: 520px; margin-bottom: 40px;
+        }
+        .cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+        /* ───── FOOTER ───── */
+        footer {
+            padding: 60px 80px 40px;
+            border-top: 1px solid var(--border);
+            background: white;
+        }
+        .footer-grid {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px; margin-bottom: 48px;
+        }
+        .footer-brand p {
+            font-size: .82rem; color: var(--ink-60);
+            line-height: 1.7; margin-top: 14px; max-width: 280px;
+        }
+        footer h4 {
+            font-size: .75rem; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--ink); margin-bottom: 16px;
+        }
+        footer ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        footer ul a {
+            font-size: .82rem; color: var(--ink-60);
+            text-decoration: none; transition: color .15s;
+        }
+        footer ul a:hover { color: var(--ink); }
+        .footer-bottom {
+            border-top: 1px solid var(--border); padding-top: 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: .78rem; color: var(--ink-60);
+        }
+        .footer-bottom a { color: var(--ink-60); text-decoration: none; }
+        .footer-bottom a:hover { color: var(--blue); }
+        .lang-btns { display: flex; gap: 6px; }
+        .lang-btn {
+            padding: 5px 12px; border-radius: 5px;
+            border: 1px solid var(--border); background: white;
+            font-size: .75rem; font-weight: 600; cursor: pointer;
+            font-family: var(--f-sans); color: var(--ink-60);
+            transition: all .15s;
+        }
+        .lang-btn:hover, .lang-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+        /* ───── RESPONSIVE ───── */
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; }
+            .hero-right { height: 50vh; }
+            .hero-left { padding: 80px 40px; border-right: none; border-bottom: 1px solid var(--border); }
+            .how-grid { grid-template-columns: 1fr; }
+            .how-visual { position: relative; top: 0; }
+            .features-intro { grid-template-columns: 1fr; gap: 32px; }
+            .features-grid { grid-template-columns: 1fr 1fr; }
+            .split-section { grid-template-columns: 1fr; }
+            .split-photo { height: 400px; }
+            .testimonials-grid { grid-template-columns: 1fr 1fr; }
+            .roles-section { grid-template-columns: 1fr; }
+            .stats-section { grid-template-columns: 1fr 1fr; gap: 0; padding: 48px 40px; }
+            .stat-cell:nth-child(2) { border-right: none; }
+            section.section, .logos-band, footer, .cta-section { padding-left: 40px; padding-right: 40px; }
+        }
+
+        @media (max-width: 680px) {
+            header { padding: 0 20px; }
+            nav a:not(.btn-header) { display: none; }
+            .hero-left { padding: 60px 24px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .testimonials-grid { grid-template-columns: 1fr; }
+            .stats-section { grid-template-columns: 1fr; padding: 40px 24px; }
+            .stat-cell { border-right: none; border-bottom: 1px solid var(--border); padding-left: 0 !important; padding-bottom: 24px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            section.section, footer, .cta-section, .logos-band { padding-left: 24px; padding-right: 24px; }
+            .split-content, .role-pane { padding: 48px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header>
+    <a href="index.html" class="logo">
+        <div class="logo-mark">
+            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=80&h=80&fit=crop&crop=center" alt="TonKiné">
+        </div>
+        <span class="logo-wordmark">TonKiné <span>au Travail</span></span>
+    </a>
+    <nav>
+        <a href="#comment">Comment ça marche</a>
+        <a href="#fonctions">Fonctions</a>
+        <a href="#tms">Prévention TMS</a>
+        <a href="#acces">Accès</a>
+        <a href="connexion.html" class="btn-header">Se connecter →</a>
+    </nav>
+</header>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero" id="top">
+    <div class="hero-left">
+        <div class="pill">Kinésithérapie d'entreprise · FR / EN</div>
+        <h1>
+            Vos équipes méritent<br>
+            de travailler <em>sans douleur</em>
+        </h1>
+        <p>
+            TonKiné au Travail analyse la posture de vos collaborateurs en temps réel, les alerte intelligemment après deux heures assis et leur propose des pauses actives adaptées à leur profil.
+        </p>
+        <div class="hero-cta">
+            <a href="connexion.html" class="btn-primary">
+                Accéder à l'application <i class="fas fa-arrow-right" style="font-size:.8rem"></i>
+            </a>
+            <a href="#comment" class="btn-ghost">
+                <i class="fas fa-play" style="font-size:.75rem"></i> Voir comment ça marche
+            </a>
+        </div>
+        <div class="hero-social-proof">
+            <div class="avatar-stack">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" alt="">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face" alt="">
+                <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face" alt="">
+            </div>
+            <p class="social-proof-text"><strong>Rejoignez les équipes</strong> qui prennent soin de leurs collaborateurs</p>
+        </div>
+    </div>
+    <div class="hero-right">
+        <img class="hero-photo"
+            src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&h=1100&fit=crop&crop=center"
+            alt="Espace de travail bureau">
+        <div class="hero-overlay-card">
+            <div class="overlay-top">
+                <h4>Analyse posture — Jean-Paul K.</h4>
+                <span class="ok">Score 84 / 100</span>
+            </div>
+            <div class="mini-bars">
+                <div class="mini-bar-row">
+                    <label>Dos / Colonne</label>
+                    <div class="mini-track"><div class="mini-fill ok" style="width:0%" data-w="92"></div></div>
+                    <span class="pct">92%</span>
+                </div>
+                <div class="mini-bar-row">
+                    <label>Nuque</label>
+                    <div class="mini-track"><div class="mini-fill warn" style="width:0%" data-w="64"></div></div>
+                    <span class="pct">64%</span>
+                </div>
+                <div class="mini-bar-row">
+                    <label>Poignets</label>
+                    <div class="mini-track"><div class="mini-fill ok" style="width:0%" data-w="88"></div></div>
+                    <span class="pct">88%</span>
+                </div>
+            </div>
+            <div class="overlay-timer">
+                <p>Position assise depuis</p>
+                <span class="timer-val" id="hero-timer">01:24:37</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ LOGOS ══════════ -->
+<div class="logos-band">
+    <p>Conçu pour les secteurs</p>
+    <div class="company-logos">
+        <span class="company-logo">Informatique & Tech</span>
+        <span class="company-logo">Banque & Finance</span>
+        <span class="company-logo">Administration</span>
+        <span class="company-logo">Service client</span>
+        <span class="company-logo">Direction générale</span>
+    </div>
+</div>
+
+<!-- ══════════ STATS ══════════ -->
+<div class="stats-section">
+    <div class="stat-cell">
+        <div class="stat-num">87<span>%</span></div>
+        <p class="stat-desc">des TMS surviennent chez les travailleurs de bureau sédentaires</p>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-num">2<span>h</span></div>
+        <p class="stat-desc">assis sans pause — le seuil à partir duquel le risque TMS triple</p>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-num">−60<span>%</span></div>
+        <p class="stat-desc">d'arrêts maladie liés aux TMS avec un programme de prévention actif</p>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-num">5<span>min</span></div>
+        <p class="stat-desc">de pause active suffisent à réduire significativement les tensions musculaires</p>
+    </div>
+</div>
+
+<!-- ══════════ COMMENT ÇA MARCHE ══════════ -->
+<section class="section how-section" id="comment">
+    <div class="section-label">Processus</div>
+    <h2 class="section-h">Simple pour l'employé,<br>puissant pour <em>l'entreprise</em></h2>
+    <div class="how-grid">
+        <div class="how-visual">
+            <img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=700&h=520&fit=crop&crop=center"
+                alt="Employé au bureau avec bonne posture">
+        </div>
+        <div class="how-steps">
+            <div class="how-step active">
+                <div class="step-num">01</div>
+                <div class="step-content">
+                    <h3>Inscription et profil morphologique</h3>
+                    <p>L'employé crée son profil, renseigne sa taille, son poste et ses hobbies. Il téléverse 4 photos de posture assise (face, dos, profil gauche, profil droit). Le système établit ses normes ergonomiques personnalisées.</p>
+                </div>
+            </div>
+            <div class="how-step">
+                <div class="step-num">02</div>
+                <div class="step-content">
+                    <h3>Configuration du poste de travail</h3>
+                    <p>L'algorithme analyse les photos et génère les réglages optimaux : hauteur de siège, position d'écran, angle clavier — en simulation visuelle selon la morphologie de l'employé.</p>
+                </div>
+            </div>
+            <div class="how-step">
+                <div class="step-num">03</div>
+                <div class="step-content">
+                    <h3>Surveillance discrète en arrière-plan</h3>
+                    <p>La webcam surveille en continu. TensorFlow.js analyse la posture localement — aucune donnée ne quitte l'entreprise. Dès que l'employé se lève, le minuteur se réinitialise automatiquement.</p>
+                </div>
+            </div>
+            <div class="how-step">
+                <div class="step-num">04</div>
+                <div class="step-content">
+                    <h3>Alerte et pause active personnalisée</h3>
+                    <p>Après 2 heures assis, une alerte visuelle et sonore s'affiche. L'application propose un exercice adapté aux hobbies de l'employé — impossible d'ignorer sans changer réellement de posture.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ FEATURES ══════════ -->
+<section class="section features-section" id="fonctions">
+    <div class="features-intro">
+        <div>
+            <div class="section-label">Fonctionnalités</div>
+            <h2 class="section-h">Tout ce dont vos équipes ont <em>besoin</em></h2>
+        </div>
+        <p class="section-p">De l'analyse posturale à la prise en charge par un kinésithérapeute humain — une solution complète, déployée sur votre réseau interne, sans cloud.</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-tile">
+            <div class="feature-icon-wrap">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=88&h=88&fit=crop" alt="">
+            </div>
+            <h3>Analyse posturale IA</h3>
+            <p>TensorFlow.js + MoveNet analyse 17 points-clés du corps via webcam. 100% local, aucune donnée ne sort de l'entreprise.</p>
+            <span class="f-tag">TensorFlow.js · MoveNet</span>
+        </div>
+        <div class="feature-tile">
+            <div class="feature-icon-wrap">
+                <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=88&h=88&fit=crop" alt="">
+            </div>
+            <h3>Alertes après 2 heures</h3>
+            <p>Notification visuelle et sonore impossible à ignorer. Le minuteur repart automatiquement dès qu'un changement de posture est détecté.</p>
+            <span class="f-tag">Détection temps réel</span>
+        </div>
+        <div class="feature-tile">
+            <div class="feature-icon-wrap">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=88&h=88&fit=crop" alt="">
+            </div>
+            <h3>Pauses personnalisées</h3>
+            <p>Musique, gastronomie, sport, lecture — les exercices proposés sont adaptés aux hobbies déclarés de chaque employé pour maximiser l'adhésion.</p>
+            <span class="f-tag">Personnalisation profil</span>
+        </div>
+        <div class="feature-tile">
+            <div class="feature-icon-wrap">
+                <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=88&h=88&fit=crop" alt="">
+            </div>
+            <h3>Volet curatif guidé</h3>
+            <p>Protocoles vidéo et fiches illustrées pour les douleurs existantes. Prise de rendez-vous avec un kinésithérapeute humain pour les cas nécessitant un suivi.</p>
+            <span class="f-tag">Prévention + Curation</span>
+        </div>
+        <div class="feature-tile">
+            <div class="feature-icon-wrap">
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=88&h=88&fit=crop" alt="">
+            </div>
+            <h3>Tableau de bord RH</h3>
+            <p>Le manager suit en temps réel les indicateurs posturaux de chaque équipe, les alertes déclenchées et les risques TMS par département.</p>
+            <span class="f-tag">Vue manager complète</span>
+        </div>
+        <div class="feature-tile">
+            <div class="feature-icon-wrap">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=88&h=88&fit=crop" alt="">
+            </div>
+            <h3>Données 100% internes</h3>
+            <p>Déployé sur votre serveur local. PostgreSQL on-premise, React + Node.js sur votre réseau. Conforme aux exigences de confidentialité les plus strictes.</p>
+            <span class="f-tag">On-premise · Réseau local</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ ZONES TMS ══════════ -->
+<div class="split-section" id="tms">
+    <div class="split-photo">
+        <img src="https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=800&h=700&fit=crop&crop=center"
+            alt="Kinésithérapeute avec patient">
+    </div>
+    <div class="split-content">
+        <div class="section-label">Prévention ciblée</div>
+        <h2 class="section-h" style="color:white">Les zones TMS que nous <em>surveillons</em></h2>
+        <p class="section-p">Les informaticiens et banquiers exposés au travail sédentaire développent des TMS sur des zones précises et prévisibles. Notre système les cible spécifiquement.</p>
+        <div class="zone-list">
+            <div class="zone-item">
+                <div class="zone-dot red"></div>
+                <div>
+                    <h5>Cervicales et nuque</h5>
+                    <p>Posture tête penchée en avant — la plus fréquente chez les développeurs</p>
+                </div>
+            </div>
+            <div class="zone-item">
+                <div class="zone-dot red"></div>
+                <div>
+                    <h5>Dos lombaire</h5>
+                    <p>Position assise prolongée sans soutien — première cause d'arrêt maladie</p>
+                </div>
+            </div>
+            <div class="zone-item">
+                <div class="zone-dot orange"></div>
+                <div>
+                    <h5>Épaules et poignets</h5>
+                    <p>Bras en élévation, frappe clavier intensive — TCC et tendinites</p>
+                </div>
+            </div>
+            <div class="zone-item">
+                <div class="zone-dot green"></div>
+                <div>
+                    <h5>Yeux et fatigue visuelle</h5>
+                    <p>Exposition écran continue — règle 20-20-20 intégrée dans les pauses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ TÉMOIGNAGES ══════════ -->
+<section class="testimonials-section">
+    <div class="section-label">Retours terrain</div>
+    <h2 class="section-h">Ce que disent les équipes</h2>
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <blockquote>« Avant TonKiné, j'avais des douleurs cervicales tous les soirs. Trois semaines après, c'est fini. Les alertes m'obligent vraiment à bouger — je ne peux plus les ignorer. »</blockquote>
+            <div class="testimonial-author">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" alt="">
+                <div>
+                    <h5>Jean-Paul Kamga</h5>
+                    <p>Développeur senior · Département IT</p>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <blockquote>« En tant que RH, j'avais du mal à suivre les problèmes musculo-squelettiques avant qu'ils deviennent des arrêts maladie. Le tableau de bord m'alerte avant. »</blockquote>
+            <div class="testimonial-author">
+                <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face" alt="">
+                <div>
+                    <h5>Marie Ngo Biyong</h5>
+                    <p>Responsable RH · Direction générale</p>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+            </div>
+            <blockquote>« J'aimais pas les applis de bien-être au bureau, trop contraignantes. Celle-là s'adapte — elle sait que j'aime la musique et me propose des exercices en rythme. »</blockquote>
+            <div class="testimonial-author">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="">
+                <div>
+                    <h5>Sylvie Mba</h5>
+                    <p>Chargée de compte · Département Banque</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ ACCÈS RÔLES ══════════ -->
+<div class="roles-section" id="acces">
+    <div class="role-pane employee">
+        <div class="role-label">Espace Employé</div>
+        <h2>Pour les informaticiens<br>et les banquiers</h2>
+        <p>Accédez à votre analyse posturale personnalisée, vos exercices adaptés et suivez vos progrès santé au quotidien.</p>
+        <ul class="role-features-list">
+            <li>Analyse posture en temps réel par webcam</li>
+            <li>Alertes intelligentes et pauses guidées</li>
+            <li>Exercices selon mes hobbies et préférences</li>
+            <li>Mon historique posture et progrès santé</li>
+            <li>Protocoles curatifs et prise de RDV kiné</li>
+        </ul>
+        <a href="connexion.html?role=employe" class="role-cta">
+            Accéder à mon espace <i class="fas fa-arrow-right" style="font-size:.8rem"></i>
+        </a>
+    </div>
+    <div class="role-pane admin">
+        <div class="role-label">Espace Administration RH</div>
+        <h2 style="color:white">Pour les managers<br>et responsables RH</h2>
+        <p>Pilotez la prévention TMS de toute votre équipe depuis un tableau de bord centralisé.</p>
+        <ul class="role-features-list">
+            <li>Suivi posture de toute l'équipe en direct</li>
+            <li>Indicateurs TMS par département</li>
+            <li>Gestion des profils et inscriptions</li>
+            <li>Rapports mensuels prévention TMS</li>
+            <li>Alertes collectives et planification kiné</li>
+        </ul>
+        <a href="connexion.html?role=admin" class="role-cta">
+            Espace administration <i class="fas fa-arrow-right" style="font-size:.8rem"></i>
+        </a>
+    </div>
+</div>
+
+<!-- ══════════ CTA FINAL ══════════ -->
+<section class="cta-section">
+    <div class="section-label">Prêt à commencer ?</div>
+    <h2>La santé de vos équipes est le meilleur investissement<br><em>que vous ferez cette année</em></h2>
+    <p>TonKiné au Travail se déploie sur votre réseau interne en quelques heures. Aucune donnée ne quitte votre entreprise.</p>
+    <div class="cta-btns">
+        <a href="connexion.html" class="btn-primary">
+            Accéder à l'application <i class="fas fa-arrow-right" style="font-size:.8rem"></i>
+        </a>
+        <a href="#comment" class="btn-ghost">
+            <i class="fas fa-book-open" style="font-size:.8rem"></i> Voir la documentation
+        </a>
+    </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <a href="index.html" class="logo" style="margin-bottom:4px">
+                <span class="logo-wordmark">TonKiné <span>au Travail</span></span>
+            </a>
+            <p>Solution de kinésithérapie d'entreprise pour la prévention et la prise en charge des Troubles Musculo-Squelettiques. Conçue pour les équipes informatiques et bancaires du Cameroun et au-delà.</p>
+        </div>
+        <div>
+            <h4>Application</h4>
+            <ul>
+                <li><a href="#">Fonctionnalités</a></li>
+                <li><a href="connexion.html">Se connecter</a></li>
+                <li><a href="#">Guide utilisateur</a></li>
+                <li><a href="#">Notes de version</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Ressources</h4>
+            <ul>
+                <li><a href="#">Normes ergonomiques</a></li>
+                <li><a href="#">Bibliothèque d'exercices</a></li>
+                <li><a href="#">TMS : comprendre</a></li>
+                <li><a href="#">Blog santé travail</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Support</h4>
+            <ul>
+                <li><a href="#">Documentation technique</a></li>
+                <li><a href="#">Guide de déploiement</a></li>
+                <li><a href="#">Contact administrateur</a></li>
+                <li><a href="#">Confidentialité</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 TonKiné au Travail — Tous droits réservés</span>
+        <div style="display:flex;align-items:center;gap:16px">
+            <div class="lang-btns">
+                <button class="lang-btn active">FR</button>
+                <button class="lang-btn">EN</button>
+            </div>
+            <span>React · Node.js · PostgreSQL</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Timer héro animé
+    let secs = 5077;
+    setInterval(() => {
+        secs++;
+        const h = String(Math.floor(secs/3600)).padStart(2,'0');
+        const m = String(Math.floor((secs%3600)/60)).padStart(2,'0');
+        const s = String(secs%60).padStart(2,'0');
+        const el = document.getElementById('hero-timer');
+        if (el) el.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+
+    // Animation barres
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.querySelectorAll('[data-w]').forEach(bar => {
+                    setTimeout(() => { bar.style.transition = 'width 1.4s cubic-bezier(.4,0,.2,1)'; bar.style.width = bar.dataset.w + '%'; }, 200);
+                });
+            }
+        });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.hero-overlay-card').forEach(el => observer.observe(el));
+    // Trigger pour hero au chargement
+    setTimeout(() => {
+        document.querySelectorAll('[data-w]').forEach(bar => {
+            bar.style.transition = 'width 1.4s cubic-bezier(.4,0,.2,1)';
+            bar.style.width = bar.dataset.w + '%';
+        });
+    }, 500);
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const t = document.querySelector(a.getAttribute('href'));
+            if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        });
+    });
+
+    // Step hover
+    document.querySelectorAll('.how-step').forEach(step => {
+        step.addEventListener('mouseenter', () => {
+            document.querySelectorAll('.how-step').forEach(s => s.classList.remove('active'));
+            step.classList.add('active');
+        });
+    });
+
+    // Lang toggle
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+</script>
+</body>
+</html>

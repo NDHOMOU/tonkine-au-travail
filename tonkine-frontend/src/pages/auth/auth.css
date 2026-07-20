@@ -1,0 +1,969 @@
+/* ═══════════════════════════════════════════════════════════════
+   TonKiné au Travail — Styles pages d'authentification
+   Connexion (split-screen) + Inscription (wizard 5 étapes)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Reset local ── */
+.connexion-layout *, .inscription-page * {
+  box-sizing: border-box;
+}
+
+/* ════════════════════════════════
+   PAGE CONNEXION — Split-screen
+   ════════════════════════════════ */
+
+.connexion-layout {
+  display: flex;
+  min-height: 100vh;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+}
+
+/* ── Panneau gauche : photo + citation ── */
+.connexion-photo {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: none; /* masqué sur mobile */
+}
+
+@media (min-width: 900px) {
+  .connexion-photo { display: block; }
+}
+
+.connexion-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.connexion-quote {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px;
+  background: linear-gradient(to top, rgba(15,25,35,.85) 60%, transparent);
+  color: white;
+}
+
+.connexion-quote blockquote {
+  font-family: var(--f-serif, Georgia, serif);
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.65;
+  margin: 0 0 20px;
+  color: rgba(255,255,255,.92);
+}
+
+.quote-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quote-author img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,.3);
+}
+
+.quote-author div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quote-author strong {
+  font-size: .85rem;
+  font-weight: 700;
+  color: white;
+}
+
+.quote-author span {
+  font-size: .72rem;
+  color: rgba(255,255,255,.6);
+}
+
+/* ── Panneau droit : formulaire ── */
+.connexion-form-panel {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: white;
+}
+
+@media (min-width: 900px) {
+  .connexion-form-panel {
+    flex: 0 0 480px;
+    border-left: 1px solid rgba(15,25,35,.07);
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  text-decoration: none;
+  margin-bottom: 32px;
+  transition: color .15s;
+}
+
+.back-link:hover { color: var(--blue, #1353A4); }
+
+.connexion-form-panel h1 {
+  font-family: var(--f-serif, Georgia, serif);
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--ink, #0F1923);
+  margin-bottom: 10px;
+}
+
+.connexion-form-panel h1 em {
+  font-style: italic;
+  color: var(--blue, #1353A4);
+}
+
+.connexion-form-panel > p {
+  font-size: .85rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* ── Sélecteur rôle ── */
+.role-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  background: rgba(15,25,35,.04);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.role-tab {
+  flex: 1;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+  font-size: .76rem;
+  font-weight: 500;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.role-tab.active {
+  background: white;
+  color: var(--blue, #1353A4);
+  font-weight: 700;
+  box-shadow: 0 1px 6px rgba(15,25,35,.12);
+}
+
+/* ── Message d'erreur ── */
+.form-error {
+  background: #FDECEA;
+  color: #C0392B;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .8rem;
+  margin-bottom: 18px;
+  border-left: 3px solid #C0392B;
+}
+
+/* ── Champs du formulaire ── */
+.connexion-form-panel form label,
+.connexion-form-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--ink, #0F1923);
+  margin-bottom: 16px;
+}
+
+.connexion-form-panel form input {
+  padding: 11px 14px;
+  border: 1.5px solid rgba(15,25,35,.15);
+  border-radius: 9px;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+  font-size: .88rem;
+  color: var(--ink, #0F1923);
+  background: white;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+
+.connexion-form-panel form input:focus {
+  border-color: var(--blue, #1353A4);
+  box-shadow: 0 0 0 3px rgba(19,83,164,.1);
+}
+
+/* ── Bouton soumettre ── */
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  margin-top: 6px;
+  background: var(--blue, #1353A4);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #0E3E7A;
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* ── Lien bas de formulaire ── */
+.form-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: .8rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+}
+
+.form-footer a {
+  color: var(--blue, #1353A4);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.form-footer a:hover { text-decoration: underline; }
+
+
+/* ════════════════════════════════
+   PAGE INSCRIPTION — Wizard
+   ════════════════════════════════ */
+
+.inscription-page {
+  min-height: 100vh;
+  background: #F7F8FC;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+}
+
+/* ── Header ── */
+.inscription-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: white;
+  border-bottom: 1px solid rgba(15,25,35,.07);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-size: .95rem;
+  color: var(--ink, #0F1923);
+}
+
+.logo-link img {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.logo-link strong { color: var(--blue, #1353A4); }
+
+.header-login {
+  font-size: .8rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+}
+
+.header-login a {
+  color: var(--blue, #1353A4);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+/* ── Stepper ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 40px;
+  background: white;
+  border-bottom: 1px solid rgba(15,25,35,.06);
+  gap: 0;
+  overflow-x: auto;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.step-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(15,25,35,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  transition: all .2s;
+  flex-shrink: 0;
+}
+
+.step.active .step-num {
+  background: var(--blue, #1353A4);
+  border-color: var(--blue, #1353A4);
+  color: white;
+}
+
+.step.done .step-num {
+  background: var(--teal, #0B9B8A);
+  border-color: var(--teal, #0B9B8A);
+  color: white;
+}
+
+.step-label {
+  font-size: .75rem;
+  font-weight: 500;
+  color: var(--ink-60, rgba(15,25,35,.6));
+}
+
+.step.active .step-label { color: var(--blue, #1353A4); font-weight: 700; }
+.step.done  .step-label  { color: var(--teal, #0B9B8A); }
+
+.step-sep {
+  width: 40px;
+  height: 2px;
+  background: rgba(15,25,35,.1);
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+
+.step-sep.done { background: var(--teal, #0B9B8A); }
+
+/* ── Contenu principal ── */
+.inscription-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* ── Panel (carte blanche d'étape) ── */
+.panel {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(15,25,35,.06);
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 32px 36px 24px;
+  border-bottom: 1px solid rgba(15,25,35,.06);
+}
+
+.eyebrow {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--blue, #1353A4);
+  margin-bottom: 8px;
+}
+
+.panel-head h2 {
+  font-family: var(--f-serif, Georgia, serif);
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--ink, #0F1923);
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.panel-head h2 em {
+  font-style: italic;
+  color: var(--blue, #1353A4);
+}
+
+.panel-head p {
+  font-size: .82rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  line-height: 1.6;
+}
+
+/* ── Section formulaire ── */
+.form-section {
+  padding: 24px 36px;
+  border-bottom: 1px solid rgba(15,25,35,.05);
+}
+
+.form-section h3 {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  margin-bottom: 16px;
+}
+
+/* ── Grilles ── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ── Labels et champs ── */
+.inscription-page label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--ink, #0F1923);
+}
+
+.inscription-page input,
+.inscription-page select,
+.inscription-page textarea {
+  padding: 10px 13px;
+  border: 1.5px solid rgba(15,25,35,.14);
+  border-radius: 8px;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+  font-size: .85rem;
+  color: var(--ink, #0F1923);
+  background: white;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+  width: 100%;
+}
+
+.inscription-page input:focus,
+.inscription-page select:focus,
+.inscription-page textarea:focus {
+  border-color: var(--blue, #1353A4);
+  box-shadow: 0 0 0 3px rgba(19,83,164,.09);
+}
+
+.inscription-page textarea { resize: vertical; min-height: 70px; }
+
+.err {
+  font-size: .72rem;
+  color: #C0392B;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.hint {
+  font-size: .7rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  font-weight: 400;
+}
+
+/* ── Navigation entre étapes ── */
+.step-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 36px;
+  border-top: 1px solid rgba(15,25,35,.06);
+  background: rgba(15,25,35,.02);
+}
+
+.step-counter {
+  font-size: .75rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+}
+
+.btn-next, .btn-submit-final {
+  padding: 11px 28px;
+  background: var(--blue, #1353A4);
+  color: white;
+  border: none;
+  border-radius: 9px;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+
+.btn-next:hover, .btn-submit-final:hover:not(:disabled) {
+  background: #0E3E7A;
+  transform: translateY(-1px);
+}
+
+.btn-submit-final {
+  background: var(--teal, #0B9B8A);
+  padding: 13px 36px;
+  font-size: .9rem;
+}
+
+.btn-submit-final:hover:not(:disabled) { background: #088075; }
+
+.btn-submit-final:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn-prev {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  border: 1.5px solid rgba(15,25,35,.15);
+  border-radius: 9px;
+  font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.btn-prev:hover {
+  border-color: var(--blue, #1353A4);
+  color: var(--blue, #1353A4);
+}
+
+/* ════════════════════════
+   ÉTAPE 1 — PHOTOS
+   ════════════════════════ */
+
+.photo-guide {
+  display: flex;
+  gap: 20px;
+  padding: 20px 36px;
+  background: #F5F1EB;
+  margin: 0;
+  border-bottom: 1px solid rgba(15,25,35,.05);
+}
+
+.photo-guide img {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.photo-guide h4 {
+  font-size: .82rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--ink, #0F1923);
+}
+
+.photo-guide ul {
+  padding-left: 16px;
+  margin: 0;
+}
+
+.photo-guide li {
+  font-size: .76rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  line-height: 1.7;
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 24px 36px;
+}
+
+@media (max-width: 640px) {
+  .photos-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.photo-slot {
+  aspect-ratio: 3/4;
+  border: 2px dashed rgba(15,25,35,.15);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .15s;
+  background: rgba(15,25,35,.02);
+}
+
+.photo-slot:hover { border-color: var(--blue, #1353A4); }
+.photo-slot.filled { border: 2px solid var(--teal, #0B9B8A); }
+
+.slot-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.slot-placeholder img {
+  width: 100%;
+  height: 70%;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: .4;
+}
+
+.slot-label {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--ink-60, rgba(15,25,35,.6));
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.check-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  background: var(--teal, #0B9B8A);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.photo-count {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  padding: 0 36px 20px;
+}
+
+/* ════════════════════════
+   ÉTAPE 2 — MORPHOLOGIE
+   ════════════════════════ */
+
+.range-row {
+  margin-bottom: 20px;
+}
+
+.range-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.range-head label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--ink, #0F1923);
+}
+
+.range-val {
+  font-size: .88rem;
+  font-weight: 800;
+  color: var(--blue, #1353A4);
+}
+
+.range-row input[type="range"] {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  accent-color: var(--blue, #1353A4);
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: .65rem;
+  color: var(--ink-30, rgba(15,25,35,.3));
+  margin-top: 4px;
+}
+
+.config-preview {
+  display: flex;
+  gap: 20px;
+  padding: 20px 36px;
+  background: #E0F5F3;
+  border-top: 1px solid rgba(11,155,138,.15);
+}
+
+.config-preview img {
+  width: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.config-preview h4 {
+  font-size: .8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--ink, #0F1923);
+}
+
+.config-specs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .config-specs { grid-template-columns: repeat(2, 1fr); }
+}
+
+.config-specs div {
+  background: white;
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.config-specs span {
+  font-size: .6rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+}
+
+.config-specs strong {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--teal, #0B9B8A);
+}
+
+/* ════════════════════════
+   ÉTAPE 3 — HOBBIES
+   ════════════════════════ */
+
+.hobby-hint {
+  background: #FEF3DC;
+  color: #C47A00;
+  border-radius: 9px;
+  padding: 11px 16px;
+  font-size: .8rem;
+  margin: 20px 36px 0;
+  border-left: 3px solid #C47A00;
+}
+
+.hobbies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  padding: 20px 36px;
+}
+
+.hobby-card {
+  border: 2px solid rgba(15,25,35,.1);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+  background: white;
+  text-align: center;
+}
+
+.hobby-card:hover {
+  border-color: var(--blue, #1353A4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(19,83,164,.1);
+}
+
+.hobby-card.selected {
+  border-color: var(--teal, #0B9B8A);
+  background: #E0F5F3;
+}
+
+.hobby-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
+
+.hobby-card h4 {
+  font-size: .8rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--ink, #0F1923);
+}
+
+.hobby-card p {
+  font-size: .68rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  line-height: 1.5;
+}
+
+.hobby-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  background: var(--teal, #0B9B8A);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+/* ════════════════════════
+   ÉTAPE 4 — RÉCAPITULATIF
+   ════════════════════════ */
+
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 24px 36px;
+}
+
+@media (max-width: 640px) {
+  .review-grid { grid-template-columns: 1fr; }
+}
+
+.review-card {
+  background: rgba(15,25,35,.03);
+  border: 1px solid rgba(15,25,35,.07);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.review-card h4 {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  margin-bottom: 12px;
+}
+
+.rev-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(15,25,35,.05);
+  gap: 8px;
+}
+
+.rev-row:last-child { border-bottom: none; }
+
+.rev-row span {
+  font-size: .75rem;
+  color: var(--ink-60, rgba(15,25,35,.6));
+  flex-shrink: 0;
+}
+
+.rev-row strong {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ink, #0F1923);
+  text-align: right;
+}
+
+.review-photos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rev-photo {
+  position: relative;
+  width: 54px;
+  height: 68px;
+}
+
+.rev-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+  border: 1px solid rgba(15,25,35,.1);
+}
+
+.rev-photo span {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--teal, #0B9B8A);
+  color: white;
+  border-radius: 50%;
+  font-size: .55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-hobbies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.hobby-tag {
+  background: #E0F5F3;
+  color: var(--teal, #0B9B8A);
+  font-size: .7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}

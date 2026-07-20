@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer mon profil — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:     #0F1923;
+            --ink-60:  rgba(15,25,35,.6);
+            --ink-30:  rgba(15,25,35,.3);
+            --blue:    #1353A4;
+            --sky:     #D6E8FF;
+            --teal:    #0B9B8A;
+            --teal-bg: #E0F5F3;
+            --sand:    #F5F1EB;
+            --warn:    #C47A00;
+            --warn-bg: #FEF3DC;
+            --border:  rgba(15,25,35,.1);
+            --f-serif: 'Fraunces', Georgia, serif;
+            --f-sans:  'Inter', system-ui, sans-serif;
+        }
+        body {
+            font-family: var(--f-sans); color: var(--ink);
+            background: #F7F8FC; -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: white; border-bottom: 1px solid var(--border);
+            height: 60px; padding: 0 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .logo img { width:32px; height:32px; border-radius:7px; object-fit:cover; }
+        .logo-txt { font-family:var(--f-serif); font-size:.95rem; font-weight:600; color:var(--ink); }
+        .logo-txt span { color:var(--blue); }
+        .header-right { font-size:.82rem; color:var(--ink-60); }
+        .header-right a { color:var(--blue); font-weight:600; text-decoration:none; }
+
+        /* ── STEPPER ── */
+        .stepper-bar {
+            background: white; border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+        }
+        .stepper {
+            max-width: 860px; margin: 0 auto;
+            display: flex; align-items: center;
+            padding: 16px 0;
+        }
+        .step {
+            display: flex; align-items: center; gap: 10px;
+            flex: 1; cursor: pointer;
+        }
+        .step-num {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .75rem; font-weight: 700; color: var(--ink-60);
+            flex-shrink: 0; transition: all .2s;
+        }
+        .step.done .step-num  { background: var(--teal); border-color: var(--teal); color: white; }
+        .step.active .step-num { background: var(--ink); border-color: var(--ink); color: white; }
+        .step-label { font-size: .78rem; font-weight: 500; color: var(--ink-60); transition: color .2s; }
+        .step.active .step-label { color: var(--ink); font-weight: 600; }
+        .step.done .step-label { color: var(--teal); }
+        .step-sep {
+            flex: 1; height: 1px; background: var(--border);
+            margin: 0 10px; max-width: 60px;
+        }
+        .step-sep.done { background: var(--teal); }
+
+        /* ── LAYOUT ── */
+        .page-wrap {
+            max-width: 860px; margin: 0 auto;
+            padding: 40px 20px 80px;
+        }
+
+        /* ── STEP PANEL ── */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        .panel-head { margin-bottom: 32px; }
+        .panel-head .eyebrow {
+            font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--teal); margin-bottom: 8px;
+        }
+        .panel-head h2 {
+            font-family: var(--f-serif);
+            font-size: 1.9rem; font-weight: 300;
+            letter-spacing: -.02em; line-height: 1.2;
+            color: var(--ink); margin-bottom: 10px;
+        }
+        .panel-head h2 em { font-style: italic; color: var(--blue); }
+        .panel-head p { font-size: .875rem; color: var(--ink-60); line-height: 1.7; max-width: 580px; }
+
+        /* ── FORM ELEMENTS ── */
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+        .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+        .field { display: flex; flex-direction: column; gap: 7px; }
+        .field label { font-size: .78rem; font-weight: 600; color: var(--ink); }
+        .field input, .field select, .field textarea {
+            padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-family: var(--f-sans); font-size: .88rem; color: var(--ink);
+            background: white; outline: none; transition: border-color .15s, box-shadow .15s;
+            -webkit-appearance: none;
+        }
+        .field input::placeholder, .field textarea::placeholder { color: var(--ink-30); }
+        .field input:focus, .field select:focus, .field textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(19,83,164,.07);
+        }
+        .field textarea { resize: vertical; min-height: 90px; }
+        .field-hint { font-size: .7rem; color: var(--ink-60); }
+
+        /* ── PHOTOS UPLOAD ── */
+        .photos-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+            margin-bottom: 24px;
+        }
+        .photo-slot {
+            border: 1.5px dashed var(--border); border-radius: 12px;
+            aspect-ratio: 3/4; background: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px; cursor: pointer; transition: all .15s; position: relative;
+            overflow: hidden;
+        }
+        .photo-slot:hover { border-color: var(--blue); background: var(--sky); }
+        .photo-slot.filled { border-style: solid; border-color: var(--teal); }
+        .photo-slot .slot-img {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%; object-fit: cover;
+            display: none;
+        }
+        .photo-slot.filled .slot-img { display: block; }
+        .photo-slot .slot-overlay {
+            position: absolute; inset: 0; background: rgba(15,25,35,.5);
+            display: none; align-items: center; justify-content: center; flex-direction: column;
+            gap: 6px; color: white; font-size: .7rem; font-weight: 600;
+        }
+        .photo-slot.filled:hover .slot-overlay { display: flex; }
+        .photo-slot .slot-placeholder { text-align: center; padding: 12px; }
+        .photo-slot .slot-placeholder img {
+            width: 48px; height: 48px; object-fit: cover; border-radius: 8px;
+            margin-bottom: 8px; opacity: .4; filter: grayscale(1);
+        }
+        .photo-slot .slot-placeholder .slot-label { font-size: .75rem; font-weight: 600; color: var(--ink-60); }
+        .photo-slot .slot-placeholder .slot-sub   { font-size: .65rem; color: var(--ink-30); margin-top: 2px; }
+        .photo-slot .check-badge {
+            position: absolute; top: 8px; right: 8px;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--teal); color: white;
+            display: none; align-items: center; justify-content: center;
+            font-size: .65rem;
+        }
+        .photo-slot.filled .check-badge { display: flex; }
+        input[type="file"] { display: none; }
+
+        .photo-norms {
+            background: var(--sand); border-radius: 12px; padding: 18px 20px;
+            display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px;
+        }
+        .photo-norms img { width: 100px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .photo-norms-text h4 { font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
+        .photo-norms-text ul { display: flex; flex-direction: column; gap: 5px; list-style: none; }
+        .photo-norms-text ul li { font-size: .78rem; color: var(--ink-60); display: flex; gap: 7px; }
+        .photo-norms-text ul li::before { content: '→'; color: var(--teal); font-weight: 700; flex-shrink: 0; }
+
+        /* ── MORPHOLOGIE ── */
+        .morpho-card {
+            background: white; border: 1px solid var(--border); border-radius: 14px;
+            padding: 24px; margin-bottom: 24px;
+        }
+        .morpho-card h3 { font-size: .9rem; font-weight: 600; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+        .morpho-card h3 img { width: 22px; height: 22px; border-radius: 5px; object-fit: cover; }
+
+        .range-field { margin-bottom: 20px; }
+        .range-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .range-head label { font-size: .78rem; font-weight: 600; }
+        .range-head .range-val {
+            font-family: var(--f-serif); font-size: 1rem; font-weight: 300; color: var(--blue);
+        }
+        input[type="range"] {
+            width: 100%; height: 4px; -webkit-appearance: none;
+            background: #EEF2F7; border-radius: 2px; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--blue); cursor: pointer; border: 2px solid white;
+            box-shadow: 0 1px 4px rgba(0,0,0,.15);
+        }
+        .range-labels { display: flex; justify-content: space-between; font-size: .65rem; color: var(--ink-30); margin-top: 4px; }
+
+        .posture-norm-preview {
+            background: var(--sky); border-radius: 12px; padding: 16px 20px;
+            margin-top: 20px; display: flex; gap: 16px; align-items: center;
+        }
+        .posture-norm-preview img { width: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .posture-norm-preview .norm-text h4 { font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
+        .posture-norm-preview .norm-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .norm-spec-item { font-size: .75rem; color: var(--ink-60); }
+        .norm-spec-item strong { color: var(--ink); }
+
+        /* ── HOBBIES ── */
+        .hobbies-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            margin-bottom: 24px;
+        }
+        .hobby-card {
+            border: 1.5px solid var(--border); border-radius: 12px;
+            padding: 16px 14px; cursor: pointer;
+            transition: all .15s; background: white; text-align: center;
+        }
+        .hobby-card:hover { border-color: var(--blue); background: var(--sky); }
+        .hobby-card.selected { border-color: var(--blue); background: var(--sky); }
+        .hobby-card .h-img {
+            width: 52px; height: 52px; border-radius: 10px;
+            overflow: hidden; margin: 0 auto 10px;
+        }
+        .hobby-card .h-img img { width:100%; height:100%; object-fit:cover; filter:grayscale(.2); }
+        .hobby-card h4 { font-size: .78rem; font-weight: 600; margin-bottom: 3px; }
+        .hobby-card p  { font-size: .67rem; color: var(--ink-60); line-height: 1.4; }
+        .hobby-card .h-check {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--blue); color: white;
+            display: none; align-items: center; justify-content: center;
+            font-size: .6rem; margin: 8px auto 0;
+        }
+        .hobby-card.selected .h-check { display: flex; }
+
+        .hobby-hint {
+            background: var(--warn-bg); border: 1px solid rgba(196,122,0,.2);
+            border-radius: 10px; padding: 13px 16px;
+            font-size: .8rem; color: var(--warn);
+            display: flex; gap: 9px; align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        /* ── HORAIRES ── */
+        .schedule-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 8px; margin-bottom: 24px; }
+        .day-card {
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px 8px; text-align: center; cursor: pointer;
+            transition: all .15s; background: white;
+        }
+        .day-card:hover { border-color: var(--blue); background: var(--sky); }
+        .day-card.active { border-color: var(--blue); background: var(--sky); }
+        .day-card .day-name { font-size: .72rem; font-weight: 700; margin-bottom: 4px; color: var(--ink-60); }
+        .day-card.active .day-name { color: var(--blue); }
+        .day-card .day-hours { font-size: .65rem; color: var(--ink-30); }
+
+        /* ── REVIEW ── */
+        .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+        .review-card {
+            background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+        }
+        .review-card h4 { font-size: .78rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-60); margin-bottom: 12px; }
+        .review-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: .82rem; }
+        .review-row:last-child { border-bottom: none; }
+        .review-row .rkey { color: var(--ink-60); }
+        .review-row .rval { font-weight: 600; }
+        .review-photos { display: flex; gap: 8px; margin-top: 12px; }
+        .review-photo { width: 50px; height: 65px; border-radius: 7px; overflow: hidden; border: 1px solid var(--border); }
+        .review-photo img { width:100%; height:100%; object-fit:cover; }
+        .review-hobbies { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .hobby-tag {
+            padding: 4px 12px; border-radius: 20px;
+            background: var(--sky); color: var(--blue);
+            font-size: .72rem; font-weight: 600;
+        }
+
+        /* ── NAVIGATION BOUTONS ── */
+        .step-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 28px; border-top: 1px solid var(--border); margin-top: 8px;
+        }
+        .btn-prev {
+            padding: 11px 22px; border-radius: 8px;
+            border: 1px solid var(--border); background: white;
+            font-family: var(--f-sans); font-size: .88rem; font-weight: 500;
+            color: var(--ink-60); cursor: pointer; transition: all .15s;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .btn-prev:hover { border-color: var(--ink-30); color: var(--ink); }
+        .btn-next {
+            padding: 12px 28px; border-radius: 8px;
+            background: var(--ink); color: white; border: none;
+            font-family: var(--f-sans); font-size: .9rem; font-weight: 600;
+            cursor: pointer; transition: all .15s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-next:hover { background: #1a2e45; transform: translateY(-1px); }
+        .step-counter { font-size: .78rem; color: var(--ink-60); }
+
+        /* ── SUCCESS ── */
+        .success-screen {
+            text-align: center; padding: 60px 20px;
+            display: none; flex-direction: column; align-items: center;
+        }
+        .success-screen.show { display: flex; }
+        .success-img {
+            width: 160px; height: 160px; border-radius: 50%;
+            overflow: hidden; margin-bottom: 28px;
+            border: 4px solid var(--teal-bg);
+        }
+        .success-img img { width:100%; height:100%; object-fit:cover; }
+        .success-screen h2 {
+            font-family: var(--f-serif); font-size: 2rem; font-weight: 300;
+            letter-spacing: -.02em; margin-bottom: 12px;
+        }
+        .success-screen p { font-size: .9rem; color: var(--ink-60); max-width: 440px; line-height: 1.7; margin-bottom: 32px; }
+        .btn-goto {
+            padding: 13px 28px; border-radius: 8px;
+            background: var(--ink); color: white; border: none;
+            font-family: var(--f-sans); font-size: .9rem; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+
+        @media (max-width: 720px) {
+            .photos-grid { grid-template-columns: 1fr 1fr; }
+            .hobbies-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+            .review-grid { grid-template-columns: 1fr; }
+            .schedule-grid { grid-template-columns: repeat(4,1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="logo">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=64&h=64&fit=crop" alt="">
+        <span class="logo-txt">TonKiné <span>au Travail</span></span>
+    </a>
+    <div class="header-right">Déjà inscrit ? <a href="connexion.html">Se connecter</a></div>
+</header>
+
+<!-- STEPPER -->
+<div class="stepper-bar">
+    <div class="stepper">
+        <div class="step active" id="st1" onclick="gotoStep(1)">
+            <div class="step-num" id="sn1">1</div>
+            <span class="step-label">Informations</span>
+        </div>
+        <div class="step-sep" id="sep1"></div>
+        <div class="step" id="st2" onclick="gotoStep(2)">
+            <div class="step-num" id="sn2">2</div>
+            <span class="step-label">Photos posture</span>
+        </div>
+        <div class="step-sep" id="sep2"></div>
+        <div class="step" id="st3" onclick="gotoStep(3)">
+            <div class="step-num" id="sn3">3</div>
+            <span class="step-label">Morphologie</span>
+        </div>
+        <div class="step-sep" id="sep3"></div>
+        <div class="step" id="st4" onclick="gotoStep(4)">
+            <div class="step-num" id="sn4">4</div>
+            <span class="step-label">Hobbies & planning</span>
+        </div>
+        <div class="step-sep" id="sep4"></div>
+        <div class="step" id="st5" onclick="gotoStep(5)">
+            <div class="step-num" id="sn5">5</div>
+            <span class="step-label">Récapitulatif</span>
+        </div>
+    </div>
+</div>
+
+<div class="page-wrap">
+
+    <!-- ══ ÉTAPE 1 — INFORMATIONS PERSONNELLES ══ -->
+    <div class="step-panel active" id="panel1">
+        <div class="panel-head">
+            <div class="eyebrow">Étape 1 sur 5</div>
+            <h2>Vos <em>informations</em><br>personnelles</h2>
+            <p>Ces informations nous permettent de personnaliser votre programme de prévention et d'adapter les normes ergonomiques à votre profil.</p>
+        </div>
+
+        <div class="morpho-card">
+            <h3>
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=44&h=44&fit=crop" alt="">
+                Identité et poste de travail
+            </h3>
+            <div class="form-grid-2">
+                <div class="field"><label>Prénom</label><input type="text" placeholder="Jean-Paul" id="f-prenom"></div>
+                <div class="field"><label>Nom de famille</label><input type="text" placeholder="Kamga" id="f-nom"></div>
+            </div>
+            <div class="form-grid-2">
+                <div class="field"><label>Adresse e-mail professionnelle</label><input type="email" placeholder="jean.paul@entreprise.cm" id="f-email"></div>
+                <div class="field"><label>Mot de passe</label><input type="password" placeholder="Min. 8 caractères"></div>
+            </div>
+            <div class="form-grid-3">
+                <div class="field">
+                    <label>Département</label>
+                    <select id="f-dept">
+                        <option value="">Sélectionner…</option>
+                        <option>Informatique / IT</option>
+                        <option>Banque / Finance</option>
+                        <option>Service client</option>
+                        <option>Direction / Administration</option>
+                        <option>Support technique</option>
+                        <option>Ressources Humaines</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Poste / Fonction</label>
+                    <input type="text" placeholder="Développeur, Analyste…" id="f-poste">
+                </div>
+                <div class="field">
+                    <label>Langue préférée</label>
+                    <select>
+                        <option>Français</option>
+                        <option>English</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="morpho-card">
+            <h3>
+                <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=44&h=44&fit=crop" alt="">
+                Conditions de travail habituelles
+            </h3>
+            <div class="form-grid-2">
+                <div class="field">
+                    <label>Type d'écran principal</label>
+                    <select>
+                        <option>Écran fixe (moniteur)</option>
+                        <option>Ordinateur portable</option>
+                        <option>Double écran</option>
+                        <option>Tablette</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Nombre d'heures assis par jour (en moyenne)</label>
+                    <select id="f-heures">
+                        <option>4 à 5 heures</option>
+                        <option>6 à 7 heures</option>
+                        <option selected>8 à 9 heures</option>
+                        <option>Plus de 9 heures</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field" style="margin-bottom:18px">
+                <label>Douleurs existantes (facultatif)</label>
+                <textarea placeholder="Ex. : douleurs cervicales récurrentes, tension dans le bas du dos, poignets douloureux après frappe longue…"></textarea>
+                <span class="field-hint">Ces informations sont confidentielles et uniquement utilisées pour adapter vos exercices curatifs.</span>
+            </div>
+        </div>
+
+        <div class="step-nav">
+            <span class="step-counter">Étape 1 / 5</span>
+            <button class="btn-next" onclick="nextStep(2)">
+                Continuer <i class="fas fa-arrow-right" style="font-size:.8rem"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ ÉTAPE 2 — PHOTOS POSTURE ══ -->
+    <div class="step-panel" id="panel2">
+        <div class="panel-head">
+            <div class="eyebrow">Étape 2 sur 5</div>
+            <h2>Photos de votre <em>posture assise</em></h2>
+            <p>Prenez 4 photos de vous assis à votre poste de travail habituel. Le système les compare aux normes ergonomiques selon votre taille pour établir votre diagnostic posture personnalisé.</p>
+        </div>
+
+        <div class="photo-norms">
+            <img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=200&h=260&fit=crop&crop=top" alt="Exemple bonne posture">
+            <div class="photo-norms-text">
+                <h4>Comment prendre les photos</h4>
+                <ul>
+                    <li>Asseyez-vous dans votre position de travail <strong>habituelle</strong> (naturelle, pas forcée)</li>
+                    <li>Demandez à un collègue de prendre les photos ou utilisez un trépied</li>
+                    <li>Le corps doit être <strong>entièrement visible</strong> de la tête aux pieds</li>
+                    <li>Fond neutre, bonne lumière, pas de contre-jour</li>
+                    <li>Format JPG ou PNG, max 5 Mo par photo</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="photos-grid">
+            <!-- Slot Face -->
+            <div class="photo-slot" id="slot-face" onclick="triggerUpload('face')">
+                <img class="slot-img" id="img-face" src="" alt="">
+                <div class="slot-overlay"><i class="fas fa-redo" style="font-size:1.2rem"></i><span>Changer</span></div>
+                <div class="slot-placeholder">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=96&h=96&fit=crop&crop=top" alt="">
+                    <div class="slot-label">Vue de face</div>
+                    <div class="slot-sub">Entièrement de face, bras le long du corps</div>
+                </div>
+                <div class="check-badge"><i class="fas fa-check"></i></div>
+                <input type="file" id="up-face" accept="image/*" onchange="previewPhoto('face', this)">
+            </div>
+            <!-- Slot Dos -->
+            <div class="photo-slot" id="slot-dos" onclick="triggerUpload('dos')">
+                <img class="slot-img" id="img-dos" src="" alt="">
+                <div class="slot-overlay"><i class="fas fa-redo" style="font-size:1.2rem"></i><span>Changer</span></div>
+                <div class="slot-placeholder">
+                    <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=96&h=96&fit=crop&crop=top" alt="">
+                    <div class="slot-label">Vue de dos</div>
+                    <div class="slot-sub">Entièrement de dos, épaules visibles</div>
+                </div>
+                <div class="check-badge"><i class="fas fa-check"></i></div>
+                <input type="file" id="up-dos" accept="image/*" onchange="previewPhoto('dos', this)">
+            </div>
+            <!-- Slot Profil gauche -->
+            <div class="photo-slot" id="slot-gauche" onclick="triggerUpload('gauche')">
+                <img class="slot-img" id="img-gauche" src="" alt="">
+                <div class="slot-overlay"><i class="fas fa-redo" style="font-size:1.2rem"></i><span>Changer</span></div>
+                <div class="slot-placeholder">
+                    <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=96&h=96&fit=crop&crop=top" alt="">
+                    <div class="slot-label">Profil gauche</div>
+                    <div class="slot-sub">Côté gauche, colonne visible</div>
+                </div>
+                <div class="check-badge"><i class="fas fa-check"></i></div>
+                <input type="file" id="up-gauche" accept="image/*" onchange="previewPhoto('gauche', this)">
+            </div>
+            <!-- Slot Profil droit -->
+            <div class="photo-slot" id="slot-droit" onclick="triggerUpload('droit')">
+                <img class="slot-img" id="img-droit" src="" alt="">
+                <div class="slot-overlay"><i class="fas fa-redo" style="font-size:1.2rem"></i><span>Changer</span></div>
+                <div class="slot-placeholder">
+                    <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=96&h=96&fit=crop&crop=top" alt="">
+                    <div class="slot-label">Profil droit</div>
+                    <div class="slot-sub">Côté droit, colonne visible</div>
+                </div>
+                <div class="check-badge"><i class="fas fa-check"></i></div>
+                <input type="file" id="up-droit" accept="image/*" onchange="previewPhoto('droit', this)">
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:16px">
+            <span id="photo-count-msg" style="font-size:.8rem;color:var(--ink-60)">0 / 4 photos téléversées</span>
+        </div>
+
+        <div class="step-nav">
+            <button class="btn-prev" onclick="nextStep(1)"><i class="fas fa-arrow-left" style="font-size:.8rem"></i> Retour</button>
+            <span class="step-counter">Étape 2 / 5</span>
+            <button class="btn-next" onclick="nextStep(3)">Continuer <i class="fas fa-arrow-right" style="font-size:.8rem"></i></button>
+        </div>
+    </div>
+
+    <!-- ══ ÉTAPE 3 — MORPHOLOGIE ══ -->
+    <div class="step-panel" id="panel3">
+        <div class="panel-head">
+            <div class="eyebrow">Étape 3 sur 5</div>
+            <h2>Votre <em>profil morphologique</em></h2>
+            <p>Ces mesures permettent au système de calculer vos angles posturaux de référence et de vous proposer la configuration de poste optimale pour votre corps.</p>
+        </div>
+
+        <div class="morpho-card">
+            <h3>
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=44&h=44&fit=crop" alt="">
+                Mesures corporelles
+            </h3>
+
+            <div class="range-field">
+                <div class="range-head">
+                    <label>Taille</label>
+                    <span class="range-val" id="val-taille">172 cm</span>
+                </div>
+                <input type="range" min="150" max="200" value="172" oninput="updRange('taille',this.value,'cm')">
+                <div class="range-labels"><span>150 cm</span><span>200 cm</span></div>
+            </div>
+
+            <div class="range-field">
+                <div class="range-head">
+                    <label>Longueur des jambes (sol → genou)</label>
+                    <span class="range-val" id="val-jambes">44 cm</span>
+                </div>
+                <input type="range" min="30" max="65" value="44" oninput="updRange('jambes',this.value,'cm')">
+                <div class="range-labels"><span>30 cm</span><span>65 cm</span></div>
+            </div>
+
+            <div class="range-field">
+                <div class="range-head">
+                    <label>Longueur des avant-bras (coude → poignet)</label>
+                    <span class="range-val" id="val-avbras">28 cm</span>
+                </div>
+                <input type="range" min="20" max="40" value="28" oninput="updRange('avbras',this.value,'cm')">
+                <div class="range-labels"><span>20 cm</span><span>40 cm</span></div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top:8px">
+                <div class="field">
+                    <label>Poids (facultatif)</label>
+                    <input type="number" placeholder="kg" min="40" max="200">
+                </div>
+                <div class="field">
+                    <label>Catégorie morphologique</label>
+                    <select>
+                        <option>Mince (ectomorphe)</option>
+                        <option selected>Moyen (mésomorphe)</option>
+                        <option>Corpulent (endomorphe)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="morpho-card">
+            <h3>
+                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=44&h=44&fit=crop" alt="">
+                Configuration de votre poste actuel
+            </h3>
+            <div class="form-grid-3">
+                <div class="field">
+                    <label>Type de siège</label>
+                    <select>
+                        <option>Chaise de bureau classique</option>
+                        <option>Chaise ergonomique</option>
+                        <option>Tabouret réglable</option>
+                        <option>Autre</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Bureau réglable en hauteur ?</label>
+                    <select>
+                        <option>Non</option>
+                        <option>Oui</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Repose-pieds ?</label>
+                    <select>
+                        <option>Non</option>
+                        <option>Oui</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview norme calculée -->
+        <div class="posture-norm-preview">
+            <img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=160&h=200&fit=crop&crop=top" alt="">
+            <div class="norm-text">
+                <h4>Configuration optimale calculée pour votre profil</h4>
+                <div class="norm-specs">
+                    <div class="norm-spec-item">Hauteur siège : <strong id="nc-siege">44 cm</strong></div>
+                    <div class="norm-spec-item">Hauteur bureau : <strong id="nc-bureau">72 cm</strong></div>
+                    <div class="norm-spec-item">Hauteur écran : <strong id="nc-ecran">114 cm</strong></div>
+                    <div class="norm-spec-item">Distance écran : <strong>55–70 cm</strong></div>
+                    <div class="norm-spec-item">Angle siège : <strong>90–100°</strong></div>
+                    <div class="norm-spec-item">Angle coudes : <strong>90°</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-nav">
+            <button class="btn-prev" onclick="nextStep(2)"><i class="fas fa-arrow-left" style="font-size:.8rem"></i> Retour</button>
+            <span class="step-counter">Étape 3 / 5</span>
+            <button class="btn-next" onclick="nextStep(4)">Continuer <i class="fas fa-arrow-right" style="font-size:.8rem"></i></button>
+        </div>
+    </div>
+
+    <!-- ══ ÉTAPE 4 — HOBBIES & PLANNING ══ -->
+    <div class="step-panel" id="panel4">
+        <div class="panel-head">
+            <div class="eyebrow">Étape 4 sur 5</div>
+            <h2>Vos <em>hobbies</em> et votre planning</h2>
+            <p>TonKiné adapte vos pauses actives à ce que vous aimez. Sélectionnez vos centres d'intérêt — les exercices, musiques et micro-activités proposés seront personnalisés en conséquence.</p>
+        </div>
+
+        <div class="hobby-hint">
+            <i class="fas fa-lightbulb" style="margin-top:2px;flex-shrink:0"></i>
+            <span>Choisissez <strong>au moins 2 hobbies</strong>. Plus vous en sélectionnez, plus vos pauses seront variées et agréables.</span>
+        </div>
+
+        <div class="hobbies-grid" id="hobbies-grid">
+            <div class="hobby-card" onclick="toggleHobby(this,'musique')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Musique</h4><p>Exercices rythmés, pauses avec playlist</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'sport')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Sport / Fitness</h4><p>Étirements dynamiques, cardio léger</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'lecture')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Lecture</h4><p>Pauses yeux, nuque, luminosité écran</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'cuisine')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Gastronomie</h4><p>Pauses café/eau, micro-collations saines</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'yoga')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Yoga / Méditation</h4><p>Respiration, relaxation, pleine conscience</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'marche')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Marche / Nature</h4><p>Micro-sorties, tours de couloir, air frais</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'art')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Art / Créativité</h4><p>Pauses dessin, doodling, pauses visuelles</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="hobby-card" onclick="toggleHobby(this,'social')">
+                <div class="h-img"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=104&h=104&fit=crop" alt=""></div>
+                <h4>Social / Équipe</h4><p>Pauses collègues, activités de groupe</p>
+                <div class="h-check"><i class="fas fa-check"></i></div>
+            </div>
+        </div>
+
+        <div class="morpho-card">
+            <h3>
+                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=44&h=44&fit=crop" alt="">
+                Vos jours de travail habituels
+            </h3>
+            <div class="schedule-grid">
+                <div class="day-card active" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Lun</div><div class="day-hours">8h–17h</div>
+                </div>
+                <div class="day-card active" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Mar</div><div class="day-hours">8h–17h</div>
+                </div>
+                <div class="day-card active" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Mer</div><div class="day-hours">8h–17h</div>
+                </div>
+                <div class="day-card active" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Jeu</div><div class="day-hours">8h–17h</div>
+                </div>
+                <div class="day-card active" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Ven</div><div class="day-hours">8h–17h</div>
+                </div>
+                <div class="day-card" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Sam</div><div class="day-hours">Repos</div>
+                </div>
+                <div class="day-card" onclick="this.classList.toggle('active')">
+                    <div class="day-name">Dim</div><div class="day-hours">Repos</div>
+                </div>
+            </div>
+            <div class="form-grid-2" style="margin-top:18px">
+                <div class="field">
+                    <label>Heure habituelle d'arrivée au bureau</label>
+                    <input type="time" value="08:00">
+                </div>
+                <div class="field">
+                    <label>Heure habituelle de départ</label>
+                    <input type="time" value="17:00">
+                </div>
+            </div>
+        </div>
+
+        <div class="step-nav">
+            <button class="btn-prev" onclick="nextStep(3)"><i class="fas fa-arrow-left" style="font-size:.8rem"></i> Retour</button>
+            <span class="step-counter">Étape 4 / 5</span>
+            <button class="btn-next" onclick="nextStep(5)">Voir le récapitulatif <i class="fas fa-arrow-right" style="font-size:.8rem"></i></button>
+        </div>
+    </div>
+
+    <!-- ══ ÉTAPE 5 — RÉCAPITULATIF ══ -->
+    <div class="step-panel" id="panel5">
+        <div class="panel-head">
+            <div class="eyebrow">Étape 5 sur 5</div>
+            <h2><em>Récapitulatif</em> de votre profil</h2>
+            <p>Vérifiez vos informations avant de finaliser la création de votre compte. Vous pourrez les modifier à tout moment depuis votre espace.</p>
+        </div>
+
+        <div class="review-grid">
+            <div class="review-card">
+                <h4>Identité & Poste</h4>
+                <div class="review-row"><span class="rkey">Nom</span><span class="rval" id="rv-nom">Jean-Paul Kamga</span></div>
+                <div class="review-row"><span class="rkey">E-mail</span><span class="rval" id="rv-email">jean.paul@demo.cm</span></div>
+                <div class="review-row"><span class="rkey">Département</span><span class="rval" id="rv-dept">Informatique / IT</span></div>
+                <div class="review-row"><span class="rkey">Poste</span><span class="rval" id="rv-poste">Développeur</span></div>
+                <div class="review-row"><span class="rkey">Heures/jour</span><span class="rval">8–9 heures</span></div>
+            </div>
+            <div class="review-card">
+                <h4>Morphologie & Poste de travail</h4>
+                <div class="review-row"><span class="rkey">Taille</span><span class="rval" id="rv-taille">172 cm</span></div>
+                <div class="review-row"><span class="rkey">Longueur jambes</span><span class="rval" id="rv-jambes">44 cm</span></div>
+                <div class="review-row"><span class="rkey">Avant-bras</span><span class="rval" id="rv-avbras">28 cm</span></div>
+                <div class="review-row"><span class="rkey">Siège recommandé</span><span class="rval" id="rv-siege">44 cm</span></div>
+                <div class="review-row"><span class="rkey">Hauteur écran</span><span class="rval" id="rv-ecran">114 cm</span></div>
+            </div>
+            <div class="review-card">
+                <h4>Photos posture</h4>
+                <div class="review-photos" id="rv-photos">
+                    <div class="review-photo"><img src="https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=100&h=130&fit=crop&crop=top" alt=""></div>
+                    <div class="review-photo"><img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=100&h=130&fit=crop&crop=top" alt=""></div>
+                    <div class="review-photo"><img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=100&h=130&fit=crop&crop=top" alt=""></div>
+                    <div class="review-photo"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=100&h=130&fit=crop&crop=top" alt=""></div>
+                </div>
+                <p style="font-size:.72rem;color:var(--ink-60);margin-top:10px">4 photos téléversées — analyse en cours après inscription</p>
+            </div>
+            <div class="review-card">
+                <h4>Hobbies sélectionnés</h4>
+                <div class="review-hobbies" id="rv-hobbies">
+                    <span class="hobby-tag">Musique</span>
+                    <span class="hobby-tag">Sport</span>
+                    <span class="hobby-tag">Gastronomie</span>
+                </div>
+                <p style="font-size:.72rem;color:var(--ink-60);margin-top:10px">Les exercices de pause seront adaptés à ces préférences.</p>
+            </div>
+        </div>
+
+        <div class="step-nav">
+            <button class="btn-prev" onclick="nextStep(4)"><i class="fas fa-arrow-left" style="font-size:.8rem"></i> Retour</button>
+            <span class="step-counter">Étape 5 / 5</span>
+            <button class="btn-next" onclick="submitForm()" style="background:var(--teal)">
+                <i class="fas fa-check"></i> Créer mon profil
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ SUCCÈS ══ -->
+    <div class="success-screen" id="success-screen">
+        <div class="success-img">
+            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=320&h=320&fit=crop" alt="">
+        </div>
+        <h2>Votre profil est créé !</h2>
+        <p>Bienvenue sur TonKiné au Travail. Votre analyse posturale est en cours de traitement. Vous allez être redirigé vers votre tableau de bord personnel.</p>
+        <a href="dashboard-employe.html" class="btn-goto">
+            <i class="fas fa-home"></i> Accéder à mon tableau de bord
+        </a>
+    </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+    let currentStep = 1;
+    const selectedHobbies = new Set();
+    let photoCount = 0;
+
+    function nextStep(n) { gotoStep(n); }
+
+    function gotoStep(n) {
+        // Panels
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+        const panel = document.getElementById('panel' + n);
+        if (panel) panel.classList.add('active');
+
+        // Stepper
+        for (let i = 1; i <= 5; i++) {
+            const st  = document.getElementById('st' + i);
+            const sn  = document.getElementById('sn' + i);
+            const sep = document.getElementById('sep' + i);
+            st.classList.remove('active', 'done');
+            if (sep) sep.classList.remove('done');
+            if (i < n)  { st.classList.add('done');   sn.innerHTML = '<i class="fas fa-check" style="font-size:.6rem"></i>'; if(sep) sep.classList.add('done'); }
+            if (i === n) { st.classList.add('active'); sn.textContent = i; }
+            if (i > n)  { sn.textContent = i; }
+        }
+
+        currentStep = n;
+        if (n === 5) syncReview();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function syncReview() {
+        const prenom = document.getElementById('f-prenom')?.value || 'Jean-Paul';
+        const nom    = document.getElementById('f-nom')?.value    || 'Kamga';
+        const email  = document.getElementById('f-email')?.value  || 'jean.paul@demo.cm';
+        const dept   = document.getElementById('f-dept')?.value   || 'Informatique / IT';
+        const poste  = document.getElementById('f-poste')?.value  || 'Développeur';
+        document.getElementById('rv-nom').textContent   = `${prenom} ${nom}`;
+        document.getElementById('rv-email').textContent = email;
+        document.getElementById('rv-dept').textContent  = dept;
+        document.getElementById('rv-poste').textContent = poste || '—';
+
+        const taille = document.getElementById('val-taille')?.textContent.replace(' cm','') || 172;
+        const jambes = document.getElementById('val-jambes')?.textContent.replace(' cm','') || 44;
+        const avbras = document.getElementById('val-avbras')?.textContent.replace(' cm','') || 28;
+        document.getElementById('rv-taille').textContent = taille + ' cm';
+        document.getElementById('rv-jambes').textContent = jambes + ' cm';
+        document.getElementById('rv-avbras').textContent = avbras + ' cm';
+        document.getElementById('rv-siege').textContent  = document.getElementById('nc-siege')?.textContent || '44 cm';
+        document.getElementById('rv-ecran').textContent  = document.getElementById('nc-ecran')?.textContent || '114 cm';
+
+        const hEl = document.getElementById('rv-hobbies');
+        if (selectedHobbies.size > 0) {
+            hEl.innerHTML = [...selectedHobbies].map(h => `<span class="hobby-tag">${h.charAt(0).toUpperCase()+h.slice(1)}</span>`).join('');
+        }
+    }
+
+    // Ranges morphologie
+    function updRange(id, val, unit) {
+        document.getElementById('val-' + id).textContent = val + ' ' + unit;
+        // Recalcul norme siège + écran
+        const taille = parseInt(document.getElementById('val-taille').textContent);
+        const jambes = parseInt(document.getElementById('val-jambes').textContent);
+        const siege  = jambes;
+        const bureau = siege + 28;
+        const ecran  = siege + 70;
+        document.getElementById('nc-siege').textContent  = siege + ' cm';
+        document.getElementById('nc-bureau').textContent = bureau + ' cm';
+        document.getElementById('nc-ecran').textContent  = ecran + ' cm';
+    }
+
+    // Photos
+    function triggerUpload(id) { document.getElementById('up-' + id).click(); }
+    function previewPhoto(id, input) {
+        if (!input.files[0]) return;
+        const url  = URL.createObjectURL(input.files[0]);
+        const img  = document.getElementById('img-' + id);
+        const slot = document.getElementById('slot-' + id);
+        img.src = url;
+        if (!slot.classList.contains('filled')) { photoCount++; }
+        slot.classList.add('filled');
+        document.getElementById('photo-count-msg').textContent = photoCount + ' / 4 photos téléversées';
+    }
+
+    // Hobbies
+    function toggleHobby(card, name) {
+        card.classList.toggle('selected');
+        if (card.classList.contains('selected')) selectedHobbies.add(name);
+        else selectedHobbies.delete(name);
+    }
+
+    // Soumission finale
+    function submitForm() {
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('success-screen').classList.add('show');
+        document.querySelector('.stepper-bar').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => { window.location.href = 'dashboard-employe.html'; }, 3000);
+    }
+</script>
+</body>
+</html>

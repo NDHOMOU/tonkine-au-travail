@@ -1,0 +1,21 @@
+# Étend le docker-compose.yml principal (base de données) avec un service
+# "devcontainer" qui contient les outils de dev (Node, Java, Maven — via les
+# features déclarées dans devcontainer.json). Ne remplace pas le déploiement
+# de production, sert uniquement à l'environnement de développement VS Code.
+services:
+
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-22.04
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://db:5432/${DB_NAME:-tonkine_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-tonkine_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      TONKINE_JWT_SECRET:         ${JWT_SECRET}
+      VITE_API_URL: http://localhost:8080/api

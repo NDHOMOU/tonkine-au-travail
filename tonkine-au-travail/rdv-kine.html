@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prendre un RDV Kiné — TonKiné au Travail</title>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --ink:#0F1923; --ink-60:rgba(15,25,35,.6); --ink-30:rgba(15,25,35,.3);
+            --blue:#1353A4; --sky:#D6E8FF; --teal:#0B9B8A; --teal-bg:#E0F5F3;
+            --sand:#F5F1EB; --warn:#C47A00; --warn-bg:#FEF3DC;
+            --border:rgba(15,25,35,.1);
+            --f-serif:'Fraunces', Georgia, serif; --f-sans:'Inter', system-ui, sans-serif;
+            --sw:240px;
+        }
+        body { font-family:var(--f-sans); color:var(--ink); background:#F7F8FC; display:flex; min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+        .sidebar { width:var(--sw); background:#0F1923; position:fixed; top:0; left:0; bottom:0; display:flex; flex-direction:column; z-index:60; overflow-y:auto; }
+        .sb-logo { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .sb-logo img { width:32px; height:32px; border-radius:7px; object-fit:cover; }
+        .sb-logo-text { font-family:var(--f-serif); font-size:.9rem; font-weight:600; color:rgba(255,255,255,.85); line-height:1.2; }
+        .sb-logo-text small { display:block; font-family:var(--f-sans); font-size:.62rem; color:rgba(255,255,255,.35); font-weight:400; }
+        .sb-user { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:10px; }
+        .sb-user img { width:36px; height:36px; border-radius:50%; border:2px solid rgba(255,255,255,.15); object-fit:cover; }
+        .sb-user-name { font-size:.8rem; font-weight:600; color:rgba(255,255,255,.85); }
+        .sb-user-role { font-size:.68rem; color:rgba(255,255,255,.4); margin-top:1px; }
+        .sb-section { padding:20px 0 8px; }
+        .sb-label { padding:0 20px 6px; font-size:.6rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.25); }
+        .sb-link { display:flex; align-items:center; gap:10px; padding:9px 20px; text-decoration:none; font-size:.82rem; font-weight:500; color:rgba(255,255,255,.5); border-left:2px solid transparent; transition:all .15s; }
+        .sb-link:hover { color:rgba(255,255,255,.85); background:rgba(255,255,255,.04); }
+        .sb-link.active { color:white; background:rgba(255,255,255,.07); border-left-color:var(--teal); }
+        .sb-link i { width:16px; font-size:.8rem; text-align:center; }
+        .sb-bottom { margin-top:auto; padding:14px 14px 18px; border-top:1px solid rgba(255,255,255,.06); }
+        .sb-logout { display:flex; align-items:center; gap:8px; width:100%; padding:9px 14px; border-radius:8px; border:1px solid rgba(255,255,255,.08); background:transparent; color:rgba(255,255,255,.4); font-family:var(--f-sans); font-size:.78rem; font-weight:500; cursor:pointer; transition:all .15s; }
+        .sb-logout:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.7); }
+
+        .main { margin-left:var(--sw); flex:1; display:flex; flex-direction:column; }
+        .topbar { background:white; height:60px; padding:0 28px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .topbar h2 { font-size:.95rem; font-weight:600; }
+        .topbar-right { display:flex; gap:10px; align-items:center; }
+        .tb-lang { padding:0 12px; height:32px; border-radius:6px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.75rem; font-weight:600; color:var(--ink-60); cursor:pointer; }
+        .tb-avatar { width:34px; height:34px; border-radius:50%; overflow:hidden; border:2px solid var(--border); }
+        .tb-avatar img { width:100%; height:100%; object-fit:cover; }
+
+        .content { padding:28px; }
+
+        /* Page header */
+        .page-hero {
+            background:white; border:1px solid var(--border); border-radius:16px;
+            overflow:hidden; margin-bottom:24px;
+            display:grid; grid-template-columns:1fr 380px;
+        }
+        .ph-text { padding:36px 40px; }
+        .ph-text .eyebrow { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--teal); margin-bottom:10px; }
+        .ph-text h1 { font-family:var(--f-serif); font-size:2rem; font-weight:300; letter-spacing:-.02em; line-height:1.2; margin-bottom:12px; }
+        .ph-text h1 em { font-style:italic; color:var(--blue); }
+        .ph-text p { font-size:.875rem; color:var(--ink-60); line-height:1.75; max-width:480px; }
+        .ph-img { position:relative; overflow:hidden; }
+        .ph-img img { width:100%; height:100%; object-fit:cover; }
+
+        /* Layout */
+        .rdv-layout { display:grid; grid-template-columns:1fr 340px; gap:20px; }
+
+        /* Kinés grid */
+        .kines-section h2 { font-size:.95rem; font-weight:700; margin-bottom:16px; }
+        .kine-cards { display:flex; flex-direction:column; gap:14px; }
+
+        .kine-card {
+            background:white; border:1px solid var(--border); border-radius:14px;
+            display:grid; grid-template-columns:auto 1fr auto;
+            gap:0; overflow:hidden; transition:all .15s; cursor:pointer;
+        }
+        .kine-card:hover { border-color:rgba(15,25,35,.2); box-shadow:0 6px 24px rgba(15,25,35,.06); }
+        .kine-card.selected { border-color:var(--blue); box-shadow:0 0 0 3px var(--sky); }
+
+        .kine-photo { width:120px; overflow:hidden; }
+        .kine-photo img { width:100%; height:100%; object-fit:cover; }
+
+        .kine-info { padding:18px 20px; }
+        .kine-info h3 { font-size:.92rem; font-weight:600; margin-bottom:3px; }
+        .kine-info .kine-title { font-size:.75rem; color:var(--ink-60); margin-bottom:10px; }
+        .kine-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+        .kine-tag { padding:3px 9px; border-radius:20px; font-size:.65rem; font-weight:600; background:var(--sand); color:var(--ink-60); }
+        .kine-tag.spec { background:var(--teal-bg); color:var(--teal); }
+        .kine-stars { display:flex; gap:2px; color:#F0A030; font-size:.72rem; margin-bottom:6px; }
+        .kine-info p { font-size:.75rem; color:var(--ink-60); line-height:1.6; }
+        .kine-avail { padding:18px 16px; border-left:1px solid var(--border); display:flex; flex-direction:column; gap:8px; align-items:flex-end; min-width:120px; }
+        .avail-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:6px; font-size:.68rem; font-weight:700; }
+        .avail-badge.ok { background:var(--teal-bg); color:var(--teal); }
+        .avail-badge.wait { background:var(--warn-bg); color:var(--warn); }
+        .next-slot { font-size:.72rem; color:var(--ink-60); text-align:right; }
+        .btn-select { padding:8px 16px; border-radius:7px; background:var(--ink); color:white; border:none; font-family:var(--f-sans); font-size:.75rem; font-weight:600; cursor:pointer; transition:all .15s; margin-top:auto; }
+        .btn-select:hover { background:#1a2e45; }
+        .kine-card.selected .btn-select { background:var(--teal); }
+
+        /* Calendrier */
+        .booking-panel { position:sticky; top:88px; }
+        .booking-panel .card { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+        .bp-head { padding:16px 20px; border-bottom:1px solid var(--border); }
+        .bp-head h3 { font-size:.9rem; font-weight:700; margin-bottom:3px; }
+        .bp-head p { font-size:.75rem; color:var(--ink-60); }
+
+        .cal-nav { display:flex; justify-content:space-between; align-items:center; padding:14px 20px 10px; }
+        .cal-month { font-size:.88rem; font-weight:700; }
+        .cal-arr { background:none; border:none; cursor:pointer; color:var(--ink-60); font-size:.9rem; padding:4px 8px; border-radius:5px; transition:all .15s; }
+        .cal-arr:hover { background:var(--sand); color:var(--ink); }
+        .cal-grid { padding:0 14px 14px; }
+        .cal-dow { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; margin-bottom:6px; }
+        .cal-dow span { font-size:.62rem; font-weight:700; color:var(--ink-60); padding:4px 0; }
+        .cal-days { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+        .cal-day { aspect-ratio:1; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:500; cursor:pointer; transition:all .15s; color:var(--ink-60); }
+        .cal-day:hover { background:var(--sand); color:var(--ink); }
+        .cal-day.today { font-weight:700; color:var(--blue); }
+        .cal-day.has-slot { color:var(--ink); }
+        .cal-day.has-slot::after { content:''; display:block; width:4px; height:4px; border-radius:50%; background:var(--teal); margin:-2px auto 0; }
+        .cal-day.selected { background:var(--ink); color:white; }
+        .cal-day.selected::after { background:rgba(255,255,255,.5); }
+        .cal-day.empty { cursor:default; }
+        .cal-day.past { opacity:.3; cursor:not-allowed; }
+
+        .time-slots { padding:0 20px 20px; }
+        .time-slots h4 { font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-60); margin-bottom:10px; }
+        .slots-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+        .slot-btn { padding:9px; border-radius:7px; border:1px solid var(--border); background:white; font-family:var(--f-sans); font-size:.78rem; font-weight:600; color:var(--ink); cursor:pointer; transition:all .15s; text-align:center; }
+        .slot-btn:hover { border-color:var(--blue); color:var(--blue); background:var(--sky); }
+        .slot-btn.taken { opacity:.4; cursor:not-allowed; text-decoration:line-through; }
+        .slot-btn.selected { background:var(--ink); color:white; border-color:var(--ink); }
+
+        .confirm-block { padding:16px 20px 20px; border-top:1px solid var(--border); }
+        .confirm-summary { background:var(--sand); border-radius:10px; padding:14px 16px; margin-bottom:14px; font-size:.78rem; color:var(--ink-60); line-height:1.7; }
+        .confirm-summary strong { color:var(--ink); display:block; font-size:.85rem; margin-bottom:4px; }
+        .btn-confirm { width:100%; padding:13px; border-radius:9px; background:var(--teal); color:white; border:none; font-family:var(--f-sans); font-size:.9rem; font-weight:600; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:8px; }
+        .btn-confirm:hover { background:#089b80; }
+        .btn-confirm:disabled { opacity:.5; cursor:not-allowed; }
+
+        /* Success RDV */
+        .rdv-success { display:none; text-align:center; padding:28px 20px; }
+        .rdv-success.show { display:block; }
+        .rdv-success img { width:100px; height:100px; border-radius:50%; object-fit:cover; margin:0 auto 16px; border:3px solid var(--teal-bg); }
+        .rdv-success h3 { font-family:var(--f-serif); font-size:1.3rem; font-weight:300; margin-bottom:8px; }
+        .rdv-success p { font-size:.8rem; color:var(--ink-60); line-height:1.65; }
+
+        .toast { position:fixed; bottom:24px; right:24px; background:var(--ink); color:white; padding:12px 18px; border-radius:10px; font-size:.82rem; font-weight:500; box-shadow:0 8px 30px rgba(0,0,0,.2); display:none; align-items:center; gap:10px; z-index:300; }
+        .toast.show { display:flex; }
+
+        @media (max-width:1100px) { .rdv-layout { grid-template-columns:1fr; } .booking-panel { position:static; } }
+        @media (max-width:900px)  { .page-hero { grid-template-columns:1fr; } .ph-img { height:200px; } .kine-card { grid-template-columns:80px 1fr auto; } }
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <a href="index.html" class="sb-logo">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=64&h=64&fit=crop" alt="">
+        <div class="sb-logo-text">TonKiné au Travail<small>Espace Employé</small></div>
+    </a>
+    <div class="sb-user">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=72&h=72&fit=crop&crop=face" alt="">
+        <div><div class="sb-user-name">Jean-Paul Kamga</div><div class="sb-user-role">Développeur · IT</div></div>
+    </div>
+    <div class="sb-section">
+        <div class="sb-label">Principal</div>
+        <a class="sb-link" href="dashboard-employe.html"><i class="fas fa-home"></i> Tableau de bord</a>
+        <a class="sb-link" href="#"><i class="fas fa-camera"></i> Ma posture</a>
+        <a class="sb-link" href="exercices.html"><i class="fas fa-dumbbell"></i> Mes exercices</a>
+        <a class="sb-link" href="#"><i class="fas fa-clock"></i> Minuteur pause</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-label">Santé</div>
+        <a class="sb-link" href="#"><i class="fas fa-chart-line"></i> Mon historique</a>
+        <a class="sb-link" href="curatif.html"><i class="fas fa-file-medical"></i> Protocoles curatifs</a>
+        <a class="sb-link active" href="rdv-kine.html"><i class="fas fa-calendar-check"></i> Prendre un RDV kiné</a>
+    </div>
+    <div class="sb-section">
+        <div class="sb-label">Compte</div>
+        <a class="sb-link" href="#"><i class="fas fa-user"></i> Mon profil</a>
+        <a class="sb-link" href="#"><i class="fas fa-heart"></i> Mes hobbies</a>
+    </div>
+    <div class="sb-bottom">
+        <button class="sb-logout" onclick="window.location.href='connexion.html'"><i class="fas fa-sign-out-alt"></i> Se déconnecter</button>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <h2>Prendre un rendez-vous kiné</h2>
+        <div class="topbar-right">
+            <button class="tb-lang">🌐 FR</button>
+            <div class="tb-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=68&h=68&fit=crop&crop=face" alt=""></div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-hero">
+            <div class="ph-text">
+                <div class="eyebrow">Volet curatif · Suivi humain</div>
+                <h1>Consultez un <em>kinésithérapeute</em><br>de confiance</h1>
+                <p>Pour les douleurs qui nécessitent un suivi personnalisé, nos kinésithérapeutes partenaires interviennent en entreprise ou en cabinet. Réservez directement depuis votre espace.</p>
+            </div>
+            <div class="ph-img">
+                <img src="https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=760&h=360&fit=crop&crop=center" alt="Kinésithérapeute">
+            </div>
+        </div>
+
+        <div class="rdv-layout">
+            <!-- Liste kinés -->
+            <div class="kines-section">
+                <h2>Kinésithérapeutes disponibles</h2>
+                <div class="kine-cards">
+                    <div class="kine-card selected" id="kc1" onclick="selectKine(this,'Dr Isabelle Mfou','Spécialiste TMS bureau')">
+                        <div class="kine-photo">
+                            <img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=240&h=280&fit=crop&crop=face" alt="">
+                        </div>
+                        <div class="kine-info">
+                            <h3>Dr Isabelle Mfou</h3>
+                            <div class="kine-title">Kinésithérapeute · Spécialiste TMS bureau</div>
+                            <div class="kine-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> <span style="font-size:.72rem;color:var(--ink-60)">4.9 (127 avis)</span></div>
+                            <div class="kine-tags">
+                                <span class="kine-tag spec">TMS</span>
+                                <span class="kine-tag spec">Cervicales</span>
+                                <span class="kine-tag spec">Lombaires</span>
+                                <span class="kine-tag">Téléconsultation</span>
+                            </div>
+                            <p>Spécialisée dans la prise en charge des troubles musculo-squelettiques liés au travail de bureau depuis 12 ans. Intervient en entreprise et en cabinet.</p>
+                        </div>
+                        <div class="kine-avail">
+                            <span class="avail-badge ok"><i class="fas fa-circle" style="font-size:.4rem"></i> Disponible</span>
+                            <div class="next-slot">Prochain créneau :<br><strong>Demain 9h00</strong></div>
+                            <button class="btn-select">Sélectionner</button>
+                        </div>
+                    </div>
+
+                    <div class="kine-card" id="kc2" onclick="selectKine(this,'Dr Samuel Ateba','Rééducation posturale')">
+                        <div class="kine-photo">
+                            <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=240&h=280&fit=crop&crop=face" alt="">
+                        </div>
+                        <div class="kine-info">
+                            <h3>Dr Samuel Ateba</h3>
+                            <div class="kine-title">Kinésithérapeute · Rééducation posturale</div>
+                            <div class="kine-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i> <span style="font-size:.72rem;color:var(--ink-60)">4.7 (89 avis)</span></div>
+                            <div class="kine-tags">
+                                <span class="kine-tag spec">Posture</span>
+                                <span class="kine-tag spec">Poignets</span>
+                                <span class="kine-tag">Domicile</span>
+                                <span class="kine-tag">Entreprise</span>
+                            </div>
+                            <p>Expert en rééducation posturale et syndrome du canal carpien. Interventions à domicile et en entreprise sur Yaoundé et Douala.</p>
+                        </div>
+                        <div class="kine-avail">
+                            <span class="avail-badge ok"><i class="fas fa-circle" style="font-size:.4rem"></i> Disponible</span>
+                            <div class="next-slot">Prochain créneau :<br><strong>Jeudi 14h30</strong></div>
+                            <button class="btn-select">Sélectionner</button>
+                        </div>
+                    </div>
+
+                    <div class="kine-card" id="kc3" onclick="selectKine(this,'Dr Claire Essono','Massage thérapeutique')">
+                        <div class="kine-photo">
+                            <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=240&h=280&fit=crop&crop=face" alt="">
+                        </div>
+                        <div class="kine-info">
+                            <h3>Dr Claire Essono</h3>
+                            <div class="kine-title">Kinésithérapeute · Massage thérapeutique</div>
+                            <div class="kine-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> <span style="font-size:.72rem;color:var(--ink-60)">5.0 (52 avis)</span></div>
+                            <div class="kine-tags">
+                                <span class="kine-tag spec">Massage</span>
+                                <span class="kine-tag spec">Épaules</span>
+                                <span class="kine-tag">Cabinet</span>
+                            </div>
+                            <p>Spécialisée dans le massage thérapeutique des épaules et du dos. Consultations en cabinet uniquement, à Bastos, Yaoundé.</p>
+                        </div>
+                        <div class="kine-avail">
+                            <span class="avail-badge wait"><i class="fas fa-clock" style="font-size:.6rem"></i> 3j d'attente</span>
+                            <div class="next-slot">Prochain créneau :<br><strong>Vendredi 10h00</strong></div>
+                            <button class="btn-select">Sélectionner</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking panel -->
+            <div class="booking-panel">
+                <div class="card" id="booking-form">
+                    <div class="bp-head">
+                        <h3 id="bp-kine-name">Dr Isabelle Mfou</h3>
+                        <p id="bp-kine-spec">Spécialiste TMS bureau</p>
+                    </div>
+
+                    <div class="cal-nav">
+                        <button class="cal-arr" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+                        <span class="cal-month" id="cal-month">Juin 2026</span>
+                        <button class="cal-arr" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+
+                    <div class="cal-grid">
+                        <div class="cal-dow">
+                            <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                        </div>
+                        <div class="cal-days" id="cal-days"></div>
+                    </div>
+
+                    <div class="time-slots">
+                        <h4>Créneaux disponibles — <span id="slot-date">Choisissez une date</span></h4>
+                        <div class="slots-grid" id="slots-grid">
+                            <div style="grid-column:span 2;font-size:.78rem;color:var(--ink-30);text-align:center;padding:12px">Sélectionnez une date pour voir les créneaux</div>
+                        </div>
+                    </div>
+
+                    <div class="confirm-block" id="confirm-block" style="display:none">
+                        <div class="confirm-summary">
+                            <strong id="cs-title">Récapitulatif du rendez-vous</strong>
+                            <span id="cs-kine"></span><br>
+                            <span id="cs-date"></span> à <span id="cs-time"></span><br>
+                            Durée : 45 minutes · Consultation TMS
+                        </div>
+                        <button class="btn-confirm" onclick="confirmRdv()">
+                            <i class="fas fa-calendar-check"></i> Confirmer le rendez-vous
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card rdv-success" id="rdv-success">
+                    <img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&h=200&fit=crop&crop=face" id="success-kine-img" alt="">
+                    <h3>Rendez-vous confirmé !</h3>
+                    <p id="success-msg">Votre RDV avec Dr Isabelle Mfou est enregistré. Vous recevrez un rappel la veille.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="toast" id="toast"><i class="fas fa-check" style="color:var(--teal)"></i><span id="toast-msg"></span></div>
+
+<script>
+    let selectedKineEl   = document.getElementById('kc1');
+    let selectedKineName = 'Dr Isabelle Mfou';
+    let selectedDate     = null;
+    let selectedTime     = null;
+    let currentYear      = 2026, currentMonth = 5; // juin = 5 (0-based)
+
+    const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    const SLOTS  = ['08:30','09:00','09:30','10:00','10:30','11:00','14:00','14:30','15:00','15:30','16:00','16:30'];
+    const TAKEN  = ['08:30','10:00','14:30']; // exemples pris
+
+    function renderCalendar() {
+        const d = new Date(currentYear, currentMonth, 1);
+        document.getElementById('cal-month').textContent = MONTHS[currentMonth] + ' ' + currentYear;
+        const days = document.getElementById('cal-days');
+        days.innerHTML = '';
+        let dow = d.getDay(); if (dow === 0) dow = 7;
+        for (let i = 1; i < dow; i++) { const e = document.createElement('div'); e.className='cal-day empty'; days.appendChild(e); }
+        const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+        const today = new Date();
+        for (let i = 1; i <= daysInMonth; i++) {
+            const e = document.createElement('div');
+            const dt = new Date(currentYear, currentMonth, i);
+            const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+            const isPast = dt < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const isToday = dt.toDateString() === today.toDateString();
+            e.className = 'cal-day' + (isToday?' today':'') + (isPast||isWeekend?' past':'') + (!isPast&&!isWeekend?' has-slot':'');
+            if (selectedDate === i + '/' + currentMonth + '/' + currentYear) e.classList.add('selected');
+            e.textContent = i;
+            if (!isPast && !isWeekend) e.onclick = () => selectDate(i, e);
+            days.appendChild(e);
+        }
+    }
+
+    function selectDate(day, el) {
+        document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedDate = day + '/' + currentMonth + '/' + currentYear;
+        selectedTime = null;
+        const dStr = day + ' ' + MONTHS[currentMonth] + ' ' + currentYear;
+        document.getElementById('slot-date').textContent = dStr;
+        const grid = document.getElementById('slots-grid');
+        grid.innerHTML = '';
+        SLOTS.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'slot-btn' + (TAKEN.includes(s) ? ' taken' : '');
+            btn.textContent = s;
+            if (!TAKEN.includes(s)) btn.onclick = () => selectSlot(s, btn, dStr);
+            grid.appendChild(btn);
+        });
+        document.getElementById('confirm-block').style.display = 'none';
+    }
+
+    function selectSlot(time, btn, dStr) {
+        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedTime = time;
+        document.getElementById('cs-kine').textContent = selectedKineName;
+        document.getElementById('cs-date').textContent = dStr;
+        document.getElementById('cs-time').textContent = time;
+        document.getElementById('confirm-block').style.display = 'block';
+    }
+
+    function selectKine(card, name, spec) {
+        document.querySelectorAll('.kine-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedKineName = name;
+        document.getElementById('bp-kine-name').textContent = name;
+        document.getElementById('bp-kine-spec').textContent = spec;
+        document.getElementById('confirm-block').style.display = 'none';
+        selectedTime = null;
+        renderCalendar();
+    }
+
+    function confirmRdv() {
+        document.getElementById('booking-form').style.display = 'none';
+        const s = document.getElementById('rdv-success');
+        s.classList.add('show');
+        document.getElementById('success-msg').textContent = `Votre RDV avec ${selectedKineName} le ${document.getElementById('cs-date').textContent} à ${selectedTime} est confirmé. Vous recevrez un rappel la veille.`;
+    }
+
+    function prevMonth() { if(currentMonth===0){currentMonth=11;currentYear--;}else{currentMonth--;} renderCalendar(); }
+    function nextMonth() { if(currentMonth===11){currentMonth=0;currentYear++;}else{currentMonth++;} renderCalendar(); }
+
+    let tTimer;
+    function toast(msg) {
+        const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=msg;
+        t.classList.add('show'); clearTimeout(tTimer); tTimer=setTimeout(()=>t.classList.remove('show'),3000);
+    }
+
+    renderCalendar();
+</script>
+</body>
+</html>

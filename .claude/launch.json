@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tonkine-static",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-l", "4173", "tonkine-au-travail"],
+      "port": 4173
+    },
+    {
+      "name": "tonkine-frontend-dev",
+      "runtimeExecutable": "C:\\Windows\\System32\\cmd.exe",
+      "runtimeArgs": ["/c", "set PATH=C:\\Program Files\\nodejs;%PATH% && cd tonkine-frontend && npm run dev -- --port 5173"],
+      "port": 5173
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+# ═══════════════════════════════════════════════════════════════
+# TonKiné au Travail — Stack MySQL / MariaDB
+# ═══════════════════════════════════════════════════════════════
+#
+# Démarrage :
+#   cp .env.example .env
+#   docker compose -f docker-compose.mysql.yml up -d
+#
+# Compatible aussi avec MariaDB — remplacer l'image par :
+#   image: mariadb:11-lts
+# ═══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Base de données MySQL ──
+  db:
+    image: mysql:8.4
+    container_name: tonkine_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE:      ${DB_NAME:-tonkine_db}
+      MYSQL_USER:          ${DB_USER:-tonkine_user}
+      MYSQL_PASSWORD:      ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_me_root}
+      TZ:                  Africa/Douala
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone=+01:00
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-tonkine_user}", "-p${DB_PASSWORD}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── API Spring Boot ──
+  api:
+    build:
+      context: ./tonkine-backend
+      dockerfile: Dockerfile
+    container_name: tonkine_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      SPRING_DATASOURCE_URL:      "jdbc:mysql://db:3306/${DB_NAME:-tonkine_db}?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-tonkine_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      TONKINE_JWT_SECRET:         ${JWT_SECRET}
+      TONKINE_JWT_EXPIRATION_MS:  ${JWT_EXPIRATION_MS:-86400000}
+      TONKINE_CORS_ALLOWED_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      TZ: Africa/Douala
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  mysql_data:
+    name: tonkine_mysql_data
+  uploads_data:
+    name: tonkine_uploads

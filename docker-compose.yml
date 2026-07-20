@@ -1,0 +1,81 @@
+# ═══════════════════════════════════════════════════════════════
+# TonKiné au Travail — Stack PostgreSQL (RECOMMANDÉ EN PRODUCTION)
+# ═══════════════════════════════════════════════════════════════
+#
+# Démarrage :
+#   cp .env.example .env          # 1. Copiez et remplissez le .env
+#   docker compose up -d          # 2. Lancez la stack
+#   docker compose logs -f api    # 3. Suivez les logs
+#
+# Arrêt :
+#   docker compose down           # données conservées dans le volume
+#   docker compose down -v        # supprime aussi les données (ATTENTION)
+# ═══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Base de données PostgreSQL ──
+  db:
+    image: postgres:16-alpine
+    container_name: tonkine_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-tonkine_db}
+      POSTGRES_USER:     ${DB_USER:-tonkine_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ:                Africa/Douala
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"   # Exposé localement pour les outils DB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tonkine_user} -d ${DB_NAME:-tonkine_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── API Spring Boot ──
+  api:
+    build:
+      context: ./tonkine-backend
+      dockerfile: Dockerfile
+    container_name: tonkine_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://db:5432/${DB_NAME:-tonkine_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-tonkine_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      TONKINE_JWT_SECRET:         ${JWT_SECRET}
+      TONKINE_JWT_EXPIRATION_MS:  ${JWT_EXPIRATION_MS:-86400000}
+      TONKINE_CORS_ALLOWED_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      TZ: Africa/Douala
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+  # ── Frontend React (optionnel en développement) ──
+  frontend:
+    build:
+      context: ./tonkine-frontend
+      dockerfile: Dockerfile
+    container_name: tonkine_frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://api:8080/api
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    profiles:
+      - full   # Activer avec : docker compose --profile full up -d
+
+volumes:
+  postgres_data:
+    name: tonkine_postgres_data
+  uploads_data:
+    name: tonkine_uploads
