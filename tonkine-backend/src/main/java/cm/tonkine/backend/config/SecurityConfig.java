@@ -1,6 +1,5 @@
 package cm.tonkine.backend.config;
 
-import cm.tonkine.backend.repository.UtilisateurRepository;
 import cm.tonkine.backend.security.JwtAuthFilter;
 import cm.tonkine.backend.security.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -43,7 +41,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter            jwtAuthFilter;
     private final RateLimitFilter          rateLimitFilter;
-    private final UtilisateurRepository    utilisateurRepository;
+    private final UserDetailsService       userDetailsService;
 
     @Value("${tonkine.cors.allowed-origins}")
     private String allowedOriginsStr;
@@ -109,17 +107,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return email -> utilisateurRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException(
-                "Utilisateur non trouvé : " + email
-            ));
-    }
-
-    @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService());
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
