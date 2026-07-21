@@ -119,11 +119,9 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        <!-- Flyway plugin PostgreSQL (requis pour PG >= 10) -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-        </dependency>
+        <!-- Le support PostgreSQL est déjà inclus nativement dans flyway-core
+             pour la version de Flyway gérée par Spring Boot 3.2.x (9.22.x) —
+             flyway-database-postgresql n'existe qu'à partir de Flyway 10. -->
 
         <!-- Flyway plugin MySQL / MariaDB -->
         <dependency>
