@@ -11,7 +11,9 @@ import axios from 'axios';
 const client = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  // 60s : le backend gratuit (Render) peut mettre jusqu'à 50s à se réveiller
+  // après une période d'inactivité (spin-down du plan gratuit).
+  timeout: 60000,
 });
 
 // ── Intercepteur requête : ajoute le token JWT ──
