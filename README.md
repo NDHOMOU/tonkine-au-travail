@@ -16,20 +16,27 @@ Dépôt : https://github.com/NDHOMOU/tonkine-au-travail
 ## État actuel
 
 - [x] Frontend déployé sur Vercel (preview) — corrigé (photo + nom du kiné sur la page de connexion)
-- [ ] Backend en cours de déploiement sur Render
+- [x] Backend déployé et opérationnel sur Render
 - [x] Base de données créée sur Neon (PostgreSQL gratuit)
-- [ ] Vercel connecté à Render (rewrite `/api` → URL Render, pas encore fait)
+- [x] Vercel connecté à Render (rewrite `/api` → URL Render)
 - [ ] Passage du frontend en production Vercel (`vercel --prod`)
-- [ ] Compte de test Kinésithérapeute (à insérer manuellement, aucun n'est pré-créé)
+- [x] Compte de test Kinésithérapeute créé (Geneviève Ndhomou, seule kiné de l'appli — voir V4)
 - [ ] Installation locale Docker pour le réseau d'entreprise (sans internet) — le fichier existe déjà (`docker-compose.yml`), reste à installer Docker Desktop et lancer
 
 ## Comptes de test
 
-| Rôle | Email | Mot de passe | Statut |
-|---|---|---|---|
-| Admin RH | `admin@tonkine.cm` | `Admin@TonKine2026` | Pré-créé automatiquement (script `V2__donnees_reference.sql`) |
-| Employé | — | — | À créer via "Créer mon profil" sur `/inscription` (entreprise démo : *Acme Corporation Cameroun*) |
-| Kinésithérapeute | — | — | Aucun compte pré-créé — à insérer manuellement en base |
+Le dépôt étant **public** et le backend accessible depuis internet, les mots de passe des
+comptes de test ne sont volontairement **pas écrits ici** (un historique Git public est
+permanent, même après suppression). Ils sont définis dans
+`tonkine-backend/src/main/resources/db/migration/V4__fix_admin_password_et_kine.sql`
+(hash BCrypt uniquement — le mot de passe en clair n'y figure pas non plus) et ont été
+communiqués séparément.
+
+| Rôle | Email | Statut |
+|---|---|---|
+| Admin RH | `admin@tonkine.cm` | Pré-créé (mot de passe corrigé en V4) |
+| Kinésithérapeute | `genevieve.ndhomou@tonkine.cm` | Pré-créé en V4 — seule kiné de l'application |
+| Employé | — | À créer via "Créer mon profil" sur `/inscription` (entreprise démo : *Acme Corporation Cameroun*) |
 
 ## Développement local (avec internet, pour coder)
 
