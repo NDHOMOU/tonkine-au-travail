@@ -114,6 +114,7 @@ public class AuthService {
     /**
      * Connexion d'un utilisateur existant.
      */
+    @Transactional
     public AuthResponse connecter(ConnexionRequest req) {
         // Délègue la vérification à Spring Security (BCrypt)
         authenticationManager.authenticate(
