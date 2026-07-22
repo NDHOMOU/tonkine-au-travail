@@ -19,7 +19,8 @@ Dépôt : https://github.com/NDHOMOU/tonkine-au-travail
 - [x] Backend déployé et opérationnel sur Render
 - [x] Base de données créée sur Neon (PostgreSQL gratuit)
 - [x] Vercel connecté à Render (rewrite `/api` → URL Render)
-- [ ] Passage du frontend en production Vercel (`vercel --prod`)
+- [x] Connexion testée de bout en bout — Admin RH **et** Kinésithérapeute fonctionnent (JWT, dashboards réels)
+- [ ] Passage du frontend en production Vercel (`vercel --prod`) — à confirmer avant de le faire
 - [x] Compte de test Kinésithérapeute créé (Geneviève Ndhomou, seule kiné de l'appli — voir V4)
 - [ ] Installation locale Docker pour le réseau d'entreprise (sans internet) — le fichier existe déjà (`docker-compose.yml`), reste à installer Docker Desktop et lancer
 
