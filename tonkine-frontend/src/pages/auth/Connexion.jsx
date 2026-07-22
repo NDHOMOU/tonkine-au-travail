@@ -41,9 +41,14 @@ export default function Connexion() {
       navigate(destination);
 
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.status === 401
-        ? 'Identifiant ou mot de passe incorrect.'
-        : 'Erreur de connexion. Vérifiez votre réseau.';
+      let msg;
+      if (err.response?.status === 401) {
+        msg = 'Identifiant ou mot de passe incorrect.';
+      } else if (err.response) {
+        msg = err.response.data?.erreur || err.response.data?.message || 'Erreur serveur. Réessayez dans un instant.';
+      } else {
+        msg = 'Erreur de connexion. Vérifiez votre réseau.';
+      }
       setError(msg);
     } finally {
       setLoading(false);

@@ -99,13 +99,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("💥 Erreur interne non gérée", ex);
-        Throwable racine = ex;
-        while (racine.getCause() != null) racine = racine.getCause();
         return ResponseEntity.internalServerError().body(Map.of(
             "statut", 500,
-            "erreur", "Une erreur interne s'est produite. Veuillez réessayer.",
-            "debugType", racine.getClass().getName(),
-            "debugMessage", String.valueOf(racine.getMessage())
+            "erreur", "Une erreur interne s'est produite. Veuillez réessayer."
         ));
     }
 }
