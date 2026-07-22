@@ -67,13 +67,13 @@ CREATE TABLE sessions_travail (
     nombre_pauses_effectuees      INTEGER   NOT NULL DEFAULT 0,
     nombre_alertes_envoyees       INTEGER   NOT NULL DEFAULT 0,
     nombre_alertes_ignorees       INTEGER   NOT NULL DEFAULT 0,
-    score_dos_colonne             DECIMAL(5,2),
-    score_nuque                   DECIMAL(5,2),
-    score_epaules                 DECIMAL(5,2),
-    score_poignets                DECIMAL(5,2),
-    score_hanches                 DECIMAL(5,2),
-    score_yeux                    DECIMAL(5,2),
-    score_global                  DECIMAL(5,2),
+    score_dos_colonne             DOUBLE PRECISION,
+    score_nuque                   DOUBLE PRECISION,
+    score_epaules                 DOUBLE PRECISION,
+    score_poignets                DOUBLE PRECISION,
+    score_hanches                 DOUBLE PRECISION,
+    score_yeux                    DOUBLE PRECISION,
+    score_global                  DOUBLE PRECISION,
     date_creation                 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -85,9 +85,9 @@ CREATE TABLE mesures_posture (
     id                     BIGSERIAL PRIMARY KEY,
     session_id             BIGINT        NOT NULL REFERENCES sessions_travail(id) ON DELETE CASCADE,
     zone                   VARCHAR(30)   NOT NULL,
-    score                  DECIMAL(5,2)  NOT NULL,
-    angle_degres           DECIMAL(6,2),
-    angle_reference_norme  DECIMAL(6,2),
+    score                  DOUBLE PRECISION  NOT NULL,
+    angle_degres           DOUBLE PRECISION,
+    angle_reference_norme  DOUBLE PRECISION,
     conforme               BOOLEAN       NOT NULL DEFAULT TRUE,
     horodatage             TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
