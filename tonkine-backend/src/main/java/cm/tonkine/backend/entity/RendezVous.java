@@ -78,6 +78,7 @@ public class RendezVous {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dateReservation;
 
+    @Column(name = "date_mise_a_jour")
     private LocalDateTime dateMiseAJour;
 
     @PrePersist

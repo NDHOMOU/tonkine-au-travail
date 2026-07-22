@@ -91,6 +91,7 @@ public class ProfilErgonomique {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dateCreation;
 
+    @Column(name = "date_mise_a_jour")
     private LocalDateTime dateMiseAJour;
 
     // ── Photos posture (relation 1-N) ──
