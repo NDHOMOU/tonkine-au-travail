@@ -15,6 +15,7 @@ import cm.tonkine.backend.repository.JournalAuditRepository;
 import cm.tonkine.backend.repository.JournalConnexionRepository;
 import cm.tonkine.backend.repository.SessionTravailRepository;
 import cm.tonkine.backend.repository.UtilisateurRepository;
+import cm.tonkine.backend.service.AnalyseDecisionService;
 import cm.tonkine.backend.service.AuditService;
 import cm.tonkine.backend.service.RapportService;
 import cm.tonkine.backend.util.MotDePasseUtil;
@@ -54,6 +55,7 @@ public class AdminController {
     private final JournalConnexionRepository journalConnexionRepository;
     private final JournalAuditRepository     journalAuditRepository;
     private final RapportService             rapportService;
+    private final AnalyseDecisionService      analyseDecisionService;
     private final AuditService               auditService;
     private final PasswordEncoder            passwordEncoder;
 
@@ -427,6 +429,22 @@ public class AdminController {
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(journal);
+    }
+
+    /**
+     * GET /api/admin/analyse-decision
+     * Aide à la décision : tendances de posture par département, employés en
+     * dégradation dans le temps, taux de suivi des alertes — à partir des
+     * sessions déjà collectées, sans donnée sensible (pas d'âge).
+     */
+    @GetMapping("/analyse-decision")
+    public ResponseEntity<AnalyseDecisionResponse> getAnalyseDecision(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        return ResponseEntity.ok(analyseDecisionService.genererAnalyse(entrepriseId));
     }
 
     /**

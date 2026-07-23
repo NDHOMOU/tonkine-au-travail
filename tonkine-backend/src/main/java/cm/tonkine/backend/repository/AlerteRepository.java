@@ -50,4 +50,15 @@ public interface AlerteRepository extends JpaRepository<Alerte, Long> {
         @Param("uid")   Long uid,
         @Param("debut") LocalDateTime debut
     );
+
+    /**
+     * Toutes les alertes d'une entreprise depuis une date — pour l'analyse de tendance.
+     * JOIN FETCH utilisateur : évite un LazyInitializationException hors transaction.
+     */
+    @Query("SELECT a FROM Alerte a JOIN FETCH a.utilisateur u " +
+           "WHERE u.entreprise.id = :entrepriseId AND a.dateEnvoi >= :debut")
+    List<Alerte> findDepuisParEntreprise(
+        @Param("entrepriseId") Long entrepriseId,
+        @Param("debut") LocalDateTime debut
+    );
 }

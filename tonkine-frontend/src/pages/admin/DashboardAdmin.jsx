@@ -31,8 +31,8 @@ export default function DashboardAdmin() {
   // ── Journal des connexions ──
   const [journal, setJournal] = useState([]);
 
-  // ── Journal d'audit ──
-  const [journalAudit, setJournalAudit] = useState([]);
+  // ── Aide à la décision ──
+  const [analyseDecision, setAnalyseDecision] = useState(null);
 
   // ── Rapport ──
   const [telechargementEnCours, setTelechargementEnCours] = useState(false);
@@ -67,16 +67,16 @@ export default function DashboardAdmin() {
     } catch { toast.error('Impossible de charger le journal des connexions.'); }
   }, []);
 
-  const chargerJournalAudit = useCallback(async () => {
+  const chargerAnalyseDecision = useCallback(async () => {
     try {
-      const { data } = await adminApi.getJournalAudit();
-      setJournalAudit(data);
-    } catch { toast.error('Impossible de charger le journal d\'audit.'); }
+      const { data } = await adminApi.getAnalyseDecision();
+      setAnalyseDecision(data);
+    } catch { toast.error('Impossible de charger l\'analyse de tendance.'); }
   }, []);
 
   useEffect(() => {
-    charger(); chargerComptesAdmin(); chargerEntreprise(); chargerJournal(); chargerJournalAudit();
-  }, [charger, chargerComptesAdmin, chargerEntreprise, chargerJournal, chargerJournalAudit]);
+    charger(); chargerComptesAdmin(); chargerEntreprise(); chargerJournal(); chargerAnalyseDecision();
+  }, [charger, chargerComptesAdmin, chargerEntreprise, chargerJournal, chargerAnalyseDecision]);
 
   const sauvegarderEntreprise = async (e) => {
     e.preventDefault();
@@ -85,7 +85,6 @@ export default function DashboardAdmin() {
       const { data } = await adminApi.mettreAJourEntreprise(entrepriseModif);
       setEntreprise(data);
       setEntrepriseModif(data);
-      chargerJournalAudit();
       toast.success('Paramètres de l\'entreprise mis à jour.');
     } catch {
       toast.error('Impossible d\'enregistrer les paramètres.');
@@ -118,7 +117,6 @@ export default function DashboardAdmin() {
       setFormAdmin({ prenom:'', nom:'', email:'' });
       setShowFormAdmin(false);
       chargerComptesAdmin();
-      chargerJournalAudit();
     } catch (err) {
       toast.error(err.response?.data?.erreur || 'Impossible de créer ce compte.');
     } finally {
@@ -132,7 +130,6 @@ export default function DashboardAdmin() {
       const { data: r } = await adminApi.reinitialiserMotDePasse(compte.id);
       setMotDePasseRevele(r);
       chargerComptesAdmin();
-      chargerJournalAudit();
     } catch {
       toast.error('Impossible de réinitialiser ce mot de passe.');
     } finally {
@@ -147,7 +144,6 @@ export default function DashboardAdmin() {
       await adminApi.supprimerCompteAdmin(compte.id);
       toast.success('Compte supprimé.');
       chargerComptesAdmin();
-      chargerJournalAudit();
     } catch (err) {
       toast.error(err.response?.data?.erreur || 'Impossible de supprimer ce compte.');
     } finally {
@@ -162,7 +158,7 @@ export default function DashboardAdmin() {
       const { data: r } = await adminApi.envoyerAlerteCollective(message);
       toast.success(`Message envoyé à ${r.envoyees} employé(s) actifs.`);
       setMessage('');
-      chargerJournalAudit();
+      chargerAnalyseDecision();
     } catch { toast.error('Impossible d\'envoyer l\'alerte.'); }
     finally { setEnvoi(false); }
   };
@@ -477,35 +473,86 @@ export default function DashboardAdmin() {
         </div>
       </div>
 
-      {/* ── Journal d'audit ── */}
+      {/* ── Aide à la décision ── */}
       <div className="card" style={{ marginTop:20 }}>
-        <div className="card-head"><h3>Journal d'audit</h3></div>
-        <div style={{ padding:'8px 0 0' }}>
-          {journalAudit.length === 0 ? (
+        <div className="card-head"><h3>Aide à la décision — tendances</h3></div>
+        <div style={{ padding:'8px 20px 20px' }}>
+          {!analyseDecision || analyseDecision.donneesInsuffisantes ? (
             <div className="empty-state" style={{ padding:30 }}>
-              <i className="fa-solid fa-list-check" />
-              <p>Aucune action administrative enregistrée pour l'instant.</p>
+              <i className="fa-solid fa-chart-line" />
+              <p>Pas encore assez de sessions enregistrées sur plusieurs semaines pour dégager une tendance fiable.</p>
             </div>
           ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr><th>Qui</th><th>Action</th><th>Détails</th><th>Date</th></tr>
-                </thead>
-                <tbody>
-                  {journalAudit.map((a, i) => (
-                    <tr key={i}>
-                      <td style={{ fontWeight:600 }}>{a.acteur}</td>
-                      <td><span className="badge gray">{a.action.replaceAll('_',' ')}</span></td>
-                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{a.details}</td>
-                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>
-                        {new Date(a.dateAction).toLocaleString('fr-FR')}
-                      </td>
-                    </tr>
+            <>
+              {analyseDecision.tendanceParDepartement.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ fontSize:'.85rem', marginBottom:10 }}>Score de posture moyen par département</h4>
+                  {analyseDecision.tendanceParDepartement.map(dept => (
+                    <div key={dept.departement} style={{ marginBottom:14 }}>
+                      <div style={{ fontSize:'.78rem', fontWeight:600, marginBottom:4 }}>{dept.departement}</div>
+                      <div style={{ display:'flex', gap:6, alignItems:'flex-end', height:60 }}>
+                        {dept.points.map((p, i) => (
+                          <div key={i} title={`${p.semaine} : ${p.valeur ?? '—'}%`}
+                            style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                            <div style={{
+                              width:'100%', maxWidth:28,
+                              height: p.valeur != null ? Math.max((p.valeur/100)*50, 3) : 2,
+                              background: p.valeur == null ? 'var(--ink-10, #eee)'
+                                : p.valeur < 60 ? '#C0392B' : p.valeur < 80 ? '#E1A100' : '#0B9B8A',
+                              borderRadius:3,
+                            }} />
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display:'flex', gap:6 }}>
+                        {dept.points.map((p, i) => (
+                          <div key={i} style={{ flex:1, textAlign:'center', fontSize:'.65rem', color:'var(--ink-60)' }}>
+                            {p.valeur != null ? `${p.valeur}%` : '—'}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              )}
+
+              <div style={{ marginBottom: 24 }}>
+                <h4 style={{ fontSize:'.85rem', marginBottom:10 }}>Employés dont la posture se dégrade</h4>
+                {analyseDecision.employesADegradation.length === 0 ? (
+                  <p style={{ fontSize:'.8rem', color:'var(--ink-60)' }}>Aucun signal de dégradation détecté sur la période.</p>
+                ) : (
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr><th>Employé</th><th>Département</th><th>2 dern. semaines</th><th>2 semaines préc.</th><th>Variation</th></tr>
+                      </thead>
+                      <tbody>
+                        {analyseDecision.employesADegradation.map((e, i) => (
+                          <tr key={i}>
+                            <td style={{ fontWeight:600 }}>{e.nomComplet}</td>
+                            <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{e.departement || '—'}</td>
+                            <td>{e.scoreRecent}%</td>
+                            <td>{e.scorePrecedent}%</td>
+                            <td><span className="badge" style={{ background:'#FCE8E6', color:'#C0392B' }}>{e.variation}%</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 style={{ fontSize:'.85rem', marginBottom:10 }}>Taux d'alertes suivies d'une pause</h4>
+                <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                  {analyseDecision.tauxSuiviAlertes.map((p, i) => (
+                    <div key={i} style={{ fontSize:'.78rem', color:'var(--ink-60)' }}>
+                      {p.semaine} : <strong style={{ color:'var(--ink-90, #111)' }}>{p.valeur != null ? `${p.valeur}%` : '—'}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

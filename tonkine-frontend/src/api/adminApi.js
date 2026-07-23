@@ -37,9 +37,9 @@ export const adminApi = {
   getJournalConnexions: () =>
     client.get('/admin/journal-connexions'),
 
-  /** GET /api/admin/journal-audit */
-  getJournalAudit: () =>
-    client.get('/admin/journal-audit'),
+  /** GET /api/admin/analyse-decision */
+  getAnalyseDecision: () =>
+    client.get('/admin/analyse-decision'),
 
   /** GET /api/admin/rapports/hebdomadaire — fichier CSV */
   telechargerRapportHebdomadaire: () =>
