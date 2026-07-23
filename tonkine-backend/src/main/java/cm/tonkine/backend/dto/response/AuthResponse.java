@@ -39,6 +39,9 @@ public class AuthResponse {
     /** true = la 2FA est active sur ce compte */
     private boolean deuxFAActif;
 
+    /** true = doit configurer la 2FA avant tout accès (nouveau compte, première connexion) */
+    private boolean doitConfigurer2FA;
+
     // ── Personnalisation entreprise ──
     private Long    entrepriseId;
     private String  nomEntreprise;

@@ -81,6 +81,11 @@ public class Utilisateur implements UserDetails {
     @Builder.Default
     private boolean deuxFAActif = false;
 
+    /** true = compte créé après l'introduction de la 2FA obligatoire — doit la configurer avant tout accès */
+    @Column(name = "doit_configurer_2fa", nullable = false)
+    @Builder.Default
+    private boolean doitConfigurer2FA = false;
+
     /**
      * Entreprise à laquelle appartient cet utilisateur.
      * Null uniquement pour les super-admins de la plateforme.

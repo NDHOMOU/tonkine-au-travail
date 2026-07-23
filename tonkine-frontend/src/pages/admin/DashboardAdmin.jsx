@@ -30,6 +30,9 @@ export default function DashboardAdmin() {
   // ── Journal des connexions ──
   const [journal, setJournal] = useState([]);
 
+  // ── Journal d'audit ──
+  const [journalAudit, setJournalAudit] = useState([]);
+
   // ── Rapport ──
   const [telechargementEnCours, setTelechargementEnCours] = useState(false);
 
@@ -63,9 +66,16 @@ export default function DashboardAdmin() {
     } catch { toast.error('Impossible de charger le journal des connexions.'); }
   }, []);
 
+  const chargerJournalAudit = useCallback(async () => {
+    try {
+      const { data } = await adminApi.getJournalAudit();
+      setJournalAudit(data);
+    } catch { toast.error('Impossible de charger le journal d\'audit.'); }
+  }, []);
+
   useEffect(() => {
-    charger(); chargerComptesAdmin(); chargerEntreprise(); chargerJournal();
-  }, [charger, chargerComptesAdmin, chargerEntreprise, chargerJournal]);
+    charger(); chargerComptesAdmin(); chargerEntreprise(); chargerJournal(); chargerJournalAudit();
+  }, [charger, chargerComptesAdmin, chargerEntreprise, chargerJournal, chargerJournalAudit]);
 
   const sauvegarderEntreprise = async (e) => {
     e.preventDefault();
@@ -74,6 +84,7 @@ export default function DashboardAdmin() {
       const { data } = await adminApi.mettreAJourEntreprise(entrepriseModif);
       setEntreprise(data);
       setEntrepriseModif(data);
+      chargerJournalAudit();
       toast.success('Paramètres de l\'entreprise mis à jour.');
     } catch {
       toast.error('Impossible d\'enregistrer les paramètres.');
@@ -106,6 +117,7 @@ export default function DashboardAdmin() {
       setFormAdmin({ prenom:'', nom:'', email:'' });
       setShowFormAdmin(false);
       chargerComptesAdmin();
+      chargerJournalAudit();
     } catch (err) {
       toast.error(err.response?.data?.erreur || 'Impossible de créer ce compte.');
     } finally {
@@ -119,6 +131,7 @@ export default function DashboardAdmin() {
       const { data: r } = await adminApi.reinitialiserMotDePasse(compte.id);
       setMotDePasseRevele(r);
       chargerComptesAdmin();
+      chargerJournalAudit();
     } catch {
       toast.error('Impossible de réinitialiser ce mot de passe.');
     } finally {
@@ -133,6 +146,7 @@ export default function DashboardAdmin() {
       const { data: r } = await adminApi.envoyerAlerteCollective(message);
       toast.success(`Message envoyé à ${r.envoyees} employé(s) actifs.`);
       setMessage('');
+      chargerJournalAudit();
     } catch { toast.error('Impossible d\'envoyer l\'alerte.'); }
     finally { setEnvoi(false); }
   };
@@ -437,6 +451,39 @@ export default function DashboardAdmin() {
                       <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{j.adresseIp || '—'}</td>
                       <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>
                         {new Date(j.dateConnexion).toLocaleString('fr-FR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Journal d'audit ── */}
+      <div className="card" style={{ marginTop:20 }}>
+        <div className="card-head"><h3>Journal d'audit</h3></div>
+        <div style={{ padding:'8px 0 0' }}>
+          {journalAudit.length === 0 ? (
+            <div className="empty-state" style={{ padding:30 }}>
+              <i className="fa-solid fa-list-check" />
+              <p>Aucune action administrative enregistrée pour l'instant.</p>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Qui</th><th>Action</th><th>Détails</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                  {journalAudit.map((a, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight:600 }}>{a.acteur}</td>
+                      <td><span className="badge gray">{a.action.replaceAll('_',' ')}</span></td>
+                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{a.details}</td>
+                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>
+                        {new Date(a.dateAction).toLocaleString('fr-FR')}
                       </td>
                     </tr>
                   ))}

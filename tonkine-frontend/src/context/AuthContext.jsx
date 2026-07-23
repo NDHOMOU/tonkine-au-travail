@@ -51,6 +51,7 @@ export function AuthProvider({ children }) {
     logout,
     updateUser,
     doitChangerMotDePasse: !!user?.motDePasseTemporaire,
+    doitConfigurerDeuxFA: !!user?.doitConfigurer2FA && !user?.deuxFAActif,
     isAuthenticated: !!token,
     role: user?.role || null,
     isEmploye:  user?.role === 'EMPLOYE',

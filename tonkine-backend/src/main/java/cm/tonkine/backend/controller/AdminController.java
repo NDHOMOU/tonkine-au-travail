@@ -11,9 +11,11 @@ import cm.tonkine.backend.enums.StatutAlerte;
 import cm.tonkine.backend.enums.TypeAlerte;
 import cm.tonkine.backend.repository.AlerteRepository;
 import cm.tonkine.backend.repository.EntrepriseRepository;
+import cm.tonkine.backend.repository.JournalAuditRepository;
 import cm.tonkine.backend.repository.JournalConnexionRepository;
 import cm.tonkine.backend.repository.SessionTravailRepository;
 import cm.tonkine.backend.repository.UtilisateurRepository;
+import cm.tonkine.backend.service.AuditService;
 import cm.tonkine.backend.service.RapportService;
 import cm.tonkine.backend.util.MotDePasseUtil;
 import jakarta.validation.Valid;
@@ -50,7 +52,9 @@ public class AdminController {
     private final AlerteRepository         alerteRepository;
     private final EntrepriseRepository       entrepriseRepository;
     private final JournalConnexionRepository journalConnexionRepository;
+    private final JournalAuditRepository     journalAuditRepository;
     private final RapportService             rapportService;
+    private final AuditService               auditService;
     private final PasswordEncoder            passwordEncoder;
 
     /**
@@ -158,6 +162,9 @@ public class AdminController {
             alerteRepository.save(alerte);
         });
 
+        auditService.enregistrer(adminRh, "ALERTE_COLLECTIVE",
+            "Message envoyé à " + sessionsActives.size() + " employé(s) actifs : " + message);
+
         return ResponseEntity.ok(Map.of(
             "envoyees", sessionsActives.size(),
             "message",  message
@@ -223,9 +230,13 @@ public class AdminController {
             .langue("fr")
             .entreprise(entreprise)
             .motDePasseTemporaire(true)
+            .doitConfigurer2FA(true)
             .build();
 
         nouvelAdmin = utilisateurRepository.save(nouvelAdmin);
+
+        auditService.enregistrer(adminRh, "CREATION_COMPTE_ADMIN",
+            "Compte admin créé pour " + nouvelAdmin.getEmail());
 
         return ResponseEntity.ok(MotDePasseTemporaireResponse.builder()
             .userId(nouvelAdmin.getId())
@@ -260,6 +271,9 @@ public class AdminController {
         cible.setMotDePasse(passwordEncoder.encode(motDePasseTemporaire));
         cible.setMotDePasseTemporaire(true);
         utilisateurRepository.save(cible);
+
+        auditService.enregistrer(adminRh, "RESET_MOT_DE_PASSE",
+            "Mot de passe réinitialisé pour " + cible.getEmail());
 
         return ResponseEntity.ok(MotDePasseTemporaireResponse.builder()
             .userId(cible.getId())
@@ -321,6 +335,9 @@ public class AdminController {
 
         entrepriseRepository.save(e);
 
+        auditService.enregistrer(adminRh, "MODIFICATION_ENTREPRISE",
+            "Paramètres de l'entreprise mis à jour");
+
         return ResponseEntity.ok(toEntrepriseResponse(e));
     }
 
@@ -343,6 +360,31 @@ public class AdminController {
                 .role(j.getUtilisateur().getRole().name())
                 .adresseIp(j.getAdresseIp())
                 .dateConnexion(j.getDateConnexion())
+                .build())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(journal);
+    }
+
+    /**
+     * GET /api/admin/journal-audit
+     * Historique des actions administratives sensibles (créations de compte,
+     * réinitialisations, modifications entreprise, alertes collectives).
+     */
+    @GetMapping("/journal-audit")
+    public ResponseEntity<List<JournalAuditResponse>> getJournalAudit(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        List<JournalAuditResponse> journal = journalAuditRepository
+            .findRecentParEntreprise(entrepriseId, PageRequest.of(0, 50)).stream()
+            .map(j -> JournalAuditResponse.builder()
+                .acteur(j.getActeur().getNomComplet())
+                .action(j.getAction())
+                .details(j.getDetails())
+                .dateAction(j.getDateAction())
                 .build())
             .collect(Collectors.toList());
 

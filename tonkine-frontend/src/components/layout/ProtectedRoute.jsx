@@ -7,7 +7,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth }          from '../../context/AuthContext';
 
 export default function ProtectedRoute({ requiredRole }) {
-  const { isAuthenticated, role, doitChangerMotDePasse } = useAuth();
+  const { isAuthenticated, role, doitChangerMotDePasse, doitConfigurerDeuxFA } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/connexion" replace />;
@@ -17,6 +17,13 @@ export default function ProtectedRoute({ requiredRole }) {
   // bloque l'accès à toute page protégée tant qu'il n'est pas changé.
   if (doitChangerMotDePasse) {
     return <Navigate to="/changer-mot-de-passe" replace />;
+  }
+
+  // 2FA obligatoire pour les comptes créés après l'introduction de cette
+  // exigence (comptes existants non affectés) : bloque tant qu'elle n'est
+  // pas configurée, une fois le mot de passe définitif en place.
+  if (doitConfigurerDeuxFA) {
+    return <Navigate to="/configurer-2fa" replace />;
   }
 
   if (requiredRole && role !== requiredRole) {

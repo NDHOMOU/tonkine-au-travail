@@ -67,6 +67,7 @@ public class AuthService {
             .poste(req.getPoste())
             .langue(req.getLangue() != null ? req.getLangue() : "fr")
             .entreprise(entreprise)
+            .doitConfigurer2FA(true)
             .build();
 
         utilisateur = utilisateurRepository.save(utilisateur);
@@ -107,6 +108,7 @@ public class AuthService {
             .role(utilisateur.getRole())
             .langue(utilisateur.getLangue())
             .profilComplet(false) // photos pas encore uploadées
+            .doitConfigurer2FA(true)
             .entrepriseId(ent != null ? ent.getId() : null)
             .nomEntreprise(ent != null ? ent.getNom() : null)
             .nomApp(ent != null ? ent.getNomApp() : "TonKiné au Travail")
@@ -171,6 +173,7 @@ public class AuthService {
             .motDePasseTemporaire(utilisateur.isMotDePasseTemporaire())
             .photoProfilBase64(utilisateur.getPhotoProfilBase64())
             .deuxFAActif(utilisateur.isDeuxFAActif())
+            .doitConfigurer2FA(utilisateur.isDoitConfigurer2FA())
             .entrepriseId(ent != null ? ent.getId() : null)
             .nomEntreprise(ent != null ? ent.getNom() : null)
             .nomApp(ent != null ? ent.getNomApp() : "TonKiné au Travail")
@@ -225,6 +228,7 @@ public class AuthService {
             throw new IllegalArgumentException("Code de vérification incorrect.");
         }
         utilisateur.setDeuxFAActif(true);
+        utilisateur.setDoitConfigurer2FA(false);
         utilisateurRepository.save(utilisateur);
     }
 
