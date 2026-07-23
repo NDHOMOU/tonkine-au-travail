@@ -283,6 +283,44 @@ public class AdminController {
     }
 
     /**
+     * DELETE /api/admin/comptes-admin/{id}
+     * Supprime un compte Admin RH de la même entreprise (ex. compte de test,
+     * doublon). Un admin ne peut pas se supprimer lui-même.
+     */
+    @DeleteMapping("/comptes-admin/{id}")
+    @Transactional
+    public ResponseEntity<Void> supprimerCompteAdmin(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Utilisateur cible = utilisateurRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        // SÉCURITÉ (IDOR) : un admin ne peut supprimer que les comptes de sa propre entreprise
+        Long entrepriseAdmin  = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        Long entrepriseCible  = cible.getEntreprise()   != null ? cible.getEntreprise().getId()   : null;
+        if (entrepriseAdmin == null || !entrepriseAdmin.equals(entrepriseCible)) {
+            throw new AccessDeniedException("Cet utilisateur n'appartient pas à votre entreprise");
+        }
+
+        if (cible.getRole() != Role.ADMIN_RH) {
+            throw new IllegalArgumentException("Seuls les comptes Admin RH peuvent être supprimés ici");
+        }
+
+        if (cible.getId().equals(adminRh.getId())) {
+            throw new IllegalArgumentException("Vous ne pouvez pas supprimer votre propre compte");
+        }
+
+        String emailSupprime = cible.getEmail();
+        utilisateurRepository.delete(cible);
+
+        auditService.enregistrer(adminRh, "SUPPRESSION_COMPTE_ADMIN",
+            "Compte admin supprimé : " + emailSupprime);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * GET /api/admin/entreprise
      * Personnalisation de l'entreprise de l'admin (nom, logo, couleurs, coordonnées).
      */

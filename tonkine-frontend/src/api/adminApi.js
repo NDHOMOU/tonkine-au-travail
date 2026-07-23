@@ -21,6 +21,10 @@ export const adminApi = {
   reinitialiserMotDePasse: (userId) =>
     client.post(`/admin/utilisateurs/${userId}/reset-password`),
 
+  /** DELETE /api/admin/comptes-admin/{id} */
+  supprimerCompteAdmin: (userId) =>
+    client.delete(`/admin/comptes-admin/${userId}`),
+
   /** GET /api/admin/entreprise */
   getEntreprise: () =>
     client.get('/admin/entreprise'),

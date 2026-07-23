@@ -20,6 +20,7 @@ export default function DashboardAdmin() {
   const [formAdmin, setFormAdmin]           = useState({ prenom:'', nom:'', email:'' });
   const [creationEnCours, setCreationEnCours] = useState(false);
   const [reinitEnCours, setReinitEnCours]   = useState(null); // id en cours de reset
+  const [suppressionEnCours, setSuppressionEnCours] = useState(null); // id en cours de suppression
   const [motDePasseRevele, setMotDePasseRevele] = useState(null); // { email, motDePasseTemporaire }
 
   // ── Paramètres entreprise ──
@@ -136,6 +137,21 @@ export default function DashboardAdmin() {
       toast.error('Impossible de réinitialiser ce mot de passe.');
     } finally {
       setReinitEnCours(null);
+    }
+  };
+
+  const supprimerCompteAdmin = async (compte) => {
+    if (!window.confirm(`Supprimer définitivement le compte de ${compte.prenom} ${compte.nom} (${compte.email}) ?`)) return;
+    setSuppressionEnCours(compte.id);
+    try {
+      await adminApi.supprimerCompteAdmin(compte.id);
+      toast.success('Compte supprimé.');
+      chargerComptesAdmin();
+      chargerJournalAudit();
+    } catch (err) {
+      toast.error(err.response?.data?.erreur || 'Impossible de supprimer ce compte.');
+    } finally {
+      setSuppressionEnCours(null);
     }
   };
 
@@ -548,11 +564,16 @@ export default function DashboardAdmin() {
                           {c.motDePasseTemporaire ? 'Mot de passe temporaire' : 'Actif'}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                         <button className="btn btn-outline btn-sm"
                           disabled={reinitEnCours === c.id}
                           onClick={() => reinitialiserMotDePasse(c)}>
                           {reinitEnCours === c.id ? 'Réinitialisation…' : 'Réinitialiser le mot de passe'}
+                        </button>
+                        <button className="btn btn-outline btn-sm" style={{ color:'var(--danger, #C0392B)' }}
+                          disabled={suppressionEnCours === c.id}
+                          onClick={() => supprimerCompteAdmin(c)}>
+                          {suppressionEnCours === c.id ? 'Suppression…' : 'Supprimer'}
                         </button>
                       </td>
                     </tr>
