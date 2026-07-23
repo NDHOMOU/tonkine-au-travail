@@ -143,6 +143,8 @@ public class AuthService {
             .role(utilisateur.getRole())
             .langue(utilisateur.getLangue())
             .profilComplet(profilComplet)
+            .motDePasseTemporaire(utilisateur.isMotDePasseTemporaire())
+            .photoProfilBase64(utilisateur.getPhotoProfilBase64())
             .entrepriseId(ent != null ? ent.getId() : null)
             .nomEntreprise(ent != null ? ent.getNom() : null)
             .nomApp(ent != null ? ent.getNomApp() : "TonKiné au Travail")
@@ -150,5 +152,23 @@ public class AuthService {
             .couleurSecondaire(ent != null ? ent.getCouleurSecondaire() : "#0B9B8A")
             .logoUrl(ent != null ? ent.getLogoUrl() : null)
             .build();
+    }
+
+    /**
+     * Change le mot de passe de l'utilisateur connecté et lève le drapeau
+     * "mot de passe temporaire" (première connexion après création/reset par un admin).
+     */
+    @Transactional
+    public void changerMotDePasse(Utilisateur utilisateur, String nouveauMotDePasse) {
+        utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateur.setMotDePasseTemporaire(false);
+        utilisateurRepository.save(utilisateur);
+    }
+
+    /** Met à jour la photo de profil (identification professionnelle) de l'utilisateur connecté. */
+    @Transactional
+    public void mettreAJourPhotoProfil(Utilisateur utilisateur, String photoBase64) {
+        utilisateur.setPhotoProfilBase64(photoBase64);
+        utilisateurRepository.save(utilisateur);
     }
 }

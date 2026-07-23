@@ -1,17 +1,25 @@
 package cm.tonkine.backend.controller;
 
+import cm.tonkine.backend.dto.request.CreerCompteAdminRequest;
 import cm.tonkine.backend.dto.response.*;
+import cm.tonkine.backend.entity.Entreprise;
 import cm.tonkine.backend.entity.SessionTravail;
 import cm.tonkine.backend.entity.Utilisateur;
+import cm.tonkine.backend.enums.Role;
 import cm.tonkine.backend.enums.StatutAlerte;
 import cm.tonkine.backend.enums.TypeAlerte;
 import cm.tonkine.backend.repository.AlerteRepository;
 import cm.tonkine.backend.repository.SessionTravailRepository;
 import cm.tonkine.backend.repository.UtilisateurRepository;
+import cm.tonkine.backend.util.MotDePasseUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -32,6 +40,7 @@ public class AdminController {
     private final UtilisateurRepository    utilisateurRepository;
     private final SessionTravailRepository sessionRepository;
     private final AlerteRepository         alerteRepository;
+    private final PasswordEncoder          passwordEncoder;
 
     /**
      * GET /api/admin/dashboard
@@ -142,6 +151,110 @@ public class AdminController {
             "envoyees", sessionsActives.size(),
             "message",  message
         ));
+    }
+
+    /**
+     * GET /api/admin/comptes-admin
+     * Liste les comptes Admin RH de l'entreprise de l'appelant.
+     */
+    @GetMapping("/comptes-admin")
+    public ResponseEntity<List<CompteAdminResponse>> listerComptesAdmin(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        List<CompteAdminResponse> comptes = utilisateurRepository.findAll().stream()
+            .filter(u -> u.getRole() == Role.ADMIN_RH)
+            .filter(u -> u.getEntreprise() != null && entrepriseId.equals(u.getEntreprise().getId()))
+            .map(u -> CompteAdminResponse.builder()
+                .id(u.getId())
+                .prenom(u.getPrenom())
+                .nom(u.getNom())
+                .email(u.getEmail())
+                .actif(u.isActif())
+                .motDePasseTemporaire(u.isMotDePasseTemporaire())
+                .dateCreation(u.getDateCreation())
+                .build())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(comptes);
+    }
+
+    /**
+     * POST /api/admin/comptes-admin
+     * Crée un nouveau compte Admin RH pour la même entreprise, avec un mot
+     * de passe temporaire à usage unique — l'admin appelant doit le
+     * communiquer lui-même au nouvel utilisateur, il n'est jamais reconsultable.
+     */
+    @PostMapping("/comptes-admin")
+    @Transactional
+    public ResponseEntity<MotDePasseTemporaireResponse> creerCompteAdmin(
+            @Valid @RequestBody CreerCompteAdminRequest request,
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        if (utilisateurRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException(
+                "Un compte existe déjà avec cet email : " + request.getEmail());
+        }
+
+        Entreprise entreprise = adminRh.getEntreprise();
+        if (entreprise == null) return ResponseEntity.status(403).build();
+
+        String motDePasseTemporaire = MotDePasseUtil.genererMotDePasseTemporaire();
+
+        Utilisateur nouvelAdmin = Utilisateur.builder()
+            .prenom(request.getPrenom())
+            .nom(request.getNom())
+            .email(request.getEmail())
+            .motDePasse(passwordEncoder.encode(motDePasseTemporaire))
+            .role(Role.ADMIN_RH)
+            .langue("fr")
+            .entreprise(entreprise)
+            .motDePasseTemporaire(true)
+            .build();
+
+        nouvelAdmin = utilisateurRepository.save(nouvelAdmin);
+
+        return ResponseEntity.ok(MotDePasseTemporaireResponse.builder()
+            .userId(nouvelAdmin.getId())
+            .email(nouvelAdmin.getEmail())
+            .motDePasseTemporaire(motDePasseTemporaire)
+            .build());
+    }
+
+    /**
+     * POST /api/admin/utilisateurs/{id}/reset-password
+     * Réinitialise le mot de passe d'un utilisateur de la même entreprise
+     * (dépannage : compte bloqué, mot de passe oublié). Nouveau mot de passe
+     * temporaire à usage unique, à communiquer manuellement.
+     */
+    @PostMapping("/utilisateurs/{id}/reset-password")
+    @Transactional
+    public ResponseEntity<MotDePasseTemporaireResponse> reinitialiserMotDePasse(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Utilisateur cible = utilisateurRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        // SÉCURITÉ (IDOR) : un admin ne peut réinitialiser que les comptes de sa propre entreprise
+        Long entrepriseAdmin  = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        Long entrepriseCible  = cible.getEntreprise()   != null ? cible.getEntreprise().getId()   : null;
+        if (entrepriseAdmin == null || !entrepriseAdmin.equals(entrepriseCible)) {
+            throw new AccessDeniedException("Cet utilisateur n'appartient pas à votre entreprise");
+        }
+
+        String motDePasseTemporaire = MotDePasseUtil.genererMotDePasseTemporaire();
+        cible.setMotDePasse(passwordEncoder.encode(motDePasseTemporaire));
+        cible.setMotDePasseTemporaire(true);
+        utilisateurRepository.save(cible);
+
+        return ResponseEntity.ok(MotDePasseTemporaireResponse.builder()
+            .userId(cible.getId())
+            .email(cible.getEmail())
+            .motDePasseTemporaire(motDePasseTemporaire)
+            .build());
     }
 
     // ── Helpers privés ──

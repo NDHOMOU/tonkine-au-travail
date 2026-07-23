@@ -63,6 +63,15 @@ public class Utilisateur implements UserDetails {
 
     private LocalDateTime derniereConnexion;
 
+    /** true = mot de passe généré par un admin, doit être changé à la prochaine connexion */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean motDePasseTemporaire = false;
+
+    /** Photo de profil (identification professionnelle), encodée en base64 */
+    @Column(columnDefinition = "TEXT")
+    private String photoProfilBase64;
+
     /**
      * Entreprise à laquelle appartient cet utilisateur.
      * Null uniquement pour les super-admins de la plateforme.

@@ -35,11 +35,22 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  /** Met à jour partiellement les infos utilisateur stockées (ex: après changement de mot de passe/photo) */
+  const updateUser = useCallback((partiel) => {
+    setUser(prev => {
+      const suivant = { ...prev, ...partiel };
+      localStorage.setItem('tonkine_user', JSON.stringify(suivant));
+      return suivant;
+    });
+  }, []);
+
   const value = {
     user,
     token,
     login,
     logout,
+    updateUser,
+    doitChangerMotDePasse: !!user?.motDePasseTemporaire,
     isAuthenticated: !!token,
     role: user?.role || null,
     isEmploye:  user?.role === 'EMPLOYE',

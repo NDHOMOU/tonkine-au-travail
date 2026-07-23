@@ -7,10 +7,16 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth }          from '../../context/AuthContext';
 
 export default function ProtectedRoute({ requiredRole }) {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, doitChangerMotDePasse } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/connexion" replace />;
+  }
+
+  // Mot de passe temporaire (compte créé/réinitialisé par un admin) :
+  // bloque l'accès à toute page protégée tant qu'il n'est pas changé.
+  if (doitChangerMotDePasse) {
+    return <Navigate to="/changer-mot-de-passe" replace />;
   }
 
   if (requiredRole && role !== requiredRole) {

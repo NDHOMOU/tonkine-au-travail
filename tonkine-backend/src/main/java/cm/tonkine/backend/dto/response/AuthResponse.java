@@ -25,6 +25,12 @@ public class AuthResponse {
     /** false = photos posture pas encore uploadées (wizard incomplet) */
     private boolean profilComplet;
 
+    /** true = mot de passe généré par un admin — le frontend doit forcer le changement */
+    private boolean motDePasseTemporaire;
+
+    /** Photo de profil (identification professionnelle), encodée en base64 */
+    private String  photoProfilBase64;
+
     // ── Personnalisation entreprise ──
     private Long    entrepriseId;
     private String  nomEntreprise;

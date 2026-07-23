@@ -18,4 +18,12 @@ export const profilApi = {
   /** PUT /api/profil/hobbies */
   mettreAJourHobbies: (hobbies) =>
     client.put('/profil/hobbies', { hobbies }),
+
+  /** PUT /api/profil/mot-de-passe */
+  changerMotDePasse: (nouveauMotDePasse) =>
+    client.put('/profil/mot-de-passe', { nouveauMotDePasse }),
+
+  /** PUT /api/profil/avatar — photo de profil (identification professionnelle) */
+  mettreAJourAvatar: (photoBase64) =>
+    client.put('/profil/avatar', { photoBase64 }),
 };

@@ -3,9 +3,14 @@
  * Partagé par toutes les pages connectées (employé, admin RH, kiné).
  * La navigation s'adapte automatiquement selon le rôle.
  */
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useRef }                from 'react';
+import { NavLink, useNavigate }  from 'react-router-dom';
+import { useAuth }               from '../../context/AuthContext';
+import { profilApi }             from '../../api/profilApi';
+import toast                     from 'react-hot-toast';
 import './AppLayout.css';
+
+const TAILLE_MAX_PHOTO = 2 * 1024 * 1024; // 2 Mo
 
 // ── Navigation par rôle ──
 const NAV_EMPLOYE = [
@@ -27,8 +32,9 @@ const NAV_KINE = [
 ];
 
 export default function AppLayout({ children, title = '' }) {
-  const { user, logout, isEmploye, isAdminRH, isKine, nomApp, couleurPrimaire, couleurSecondaire } = useAuth();
+  const { user, logout, updateUser, isEmploye, isAdminRH, isKine, nomApp, couleurPrimaire, couleurSecondaire } = useAuth();
   const navigate = useNavigate();
+  const inputPhotoRef = useRef(null);
 
   const navItems = isKine ? NAV_KINE : isAdminRH ? NAV_ADMIN : NAV_EMPLOYE;
 
@@ -42,6 +48,32 @@ export default function AppLayout({ children, title = '' }) {
     : 'U';
 
   const roleLabel = isKine ? 'Kinésithérapeute' : isAdminRH ? 'Admin RH' : 'Employé';
+
+  const choisirPhoto = () => inputPhotoRef.current?.click();
+
+  const changerPhoto = (e) => {
+    const fichier = e.target.files?.[0];
+    e.target.value = ''; // permet de re-choisir le même fichier plus tard
+    if (!fichier) return;
+    if (!fichier.type.startsWith('image/')) {
+      toast.error('Choisissez une image.'); return;
+    }
+    if (fichier.size > TAILLE_MAX_PHOTO) {
+      toast.error('Image trop lourde (2 Mo maximum).'); return;
+    }
+    const lecteur = new FileReader();
+    lecteur.onload = async () => {
+      const base64 = lecteur.result;
+      try {
+        await profilApi.mettreAJourAvatar(base64);
+        updateUser({ photoProfilBase64: base64 });
+        toast.success('Photo de profil mise à jour.');
+      } catch {
+        toast.error('Impossible de mettre à jour la photo.');
+      }
+    };
+    lecteur.readAsDataURL(fichier);
+  };
 
   return (
     <div className="app-layout">
@@ -60,9 +92,24 @@ export default function AppLayout({ children, title = '' }) {
 
         {/* Utilisateur */}
         <div className="sb-user">
-          <div className="sb-avatar" style={{ background: couleurPrimaire }}>
-            {initiales}
-          </div>
+          <button
+            type="button"
+            onClick={choisirPhoto}
+            title="Changer ma photo de profil"
+            className="sb-avatar"
+            style={{ background: couleurPrimaire, padding: 0, border: 'none', cursor: 'pointer', overflow: 'hidden' }}
+          >
+            {user?.photoProfilBase64
+              ? <img src={user.photoProfilBase64} alt="Photo de profil" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+              : initiales}
+          </button>
+          <input
+            ref={inputPhotoRef}
+            type="file"
+            accept="image/*"
+            onChange={changerPhoto}
+            style={{ display: 'none' }}
+          />
           <div>
             <div className="sb-user-name">{user?.prenom} {user?.nom}</div>
             <div className="sb-user-role">{roleLabel}</div>
@@ -101,8 +148,10 @@ export default function AppLayout({ children, title = '' }) {
           <h2 className="topbar-title">{title}</h2>
           <div className="topbar-right">
             <span className="tb-entreprise">{user?.nomEntreprise || ''}</span>
-            <div className="tb-avatar" style={{ background: couleurPrimaire }}>
-              {initiales}
+            <div className="tb-avatar" style={{ background: couleurPrimaire, overflow: 'hidden' }}>
+              {user?.photoProfilBase64
+                ? <img src={user.photoProfilBase64} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                : initiales}
             </div>
           </div>
         </header>
