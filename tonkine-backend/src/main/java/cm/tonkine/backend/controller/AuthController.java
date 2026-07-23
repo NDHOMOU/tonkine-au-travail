@@ -6,6 +6,7 @@ import cm.tonkine.backend.dto.response.AuthResponse;
 import cm.tonkine.backend.entity.Entreprise;
 import cm.tonkine.backend.repository.EntrepriseRepository;
 import cm.tonkine.backend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,8 +36,18 @@ public class AuthController {
      */
     @PostMapping("/connexion")
     public ResponseEntity<AuthResponse> connecter(
-            @Valid @RequestBody ConnexionRequest request) {
-        return ResponseEntity.ok(authService.connecter(request));
+            @Valid @RequestBody ConnexionRequest request,
+            HttpServletRequest httpRequest) {
+        return ResponseEntity.ok(authService.connecter(request, adresseIp(httpRequest)));
+    }
+
+    /** Adresse IP réelle du client — priorité à X-Forwarded-For (Render est derrière un proxy). */
+    private String adresseIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     /**

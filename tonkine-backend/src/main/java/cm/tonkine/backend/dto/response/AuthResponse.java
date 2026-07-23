@@ -15,6 +15,11 @@ public class AuthResponse {
 
     // ── Authentification ──
     private String  token;
+
+    /** true = mot de passe correct, mais code de l'appli d'authentification requis pour finaliser */
+    @Builder.Default
+    private boolean requiert2FA = false;
+
     private Long    userId;
     private String  prenom;
     private String  nom;
@@ -30,6 +35,9 @@ public class AuthResponse {
 
     /** Photo de profil (identification professionnelle), encodée en base64 */
     private String  photoProfilBase64;
+
+    /** true = la 2FA est active sur ce compte */
+    private boolean deuxFAActif;
 
     // ── Personnalisation entreprise ──
     private Long    entrepriseId;

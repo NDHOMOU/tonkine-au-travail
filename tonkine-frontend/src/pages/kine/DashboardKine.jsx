@@ -11,6 +11,7 @@ import { kineApi }    from '../../api/kineApi';
 import { conseilApi } from '../../api/conseilApi';
 import AppLayout      from '../../components/layout/AppLayout';
 import { useAuth }    from '../../context/AuthContext';
+import { telechargerBlob } from '../../utils/telechargerFichier';
 import toast          from 'react-hot-toast';
 
 const ONGLETS = [
@@ -33,6 +34,19 @@ export default function DashboardKine() {
   const [noteRdvId,   setNoteRdvId]   = useState(null);
   const [noteTexte,   setNoteTexte]   = useState('');
   const [patientOpen, setPatientOpen] = useState(null);
+  const [telechargementEnCours, setTelechargementEnCours] = useState(false);
+
+  const telechargerRapport = async () => {
+    setTelechargementEnCours(true);
+    try {
+      const { data: blob } = await kineApi.telechargerRapportHebdomadaire();
+      telechargerBlob(blob, `rapport-hebdomadaire-${new Date().toISOString().slice(0,10)}.csv`);
+    } catch {
+      toast.error('Impossible de générer le rapport.');
+    } finally {
+      setTelechargementEnCours(false);
+    }
+  };
 
   const charger = useCallback(async () => {
     try {
@@ -91,14 +105,19 @@ export default function DashboardKine() {
     <AppLayout title="Tableau de bord clinique">
 
       {/* ── Hero accueil ── */}
-      <div style={{ marginBottom:24 }}>
-        <h1 style={{ fontFamily:'var(--f-serif)', fontSize:'1.5rem', fontWeight:300, marginBottom:4 }}>
-          Bonjour, <em style={{ fontStyle:'italic', color:'var(--blue)' }}>{user?.prenom}</em>
-        </h1>
-        <p style={{ fontSize:'.85rem', color:'var(--ink-60)' }}>
-          Voici l'état postural de vos {d.totalEmployes ?? '—'} employés en temps réel.
-          Actualisation automatique toutes les minutes.
-        </p>
+      <div style={{ marginBottom:24, display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, flexWrap:'wrap' }}>
+        <div>
+          <h1 style={{ fontFamily:'var(--f-serif)', fontSize:'1.5rem', fontWeight:300, marginBottom:4 }}>
+            Bonjour, <em style={{ fontStyle:'italic', color:'var(--blue)' }}>{user?.prenom}</em>
+          </h1>
+          <p style={{ fontSize:'.85rem', color:'var(--ink-60)' }}>
+            Voici l'état postural de vos {d.totalEmployes ?? '—'} employés en temps réel.
+            Actualisation automatique toutes les minutes.
+          </p>
+        </div>
+        <button className="btn btn-outline btn-sm" disabled={telechargementEnCours} onClick={telechargerRapport}>
+          <i className="fa-solid fa-file-arrow-down" /> {telechargementEnCours ? 'Génération…' : 'Rapport hebdomadaire (CSV)'}
+        </button>
       </div>
 
       {/* ── KPIs ── */}

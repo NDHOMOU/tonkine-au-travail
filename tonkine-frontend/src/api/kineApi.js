@@ -12,4 +12,8 @@ export const kineApi = {
   /** POST /api/kine/rdv/:id/notes */
   ajouterNotes: (rdvId, notes) =>
     client.post(`/kine/rdv/${rdvId}/notes`, { notes }),
+
+  /** GET /api/kine/rapports/hebdomadaire — fichier CSV */
+  telechargerRapportHebdomadaire: () =>
+    client.get('/kine/rapports/hebdomadaire', { responseType: 'blob' }),
 };

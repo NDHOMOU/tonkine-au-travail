@@ -18,6 +18,7 @@ import Connexion    from './pages/auth/Connexion';
 import { lazy, Suspense } from 'react';
 const Inscription               = lazy(() => import('./pages/auth/Inscription'));
 const ChangerMotDePasseObligatoire = lazy(() => import('./pages/auth/ChangerMotDePasseObligatoire'));
+const ParametresSecurite           = lazy(() => import('./pages/parametres/ParametresSecurite'));
 
 // Employé
 const DashboardEmploye   = lazy(() => import('./pages/employe/DashboardEmploye'));
@@ -53,6 +54,11 @@ export default function App() {
             {/* Accessible dès qu'on est authentifié, quel que soit le rôle — pas de ProtectedRoute
                 (elle redirigerait ici même tant que le mot de passe est temporaire) */}
             <Route path="/changer-mot-de-passe" element={<ChangerMotDePasseObligatoire />} />
+
+            {/* ── Accessible à tous les rôles authentifiés ── */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/parametres/securite" element={<ParametresSecurite />} />
+            </Route>
 
             {/* ── Espace Employé ── */}
             <Route element={<ProtectedRoute requiredRole="EMPLOYE" />}>

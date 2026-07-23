@@ -38,13 +38,28 @@ public interface SessionTravailRepository extends JpaRepository<SessionTravail, 
     /**
      * Sessions actives aujourd'hui filtrées par entreprise.
      * À utiliser dans AdminController pour l'isolation multi-tenant.
+     * JOIN FETCH utilisateur : AdminController lit ensuite nomComplet/departement/poste
+     * sur ces sessions hors transaction — évite un LazyInitializationException.
      */
-    @Query("SELECT s FROM SessionTravail s WHERE s.dateFin IS NULL " +
+    @Query("SELECT s FROM SessionTravail s JOIN FETCH s.utilisateur u WHERE s.dateFin IS NULL " +
            "AND s.dateDebut >= :debutJournee " +
-           "AND s.utilisateur.entreprise.id = :entrepriseId " +
+           "AND u.entreprise.id = :entrepriseId " +
            "ORDER BY s.scoreGlobal ASC")
     List<SessionTravail> findSessionsActivesAujourdhuiParEntreprise(
         @Param("debutJournee") LocalDateTime debut,
         @Param("entrepriseId") Long entrepriseId
+    );
+
+    /**
+     * Toutes les sessions d'une entreprise depuis une date — pour les rapports périodiques.
+     * JOIN FETCH utilisateur : évite un LazyInitializationException hors transaction
+     * (la relation utilisateur est en FetchType.LAZY).
+     */
+    @Query("SELECT s FROM SessionTravail s JOIN FETCH s.utilisateur u " +
+           "WHERE u.entreprise.id = :entrepriseId AND s.dateDebut >= :debut " +
+           "ORDER BY u.nom, s.dateDebut DESC")
+    List<SessionTravail> findDepuisParEntreprise(
+        @Param("entrepriseId") Long entrepriseId,
+        @Param("debut") LocalDateTime debut
     );
 }

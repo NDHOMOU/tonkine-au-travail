@@ -12,4 +12,7 @@ public class ConnexionRequest {
 
     @NotBlank
     private String motDePasse;
+
+    /** Fourni uniquement au 2e appel, une fois que le serveur a répondu requiert2FA=true */
+    private String code2FA;
 }

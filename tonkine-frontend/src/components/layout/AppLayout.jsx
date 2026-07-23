@@ -134,6 +134,14 @@ export default function AppLayout({ children, title = '' }) {
 
         {/* Déconnexion */}
         <div className="sb-bottom">
+          <NavLink
+            to="/parametres/securite"
+            className={({ isActive }) => `sb-link${isActive ? ' active' : ''}`}
+            style={({ isActive }) => isActive ? { borderLeftColor: couleurSecondaire } : {}}
+          >
+            <i className="fa-solid fa-shield-halved" />
+            Sécurité
+          </NavLink>
           <button className="sb-logout" onClick={handleLogout}>
             <i className="fa-solid fa-right-from-bracket" />
             Se déconnecter

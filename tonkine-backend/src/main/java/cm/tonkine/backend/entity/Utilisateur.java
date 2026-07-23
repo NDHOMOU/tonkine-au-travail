@@ -72,6 +72,15 @@ public class Utilisateur implements UserDetails {
     @Column(columnDefinition = "TEXT")
     private String photoProfilBase64;
 
+    /** Secret TOTP (Base32) — non null même en attente de confirmation, voir deuxFAActif */
+    @Column(name = "secret_2fa", length = 64)
+    private String secret2FA;
+
+    /** true = 2FA confirmée et active (le secret n'est plus "en attente") */
+    @Column(name = "deux_fa_actif", nullable = false)
+    @Builder.Default
+    private boolean deuxFAActif = false;
+
     /**
      * Entreprise à laquelle appartient cet utilisateur.
      * Null uniquement pour les super-admins de la plateforme.

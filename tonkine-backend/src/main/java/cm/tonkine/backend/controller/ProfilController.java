@@ -1,7 +1,9 @@
 package cm.tonkine.backend.controller;
 
 import cm.tonkine.backend.dto.request.ChangerMotDePasseRequest;
+import cm.tonkine.backend.dto.request.Confirmer2FARequest;
 import cm.tonkine.backend.dto.request.PhotoProfilRequest;
+import cm.tonkine.backend.dto.response.Activer2FAResponse;
 import cm.tonkine.backend.entity.Utilisateur;
 import cm.tonkine.backend.service.AuthService;
 import jakarta.validation.Valid;
@@ -49,5 +51,41 @@ public class ProfilController {
 
         authService.mettreAJourPhotoProfil(utilisateur, request.getPhotoBase64());
         return ResponseEntity.ok(Map.of("message", "Photo de profil mise à jour"));
+    }
+
+    /**
+     * POST /api/profil/2fa/activer
+     * Démarre l'activation de la 2FA : génère un secret, à saisir manuellement
+     * dans une appli d'authentification (Google Authenticator, Authy…).
+     * Pas encore actif tant que /confirmer n'a pas validé un premier code.
+     */
+    @PostMapping("/2fa/activer")
+    public ResponseEntity<Activer2FAResponse> activerDeuxFA(
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+        return ResponseEntity.ok(authService.demarrerActivationDeuxFA(utilisateur));
+    }
+
+    /**
+     * POST /api/profil/2fa/confirmer
+     * Valide le premier code généré par l'appli — active définitivement la 2FA.
+     */
+    @PostMapping("/2fa/confirmer")
+    public ResponseEntity<Map<String, String>> confirmerDeuxFA(
+            @Valid @RequestBody Confirmer2FARequest request,
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+
+        authService.confirmerDeuxFA(utilisateur, request.getCode());
+        return ResponseEntity.ok(Map.of("message", "Double authentification activée"));
+    }
+
+    /**
+     * POST /api/profil/2fa/desactiver
+     */
+    @PostMapping("/2fa/desactiver")
+    public ResponseEntity<Map<String, String>> desactiverDeuxFA(
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+
+        authService.desactiverDeuxFA(utilisateur);
+        return ResponseEntity.ok(Map.of("message", "Double authentification désactivée"));
     }
 }

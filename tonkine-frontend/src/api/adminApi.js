@@ -20,4 +20,20 @@ export const adminApi = {
   /** POST /api/admin/utilisateurs/{id}/reset-password */
   reinitialiserMotDePasse: (userId) =>
     client.post(`/admin/utilisateurs/${userId}/reset-password`),
+
+  /** GET /api/admin/entreprise */
+  getEntreprise: () =>
+    client.get('/admin/entreprise'),
+
+  /** PUT /api/admin/entreprise */
+  mettreAJourEntreprise: (entreprise) =>
+    client.put('/admin/entreprise', entreprise),
+
+  /** GET /api/admin/journal-connexions */
+  getJournalConnexions: () =>
+    client.get('/admin/journal-connexions'),
+
+  /** GET /api/admin/rapports/hebdomadaire — fichier CSV */
+  telechargerRapportHebdomadaire: () =>
+    client.get('/admin/rapports/hebdomadaire', { responseType: 'blob' }),
 };

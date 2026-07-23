@@ -1,6 +1,7 @@
 package cm.tonkine.backend.controller;
 
 import cm.tonkine.backend.dto.request.CreerCompteAdminRequest;
+import cm.tonkine.backend.dto.request.MettreAJourEntrepriseRequest;
 import cm.tonkine.backend.dto.response.*;
 import cm.tonkine.backend.entity.Entreprise;
 import cm.tonkine.backend.entity.SessionTravail;
@@ -9,11 +10,18 @@ import cm.tonkine.backend.enums.Role;
 import cm.tonkine.backend.enums.StatutAlerte;
 import cm.tonkine.backend.enums.TypeAlerte;
 import cm.tonkine.backend.repository.AlerteRepository;
+import cm.tonkine.backend.repository.EntrepriseRepository;
+import cm.tonkine.backend.repository.JournalConnexionRepository;
 import cm.tonkine.backend.repository.SessionTravailRepository;
 import cm.tonkine.backend.repository.UtilisateurRepository;
+import cm.tonkine.backend.service.RapportService;
 import cm.tonkine.backend.util.MotDePasseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +48,10 @@ public class AdminController {
     private final UtilisateurRepository    utilisateurRepository;
     private final SessionTravailRepository sessionRepository;
     private final AlerteRepository         alerteRepository;
-    private final PasswordEncoder          passwordEncoder;
+    private final EntrepriseRepository       entrepriseRepository;
+    private final JournalConnexionRepository journalConnexionRepository;
+    private final RapportService             rapportService;
+    private final PasswordEncoder            passwordEncoder;
 
     /**
      * GET /api/admin/dashboard
@@ -257,7 +268,128 @@ public class AdminController {
             .build());
     }
 
+    /**
+     * GET /api/admin/entreprise
+     * Personnalisation de l'entreprise de l'admin (nom, logo, couleurs, coordonnées).
+     */
+    @GetMapping("/entreprise")
+    public ResponseEntity<EntrepriseResponse> getEntreprise(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        // Recharge l'entreprise fraîchement par son ID plutôt que de déréférencer
+        // adminRh.getEntreprise() : ce proxy vient de la session du filtre JWT,
+        // déjà fermée — le même piège que le LazyInitializationException déjà corrigé.
+        Entreprise e = entrepriseRepository.findById(entrepriseId)
+            .orElseThrow(() -> new IllegalArgumentException("Entreprise introuvable"));
+
+        return ResponseEntity.ok(toEntrepriseResponse(e));
+    }
+
+    /**
+     * PUT /api/admin/entreprise
+     * Met à jour la personnalisation de l'entreprise — pas les champs de licence
+     * (nombre d'employés max, expiration), gérés côté plateforme.
+     */
+    @PutMapping("/entreprise")
+    @Transactional
+    public ResponseEntity<EntrepriseResponse> mettreAJourEntreprise(
+            @Valid @RequestBody MettreAJourEntrepriseRequest request,
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        Entreprise e = entrepriseRepository.findById(entrepriseId)
+            .orElseThrow(() -> new IllegalArgumentException("Entreprise introuvable"));
+
+        e.setNom(request.getNom());
+        e.setNomApp(request.getNomApp());
+        e.setSlogan(request.getSlogan());
+        e.setLogoUrl(request.getLogoUrl());
+        e.setCouleurPrimaire(request.getCouleurPrimaire());
+        e.setCouleurSecondaire(request.getCouleurSecondaire());
+        e.setAdresse(request.getAdresse());
+        e.setVille(request.getVille());
+        e.setPays(request.getPays());
+        e.setTelephone(request.getTelephone());
+        e.setEmailContact(request.getEmailContact());
+        e.setSiteWeb(request.getSiteWeb());
+        e.setSecteurActivite(request.getSecteurActivite());
+
+        entrepriseRepository.save(e);
+
+        return ResponseEntity.ok(toEntrepriseResponse(e));
+    }
+
+    /**
+     * GET /api/admin/journal-connexions
+     * Historique des connexions des utilisateurs de l'entreprise (sécurité).
+     */
+    @GetMapping("/journal-connexions")
+    public ResponseEntity<List<ConnexionJournalResponse>> getJournalConnexions(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        List<ConnexionJournalResponse> journal = journalConnexionRepository
+            .findRecentesParEntreprise(entrepriseId, PageRequest.of(0, 50)).stream()
+            .map(j -> ConnexionJournalResponse.builder()
+                .nomComplet(j.getUtilisateur().getNomComplet())
+                .email(j.getUtilisateur().getEmail())
+                .role(j.getUtilisateur().getRole().name())
+                .adresseIp(j.getAdresseIp())
+                .dateConnexion(j.getDateConnexion())
+                .build())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(journal);
+    }
+
+    /**
+     * GET /api/admin/rapports/hebdomadaire
+     * Rapport CSV téléchargeable des 7 derniers jours (postures, alertes) —
+     * l'admin l'achemine lui-même (email, Slack, impression…) à qui de droit.
+     */
+    @GetMapping("/rapports/hebdomadaire")
+    public ResponseEntity<String> telechargerRapportHebdomadaire(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        String csv = rapportService.genererRapportHebdomadaireCsv(entrepriseId);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment().filename(rapportService.nomFichierRapport()).build().toString())
+            .body(csv);
+    }
+
     // ── Helpers privés ──
+
+    private EntrepriseResponse toEntrepriseResponse(Entreprise e) {
+        return EntrepriseResponse.builder()
+            .id(e.getId())
+            .nom(e.getNom())
+            .nomApp(e.getNomApp())
+            .slogan(e.getSlogan())
+            .logoUrl(e.getLogoUrl())
+            .couleurPrimaire(e.getCouleurPrimaire())
+            .couleurSecondaire(e.getCouleurSecondaire())
+            .adresse(e.getAdresse())
+            .ville(e.getVille())
+            .pays(e.getPays())
+            .telephone(e.getTelephone())
+            .emailContact(e.getEmailContact())
+            .siteWeb(e.getSiteWeb())
+            .secteurActivite(e.getSecteurActivite())
+            .build();
+    }
 
     private List<StatDepartementResponse> calculerStatsDepartements(
             List<SessionTravail> sessions) {

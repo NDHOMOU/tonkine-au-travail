@@ -12,9 +12,11 @@ export default function Connexion() {
   const { login }    = useAuth();
   const navigate     = useNavigate();
 
-  const [form, setForm]       = useState({ email: '', motDePasse: '', role: 'EMPLOYE' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [form, setForm]           = useState({ email: '', motDePasse: '', role: 'EMPLOYE' });
+  const [code2FA, setCode2FA]     = useState('');
+  const [requiert2FA, setRequiert2FA] = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +24,12 @@ export default function Connexion() {
     setLoading(true);
 
     try {
-      const { data } = await authApi.connecter(form.email, form.motDePasse);
+      const { data } = await authApi.connecter(form.email, form.motDePasse, requiert2FA ? code2FA : undefined);
+
+      if (data.requiert2FA) {
+        setRequiert2FA(true);
+        return;
+      }
 
       // Vérifie que le rôle correspond à la sélection
       if (data.role !== form.role) {
@@ -43,7 +50,7 @@ export default function Connexion() {
     } catch (err) {
       let msg;
       if (err.response?.status === 401) {
-        msg = 'Identifiant ou mot de passe incorrect.';
+        msg = requiert2FA ? 'Code incorrect ou expiré.' : 'Identifiant ou mot de passe incorrect.';
       } else if (err.response) {
         msg = err.response.data?.erreur || err.response.data?.message || 'Erreur serveur. Réessayez dans un instant.';
       } else {
@@ -53,6 +60,12 @@ export default function Connexion() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const retourIdentifiants = () => {
+    setRequiert2FA(false);
+    setCode2FA('');
+    setError('');
   };
 
   return (
@@ -85,63 +98,101 @@ export default function Connexion() {
       <div className="connexion-form-panel">
         <Link to="/" className="back-link">← Retour à l'accueil</Link>
 
-        <h1>Bon retour,<br /><em>connectez-vous</em></h1>
-        <p>Accédez à votre espace selon votre rôle dans l'entreprise.</p>
+        {!requiert2FA ? (
+          <>
+            <h1>Bon retour,<br /><em>connectez-vous</em></h1>
+            <p>Accédez à votre espace selon votre rôle dans l'entreprise.</p>
 
-        {/* Sélecteur rôle */}
-        <div className="role-tabs">
-          {[
-            { value: 'EMPLOYE',          label: '👨‍💻 Employé'          },
-            { value: 'ADMIN_RH',         label: '🏢 Admin RH'          },
-            { value: 'KINESITHERAPEUTE', label: '🩺 Kinésithérapeute'  },
-          ].map(r => (
-            <button
-              key={r.value}
-              type="button"
-              className={`role-tab ${form.role === r.value ? 'active' : ''}`}
-              onClick={() => setForm(f => ({ ...f, role: r.value }))}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
+            {/* Sélecteur rôle */}
+            <div className="role-tabs">
+              {[
+                { value: 'EMPLOYE',          label: '👨‍💻 Employé'          },
+                { value: 'ADMIN_RH',         label: '🏢 Admin RH'          },
+                { value: 'KINESITHERAPEUTE', label: '🩺 Kinésithérapeute'  },
+              ].map(r => (
+                <button
+                  key={r.value}
+                  type="button"
+                  className={`role-tab ${form.role === r.value ? 'active' : ''}`}
+                  onClick={() => setForm(f => ({ ...f, role: r.value }))}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
 
-        {error && <div className="form-error">{error}</div>}
+            {error && <div className="form-error">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <label>
-            Adresse e-mail professionnelle
-            <input
-              type="email"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              placeholder="prenom.nom@entreprise.cm"
-              required
-              autoComplete="email"
-            />
-          </label>
+            <form onSubmit={handleSubmit}>
+              <label>
+                Adresse e-mail professionnelle
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="prenom.nom@entreprise.cm"
+                  required
+                  autoComplete="email"
+                />
+              </label>
 
-          <label>
-            Mot de passe
-            <input
-              type="password"
-              value={form.motDePasse}
-              onChange={e => setForm(f => ({ ...f, motDePasse: e.target.value }))}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-            />
-          </label>
+              <label>
+                Mot de passe
+                <input
+                  type="password"
+                  value={form.motDePasse}
+                  onChange={e => setForm(f => ({ ...f, motDePasse: e.target.value }))}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+              </label>
 
-          <button type="submit" disabled={loading} className="btn-submit">
-            {loading ? 'Vérification…' : 'Se connecter →'}
-          </button>
-        </form>
+              <button type="submit" disabled={loading} className="btn-submit">
+                {loading ? 'Vérification…' : 'Se connecter →'}
+              </button>
+            </form>
 
-        <p className="form-footer">
-          Première connexion ?{' '}
-          <Link to="/inscription">Créer mon profil →</Link>
-        </p>
+            <p className="form-footer">
+              Première connexion ?{' '}
+              <Link to="/inscription">Créer mon profil →</Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <h1>Double authentification,<br /><em>dernière étape</em></h1>
+            <p>Ouvrez votre application d'authentification (Google Authenticator, Authy…) et saisissez le code à 6 chiffres.</p>
+
+            {error && <div className="form-error">{error}</div>}
+
+            <form onSubmit={handleSubmit}>
+              <label>
+                Code à 6 chiffres
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={code2FA}
+                  onChange={e => setCode2FA(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  required
+                  autoFocus
+                  style={{ letterSpacing: '.3em', fontSize: '1.2rem', textAlign: 'center' }}
+                />
+              </label>
+
+              <button type="submit" disabled={loading || code2FA.length !== 6} className="btn-submit">
+                {loading ? 'Vérification…' : 'Valider →'}
+              </button>
+            </form>
+
+            <p className="form-footer">
+              <button type="button" onClick={retourIdentifiants} style={{ background:'none', border:'none', color:'inherit', cursor:'pointer', textDecoration:'underline', padding:0 }}>
+                ← Revenir à la saisie des identifiants
+              </button>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

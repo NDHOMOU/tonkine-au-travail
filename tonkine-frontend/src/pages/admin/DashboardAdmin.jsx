@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { adminApi }  from '../../api/adminApi';
 import AppLayout     from '../../components/layout/AppLayout';
+import { telechargerBlob } from '../../utils/telechargerFichier';
 import toast         from 'react-hot-toast';
 
 export default function DashboardAdmin() {
@@ -21,6 +22,17 @@ export default function DashboardAdmin() {
   const [reinitEnCours, setReinitEnCours]   = useState(null); // id en cours de reset
   const [motDePasseRevele, setMotDePasseRevele] = useState(null); // { email, motDePasseTemporaire }
 
+  // ── Paramètres entreprise ──
+  const [entreprise, setEntreprise]       = useState(null);
+  const [entrepriseModif, setEntrepriseModif] = useState(null);
+  const [sauvegardeEnCours, setSauvegardeEnCours] = useState(false);
+
+  // ── Journal des connexions ──
+  const [journal, setJournal] = useState([]);
+
+  // ── Rapport ──
+  const [telechargementEnCours, setTelechargementEnCours] = useState(false);
+
   const charger = useCallback(async () => {
     try {
       const { data: d } = await adminApi.getDashboard();
@@ -36,7 +48,51 @@ export default function DashboardAdmin() {
     } catch { toast.error('Impossible de charger les comptes admin.'); }
   }, []);
 
-  useEffect(() => { charger(); chargerComptesAdmin(); }, [charger, chargerComptesAdmin]);
+  const chargerEntreprise = useCallback(async () => {
+    try {
+      const { data } = await adminApi.getEntreprise();
+      setEntreprise(data);
+      setEntrepriseModif(data);
+    } catch { toast.error('Impossible de charger les paramètres de l\'entreprise.'); }
+  }, []);
+
+  const chargerJournal = useCallback(async () => {
+    try {
+      const { data } = await adminApi.getJournalConnexions();
+      setJournal(data);
+    } catch { toast.error('Impossible de charger le journal des connexions.'); }
+  }, []);
+
+  useEffect(() => {
+    charger(); chargerComptesAdmin(); chargerEntreprise(); chargerJournal();
+  }, [charger, chargerComptesAdmin, chargerEntreprise, chargerJournal]);
+
+  const sauvegarderEntreprise = async (e) => {
+    e.preventDefault();
+    setSauvegardeEnCours(true);
+    try {
+      const { data } = await adminApi.mettreAJourEntreprise(entrepriseModif);
+      setEntreprise(data);
+      setEntrepriseModif(data);
+      toast.success('Paramètres de l\'entreprise mis à jour.');
+    } catch {
+      toast.error('Impossible d\'enregistrer les paramètres.');
+    } finally {
+      setSauvegardeEnCours(false);
+    }
+  };
+
+  const telechargerRapport = async () => {
+    setTelechargementEnCours(true);
+    try {
+      const { data: blob } = await adminApi.telechargerRapportHebdomadaire();
+      telechargerBlob(blob, `rapport-hebdomadaire-${new Date().toISOString().slice(0,10)}.csv`);
+    } catch {
+      toast.error('Impossible de générer le rapport.');
+    } finally {
+      setTelechargementEnCours(false);
+    }
+  };
 
   const creerAdmin = async (e) => {
     e.preventDefault();
@@ -187,9 +243,14 @@ export default function DashboardAdmin() {
       <div className="card">
         <div className="card-head" style={{ paddingBottom:0 }}>
           <h3>Suivi des employés actifs</h3>
-          <button className="btn btn-outline btn-sm" onClick={charger}>
-            <i className="fa-solid fa-rotate" /> Actualiser
-          </button>
+          <div style={{ display:'flex', gap:8 }}>
+            <button className="btn btn-outline btn-sm" disabled={telechargementEnCours} onClick={telechargerRapport}>
+              <i className="fa-solid fa-file-arrow-down" /> {telechargementEnCours ? 'Génération…' : 'Rapport hebdomadaire (CSV)'}
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={charger}>
+              <i className="fa-solid fa-rotate" /> Actualiser
+            </button>
+          </div>
         </div>
         <div style={{ padding:'8px 0 0' }}>
           {(d.employes || []).length === 0 ? (
@@ -280,6 +341,111 @@ export default function DashboardAdmin() {
           </div>
         </div>
       )}
+
+      {/* ── Paramètres de l'entreprise ── */}
+      <div className="card" style={{ marginTop:20 }}>
+        <div className="card-head"><h3>Paramètres de l'entreprise</h3></div>
+        {entrepriseModif && (
+          <form onSubmit={sauvegarderEntreprise} style={{ padding:'0 20px 20px', display:'grid',
+            gridTemplateColumns:'repeat(auto-fit, minmax(220px,1fr))', gap:14 }}>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Nom de l'entreprise</div>
+              <input className="form-input" value={entrepriseModif.nom || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, nom: e.target.value }))} required />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Nom affiché de l'application</div>
+              <input className="form-input" value={entrepriseModif.nomApp || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, nomApp: e.target.value }))} />
+            </label>
+            <label style={{ gridColumn:'1 / -1' }}>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Slogan</div>
+              <input className="form-input" value={entrepriseModif.slogan || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, slogan: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>URL du logo</div>
+              <input className="form-input" value={entrepriseModif.logoUrl || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, logoUrl: e.target.value }))} placeholder="https://…" />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Secteur d'activité</div>
+              <input className="form-input" value={entrepriseModif.secteurActivite || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, secteurActivite: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Couleur primaire</div>
+              <input className="form-input" type="color" style={{ height:40, padding:4 }}
+                value={entrepriseModif.couleurPrimaire || '#1353A4'}
+                onChange={e => setEntrepriseModif(v => ({ ...v, couleurPrimaire: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Couleur secondaire</div>
+              <input className="form-input" type="color" style={{ height:40, padding:4 }}
+                value={entrepriseModif.couleurSecondaire || '#0B9B8A'}
+                onChange={e => setEntrepriseModif(v => ({ ...v, couleurSecondaire: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Ville</div>
+              <input className="form-input" value={entrepriseModif.ville || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, ville: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Pays</div>
+              <input className="form-input" value={entrepriseModif.pays || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, pays: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Téléphone</div>
+              <input className="form-input" value={entrepriseModif.telephone || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, telephone: e.target.value }))} />
+            </label>
+            <label>
+              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Email de contact</div>
+              <input className="form-input" type="email" value={entrepriseModif.emailContact || ''}
+                onChange={e => setEntrepriseModif(v => ({ ...v, emailContact: e.target.value }))} />
+            </label>
+            <div style={{ gridColumn:'1 / -1' }}>
+              <button className="btn btn-primary" disabled={sauvegardeEnCours} type="submit">
+                {sauvegardeEnCours ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* ── Journal des connexions ── */}
+      <div className="card" style={{ marginTop:20 }}>
+        <div className="card-head"><h3>Journal des connexions</h3></div>
+        <div style={{ padding:'8px 0 0' }}>
+          {journal.length === 0 ? (
+            <div className="empty-state" style={{ padding:30 }}>
+              <i className="fa-solid fa-clock-rotate-left" />
+              <p>Aucune connexion enregistrée pour l'instant.</p>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Utilisateur</th><th>Rôle</th><th>Adresse IP</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                  {journal.map((j, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight:600 }}>{j.nomComplet}</td>
+                      <td><span className="badge gray">{j.role}</span></td>
+                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{j.adresseIp || '—'}</td>
+                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>
+                        {new Date(j.dateConnexion).toLocaleString('fr-FR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ── Gestion des comptes admin ── */}
       <div className="card" style={{ marginTop:20 }}>

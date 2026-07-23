@@ -4,7 +4,11 @@ import cm.tonkine.backend.dto.response.DashboardKineResponse;
 import cm.tonkine.backend.dto.response.PatientSuiviKineResponse;
 import cm.tonkine.backend.entity.Utilisateur;
 import cm.tonkine.backend.service.KineService;
+import cm.tonkine.backend.service.RapportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +35,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KineController {
 
-    private final KineService kineService;
+    private final KineService    kineService;
+    private final RapportService rapportService;
 
     /**
      * GET /api/kine/dashboard
@@ -76,5 +81,26 @@ public class KineController {
 
         kineService.ajouterNotesSeance(rdvId, notes, kine);
         return ResponseEntity.ok(Map.of("message", "Notes enregistrées avec succès"));
+    }
+
+    /**
+     * GET /api/kine/rapports/hebdomadaire
+     * Rapport CSV téléchargeable des 7 derniers jours — le kiné l'achemine
+     * lui-même (email, impression…) à qui de droit.
+     */
+    @GetMapping("/rapports/hebdomadaire")
+    public ResponseEntity<String> telechargerRapportHebdomadaire(
+            @AuthenticationPrincipal Utilisateur kine) {
+
+        Long entrepriseId = kine.getEntreprise() != null ? kine.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        String csv = rapportService.genererRapportHebdomadaireCsv(entrepriseId);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment().filename(rapportService.nomFichierRapport()).build().toString())
+            .body(csv);
     }
 }

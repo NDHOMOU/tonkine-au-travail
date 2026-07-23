@@ -26,4 +26,16 @@ export const profilApi = {
   /** PUT /api/profil/avatar — photo de profil (identification professionnelle) */
   mettreAJourAvatar: (photoBase64) =>
     client.put('/profil/avatar', { photoBase64 }),
+
+  /** POST /api/profil/2fa/activer */
+  activerDeuxFA: () =>
+    client.post('/profil/2fa/activer'),
+
+  /** POST /api/profil/2fa/confirmer */
+  confirmerDeuxFA: (code) =>
+    client.post('/profil/2fa/confirmer', { code }),
+
+  /** POST /api/profil/2fa/desactiver */
+  desactiverDeuxFA: () =>
+    client.post('/profil/2fa/desactiver'),
 };

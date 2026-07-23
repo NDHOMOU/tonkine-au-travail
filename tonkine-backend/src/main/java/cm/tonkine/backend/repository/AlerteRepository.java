@@ -24,9 +24,12 @@ public interface AlerteRepository extends JpaRepository<Alerte, Long> {
     /**
      * Alertes non traitées filtrées par entreprise.
      * À utiliser dans AdminController / KineController pour l'isolation multi-tenant.
+     * JOIN FETCH utilisateur/session : AdminController lit ensuite leurs champs
+     * hors transaction — évite un LazyInitializationException.
      */
-    @Query("SELECT a FROM Alerte a WHERE a.statut IN ('ENVOYEE','VUE') " +
-           "AND a.utilisateur.entreprise.id = :entrepriseId " +
+    @Query("SELECT a FROM Alerte a JOIN FETCH a.utilisateur u LEFT JOIN FETCH a.session " +
+           "WHERE a.statut IN ('ENVOYEE','VUE') " +
+           "AND u.entreprise.id = :entrepriseId " +
            "ORDER BY a.dateEnvoi DESC")
     List<Alerte> findAlertesNonTraiteesParEntreprise(@Param("entrepriseId") Long entrepriseId);
 
