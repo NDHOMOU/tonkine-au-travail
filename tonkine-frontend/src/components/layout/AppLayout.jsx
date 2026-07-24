@@ -18,6 +18,7 @@ const NAV_EMPLOYE = [
   { to: '/employe/posture',    icon: 'fa-person-rays', label: 'Ma posture'           },
   { to: '/employe/exercices',  icon: 'fa-dumbbell',    label: 'Exercices'            },
   { to: '/employe/curatif',    icon: 'fa-kit-medical', label: 'Protocoles curatifs'  },
+  { to: '/employe/produits',   icon: 'fa-briefcase-medical', label: 'Recommandations' },
   { to: '/employe/rdv',        icon: 'fa-calendar-check', label: 'Mon kiné / RDV'   },
   { to: '/employe/conseils',   icon: 'fa-comment-medical', label: 'Conseils santé'  },
 ];
@@ -31,8 +32,11 @@ const NAV_ADMIN = [
 ];
 
 const NAV_KINE = [
-  { to: '/kine/dashboard',  icon: 'fa-stethoscope',  label: 'Tableau de bord'  },
-  { to: '/kine/conseils',   icon: 'fa-comment-medical', label: 'Conseils'      },
+  { to: '/kine/dashboard',  icon: 'fa-stethoscope',      label: 'Tableau de bord'  },
+  { to: '/kine/conseils',   icon: 'fa-comment-medical',  label: 'Conseils'         },
+  { to: '/kine/exercices',  icon: 'fa-dumbbell',         label: 'Bibliothèque exercices' },
+  { to: '/kine/protocoles', icon: 'fa-kit-medical',      label: 'Protocoles curatifs' },
+  { to: '/kine/produits',   icon: 'fa-briefcase-medical', label: 'Recommandations produits' },
 ];
 
 export default function AppLayout({ children, title = '' }) {

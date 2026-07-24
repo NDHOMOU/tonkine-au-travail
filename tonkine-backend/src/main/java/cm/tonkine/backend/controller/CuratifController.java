@@ -33,15 +33,16 @@ public class CuratifController {
 
     /**
      * GET /api/curatif/protocoles
-     * Liste des protocoles actifs, filtrables par zone.
+     * Protocoles actifs visibles par l'employé (bibliothèque globale + celle
+     * ajoutée par le kiné de son entreprise), filtrables par zone.
      */
     @GetMapping("/protocoles")
     public ResponseEntity<List<ProtocoleResponse>> getProtocoles(
-            @RequestParam(required = false) ZoneCorps zone) {
+            @RequestParam(required = false) ZoneCorps zone,
+            @AuthenticationPrincipal Utilisateur utilisateur) {
 
-        List<Protocole> protocoles = (zone != null)
-            ? protocoleRepository.findByZoneAndActifTrue(zone)
-            : protocoleRepository.findByActifTrue();
+        Long entrepriseId = utilisateur.getEntreprise() != null ? utilisateur.getEntreprise().getId() : null;
+        List<Protocole> protocoles = protocoleRepository.findVisiblesParEntreprise(entrepriseId, zone);
 
         return ResponseEntity.ok(
             protocoles.stream().map(this::toProtocoleResponse).collect(Collectors.toList())

@@ -3,12 +3,12 @@
  * Le kinésithérapeute voit en temps réel :
  *   - Patients à risque postural (score < 60%)
  *   - Patients inactifs (app non lancée)
- *   - File de conseils (urgents d'abord)
  *   - Planning RDV du jour
+ * Les conseils, la bibliothèque d'exercices, les protocoles et les
+ * recommandations produits ont chacun leur propre onglet dans la sidebar.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { kineApi }    from '../../api/kineApi';
-import { conseilApi } from '../../api/conseilApi';
 import AppLayout      from '../../components/layout/AppLayout';
 import { useAuth }    from '../../context/AuthContext';
 import { telechargerBlob } from '../../utils/telechargerFichier';
@@ -17,7 +17,6 @@ import toast          from 'react-hot-toast';
 const ONGLETS = [
   { key:'risque',   label:'Posture à risque', icon:'fa-triangle-exclamation' },
   { key:'inactifs', label:'App inactive',      icon:'fa-circle-xmark'        },
-  { key:'conseils', label:'Conseils',          icon:'fa-comment-medical'     },
   { key:'agenda',   label:'Mon agenda',        icon:'fa-calendar'            },
 ];
 
@@ -29,11 +28,8 @@ export default function DashboardKine() {
   const [data,        setData]        = useState(null);
   const [loading,     setLoading]     = useState(true);
   const [onglet,      setOnglet]      = useState('risque');
-  const [reponses,    setReponses]    = useState({});
-  const [envoiId,     setEnvoiId]     = useState(null);
   const [noteRdvId,   setNoteRdvId]   = useState(null);
   const [noteTexte,   setNoteTexte]   = useState('');
-  const [patientOpen, setPatientOpen] = useState(null);
   const [telechargementEnCours, setTelechargementEnCours] = useState(false);
 
   const telechargerRapport = async () => {
@@ -63,25 +59,6 @@ export default function DashboardKine() {
     const id = setInterval(charger, 60000);
     return () => clearInterval(id);
   }, [charger]);
-
-  const ouvrirConseil = async (conseil) => {
-    if (conseil.statut === 'EN_ATTENTE') {
-      try { await conseilApi.marquerVu(conseil.id); charger(); } catch {}
-    }
-  };
-
-  const envoyerReponse = async (conseilId) => {
-    const rep = reponses[conseilId];
-    if (!rep?.trim()) { toast.error('Rédigez votre réponse.'); return; }
-    setEnvoiId(conseilId);
-    try {
-      await conseilApi.repondre(conseilId, rep);
-      toast.success('Réponse envoyée au patient.');
-      setReponses(prev => ({ ...prev, [conseilId]: '' }));
-      charger();
-    } catch { toast.error('Impossible d\'envoyer la réponse.'); }
-    finally { setEnvoiId(null); }
-  };
 
   const enregistrerNotes = async () => {
     if (!noteTexte.trim()) return;
@@ -154,7 +131,7 @@ export default function DashboardKine() {
               </span>
             )}
           </div>
-          <div className="kpi-sub">À traiter</div>
+          <div className="kpi-sub">Voir l'onglet Conseils</div>
         </div>
       </div>
 
@@ -164,7 +141,6 @@ export default function DashboardKine() {
           let count = 0;
           if (t.key === 'risque')   count = (d.patientsARisque || []).length;
           if (t.key === 'inactifs') count = (d.patientsInactifs || []).length;
-          if (t.key === 'conseils') count = d.conseilsEnAttente ?? 0;
           if (t.key === 'agenda')   count = (d.prochainRdv || []).length;
           return (
             <button key={t.key}
@@ -180,7 +156,7 @@ export default function DashboardKine() {
               {t.label}
               {count > 0 && (
                 <span style={{
-                  background: t.key === 'risque' || (t.key === 'conseils' && d.conseilsUrgents > 0) ? 'var(--bad)' : 'var(--warn)',
+                  background: t.key === 'risque' ? 'var(--bad)' : 'var(--warn)',
                   color:'white', borderRadius:20, padding:'1px 6px', fontSize:'.6rem', fontWeight:700
                 }}>{count}</span>
               )}
@@ -303,69 +279,6 @@ export default function DashboardKine() {
               </table>
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── Onglet : Conseils ── */}
-      {onglet === 'conseils' && (
-        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-          {(d.conseilsFile || []).length === 0 ? (
-            <div className="card"><div className="empty-state" style={{ padding:40 }}>
-              <i className="fa-solid fa-comment-slash" />
-              <p>Aucune demande de conseil en attente.</p>
-            </div></div>
-          ) : (d.conseilsFile || []).map(c => (
-            <div key={c.id} className="card"
-              style={{ borderLeft: c.niveauUrgence === 'URGENT' ? '3px solid var(--bad)' : '3px solid var(--border)' }}
-              onClick={() => ouvrirConseil(c)}>
-              <div style={{ padding:'16px 20px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8, gap:8, flexWrap:'wrap' }}>
-                  <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-                    <span style={{ fontWeight:700 }}>{c.nomEmploye}</span>
-                    {c.departementEmploye && <span className="badge gray">{c.departementEmploye}</span>}
-                    {c.niveauUrgence === 'URGENT' && <span className="pill-urgent"><i className="fa-solid fa-bolt" /> Urgent</span>}
-                    {c.zoneConcernee && <span className="badge blue">{c.zoneConcernee.replace('_',' ')}</span>}
-                    <span className={`badge ${c.statut === 'EN_ATTENTE' ? 'warn' : c.statut === 'VU' ? 'blue' : 'green'}`}>
-                      {c.statut === 'EN_ATTENTE' ? 'En attente' : c.statut === 'VU' ? 'Lu' : 'Répondu'}
-                    </span>
-                  </div>
-                  <span style={{ fontSize:'.7rem', color:'var(--ink-60)', flexShrink:0 }}>
-                    {c.minutesDepuisQuestion < 60 ? `Il y a ${c.minutesDepuisQuestion} min`
-                      : new Date(c.dateQuestion).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', hour:'2-digit', minute:'2-digit' })}
-                  </span>
-                </div>
-
-                <div style={{ background:'var(--sand)', borderRadius:8, padding:'10px 14px', marginBottom: c.statut !== 'REPONDU' ? 14 : 0 }}>
-                  <div style={{ fontSize:'.65rem', fontWeight:700, color:'var(--ink-60)', marginBottom:4, textTransform:'uppercase' }}>Question</div>
-                  <p style={{ fontSize:'.85rem', lineHeight:1.6 }}>{c.question}</p>
-                </div>
-
-                {c.reponse && (
-                  <div style={{ background:'var(--teal-bg)', borderRadius:8, padding:'10px 14px', marginTop:10 }}>
-                    <div style={{ fontSize:'.65rem', fontWeight:700, color:'var(--teal)', marginBottom:4, textTransform:'uppercase' }}>Votre réponse</div>
-                    <p style={{ fontSize:'.82rem', lineHeight:1.55 }}>{c.reponse}</p>
-                  </div>
-                )}
-
-                {c.statut !== 'REPONDU' && (
-                  <div style={{ marginTop:12 }}>
-                    <textarea className="form-textarea" rows={3}
-                      placeholder="Rédigez votre réponse kinésithérapique…"
-                      value={reponses[c.id] || ''}
-                      onChange={e => setReponses(prev => ({ ...prev, [c.id]: e.target.value }))}
-                      onClick={e => e.stopPropagation()} />
-                    <button className="btn btn-teal btn-sm" style={{ marginTop:8 }}
-                      disabled={envoiId === c.id}
-                      onClick={e => { e.stopPropagation(); envoyerReponse(c.id); }}>
-                      {envoiId === c.id
-                        ? <><i className="fa-solid fa-spinner fa-spin" /> Envoi…</>
-                        : <><i className="fa-solid fa-paper-plane" /> Envoyer la réponse</>}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
         </div>
       )}
 

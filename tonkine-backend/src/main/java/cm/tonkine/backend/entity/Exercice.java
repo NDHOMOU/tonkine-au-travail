@@ -67,4 +67,14 @@ public class Exercice {
     @Column(nullable = false)
     @Builder.Default
     private Boolean actif = true;
+
+    /** null = contenu global (bibliothèque de base) ; sinon visible uniquement par cette entreprise */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entreprise_id")
+    private Entreprise entreprise;
+
+    /** Kiné qui a ajouté cet exercice (null pour le contenu global d'origine) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cree_par_kine_id")
+    private Utilisateur creeParKine;
 }

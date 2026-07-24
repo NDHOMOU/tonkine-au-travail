@@ -10,17 +10,21 @@ import java.util.List;
 
 public interface ExerciceRepository extends JpaRepository<Exercice, Long> {
 
-    List<Exercice> findByActifTrue();
+    /** Bibliothèque visible par un employé : contenu global + celui de sa propre entreprise */
+    @Query("SELECT e FROM Exercice e WHERE e.actif = true " +
+           "AND (e.entreprise IS NULL OR e.entreprise.id = :entrepriseId)")
+    List<Exercice> findVisiblesParEntreprise(@Param("entrepriseId") Long entrepriseId);
 
-    List<Exercice> findByZoneAndActifTrue(ZoneCorps zone);
+    @Query("SELECT e FROM Exercice e WHERE e.actif = true AND e.zone = :zone " +
+           "AND (e.entreprise IS NULL OR e.entreprise.id = :entrepriseId)")
+    List<Exercice> findVisiblesParEntrepriseEtZone(@Param("entrepriseId") Long entrepriseId, @Param("zone") ZoneCorps zone);
 
     /** Exercices correspondant à au moins un des hobbies de l'employé */
     @Query("SELECT e FROM Exercice e WHERE e.actif = true " +
+           "AND (e.entreprise IS NULL OR e.entreprise.id = :entrepriseId) " +
            "AND (e.hobbiesAssocies IS NULL OR e.hobbiesAssocies LIKE %:hobbie%)")
-    List<Exercice> findByHobbieContaining(@Param("hobbie") String hobbie);
+    List<Exercice> findByHobbieContaining(@Param("entrepriseId") Long entrepriseId, @Param("hobbie") String hobbie);
 
-    /** Exercices adaptés à un profil : zone prioritaire + hobbies */
-    @Query("SELECT e FROM Exercice e WHERE e.actif = true AND e.zone = :zone " +
-           "ORDER BY e.niveauDifficulte ASC")
-    List<Exercice> findByZoneOrderByDifficulte(@Param("zone") ZoneCorps zone);
+    /** Bibliothèque gérée par le kiné : uniquement le contenu propre à son entreprise (pas le global) */
+    List<Exercice> findByEntrepriseIdOrderByTitreAsc(Long entrepriseId);
 }

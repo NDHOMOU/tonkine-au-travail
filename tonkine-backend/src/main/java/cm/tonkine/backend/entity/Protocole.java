@@ -44,6 +44,16 @@ public class Protocole {
     @Builder.Default
     private Boolean actif = true;
 
+    /** null = contenu global (bibliothèque de base) ; sinon visible uniquement par cette entreprise */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entreprise_id")
+    private Entreprise entreprise;
+
+    /** Kiné qui a créé ce protocole (null pour le contenu global d'origine) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cree_par_kine_id")
+    private Utilisateur creeParKine;
+
     @OneToMany(mappedBy = "protocole", cascade = CascadeType.ALL, orphanRemoval = true,
                fetch = FetchType.LAZY)
     @OrderBy("semaine ASC, ordre ASC")

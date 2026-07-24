@@ -199,7 +199,7 @@ public class SessionService {
 
         // Exercices personnalisés selon hobbies et zones prioritaires
         List<ExerciceResponse> exercicesDuJour = selectionnerExercicesDuJour(
-            profil, session
+            profil, session, utilisateur
         );
 
         // Alertes de la session courante
@@ -251,21 +251,22 @@ public class SessionService {
     }
 
     private Exercice choisirExercicePourAlerte(Utilisateur u, SessionTravail s) {
+        Long entrepriseId = u.getEntreprise() != null ? u.getEntreprise().getId() : null;
         ProfilErgonomique profil = profilRepository
             .findByUtilisateurId(u.getId()).orElse(null);
 
         if (profil != null && profil.getHobbies() != null) {
             String premierHobbie = profil.getHobbies().split(",")[0].trim();
-            List<Exercice> exercices = exerciceRepository.findByHobbieContaining(premierHobbie);
+            List<Exercice> exercices = exerciceRepository.findByHobbieContaining(entrepriseId, premierHobbie);
             if (!exercices.isEmpty()) return exercices.get(0);
         }
 
-        List<Exercice> tous = exerciceRepository.findByActifTrue();
+        List<Exercice> tous = exerciceRepository.findVisiblesParEntreprise(entrepriseId);
         return tous.isEmpty() ? null : tous.get(0);
     }
 
     private List<ExerciceResponse> selectionnerExercicesDuJour(
-            ProfilErgonomique profil, SessionTravail session) {
+            ProfilErgonomique profil, SessionTravail session, Utilisateur utilisateur) {
 
         List<ZoneCorps> zonesPrioritaires = List.of(
             ZoneCorps.NUQUE_CERVICALES,
@@ -274,7 +275,8 @@ public class SessionService {
             ZoneCorps.YEUX_VISION
         );
 
-        return exerciceRepository.findByActifTrue().stream()
+        Long entrepriseId = utilisateur.getEntreprise() != null ? utilisateur.getEntreprise().getId() : null;
+        return exerciceRepository.findVisiblesParEntreprise(entrepriseId).stream()
             .filter(e -> zonesPrioritaires.contains(e.getZone()))
             .limit(4)
             .map(this::toExerciceResponse)

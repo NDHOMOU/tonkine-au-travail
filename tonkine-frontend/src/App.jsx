@@ -26,6 +26,7 @@ const DashboardEmploye   = lazy(() => import('./pages/employe/DashboardEmploye')
 const MaPosture          = lazy(() => import('./pages/employe/MaPosture'));
 const Exercices          = lazy(() => import('./pages/employe/Exercices'));
 const ProtocolesCuratifs = lazy(() => import('./pages/employe/ProtocolesCuratifs'));
+const RecommandationsProduits = lazy(() => import('./pages/employe/RecommandationsProduits'));
 const PriseRdvKine       = lazy(() => import('./pages/employe/PriseRdvKine'));
 
 // Admin RH
@@ -37,6 +38,10 @@ const ParametresEntreprise = lazy(() => import('./pages/admin/ParametresEntrepri
 
 // Kinésithérapeute
 const DashboardKine      = lazy(() => import('./pages/kine/DashboardKine'));
+const ConseilsKine       = lazy(() => import('./pages/kine/ConseilsKine'));
+const ExercicesKine      = lazy(() => import('./pages/kine/ExercicesKine'));
+const ProtocolesKine     = lazy(() => import('./pages/kine/ProtocolesKine'));
+const ProduitsKine       = lazy(() => import('./pages/kine/ProduitsKine'));
 
 const Loading = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
@@ -72,6 +77,7 @@ export default function App() {
               <Route path="/employe/posture"   element={<MaPosture />} />
               <Route path="/employe/exercices" element={<Exercices />} />
               <Route path="/employe/curatif"   element={<ProtocolesCuratifs />} />
+              <Route path="/employe/produits"  element={<RecommandationsProduits />} />
               {/* PriseRdvKine gère aussi l'onglet Conseils santé */}
               <Route path="/employe/rdv"       element={<PriseRdvKine />} />
               <Route path="/employe/conseils"  element={<PriseRdvKine defaultTab="conseils" />} />
@@ -88,9 +94,11 @@ export default function App() {
 
             {/* ── Espace Kinésithérapeute ── */}
             <Route element={<ProtectedRoute requiredRole="KINESITHERAPEUTE" />}>
-              <Route path="/kine/dashboard"    element={<DashboardKine />} />
-              {/* Alias /kine/conseils redirige vers le tableau de bord onglet conseils */}
-              <Route path="/kine/conseils"     element={<Navigate to="/kine/dashboard?tab=conseils" replace />} />
+              <Route path="/kine/dashboard"  element={<DashboardKine />} />
+              <Route path="/kine/conseils"   element={<ConseilsKine />} />
+              <Route path="/kine/exercices"  element={<ExercicesKine />} />
+              <Route path="/kine/protocoles" element={<ProtocolesKine />} />
+              <Route path="/kine/produits"   element={<ProduitsKine />} />
             </Route>
 
             {/* ── 404 ── */}

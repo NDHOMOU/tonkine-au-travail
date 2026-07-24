@@ -29,15 +29,19 @@ public class ExerciceController {
 
     /**
      * GET /api/exercices
-     * Tous les exercices actifs (avec filtre optionnel par zone).
+     * Exercices actifs visibles par l'employé (bibliothèque globale + celle
+     * ajoutée par le kiné de son entreprise), avec filtre optionnel par zone.
      */
     @GetMapping
     public ResponseEntity<List<ExerciceResponse>> getExercices(
-            @RequestParam(required = false) ZoneCorps zone) {
+            @RequestParam(required = false) ZoneCorps zone,
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+
+        Long entrepriseId = utilisateur.getEntreprise() != null ? utilisateur.getEntreprise().getId() : null;
 
         List<Exercice> exercices = (zone != null)
-            ? exerciceRepository.findByZoneAndActifTrue(zone)
-            : exerciceRepository.findByActifTrue();
+            ? exerciceRepository.findVisiblesParEntrepriseEtZone(entrepriseId, zone)
+            : exerciceRepository.findVisiblesParEntreprise(entrepriseId);
 
         return ResponseEntity.ok(
             exercices.stream().map(this::toResponse).collect(Collectors.toList())
@@ -52,17 +56,19 @@ public class ExerciceController {
     public ResponseEntity<List<ExerciceResponse>> getExercicesPersonnalises(
             @AuthenticationPrincipal Utilisateur utilisateur) {
 
+        Long entrepriseId = utilisateur.getEntreprise() != null ? utilisateur.getEntreprise().getId() : null;
+
         return profilRepository.findByUtilisateurId(utilisateur.getId())
             .map(profil -> {
                 if (profil.getHobbies() == null) {
-                    return ResponseEntity.ok(exerciceRepository.findByActifTrue()
+                    return ResponseEntity.ok(exerciceRepository.findVisiblesParEntreprise(entrepriseId)
                         .stream().map(this::toResponse).collect(Collectors.toList()));
                 }
                 // Récupère les exercices pour chaque hobbie déclaré
                 List<ExerciceResponse> resultats = Arrays
                     .stream(profil.getHobbies().split(","))
                     .map(String::trim)
-                    .flatMap(h -> exerciceRepository.findByHobbieContaining(h).stream())
+                    .flatMap(h -> exerciceRepository.findByHobbieContaining(entrepriseId, h).stream())
                     .distinct()
                     .map(this::toResponse)
                     .collect(Collectors.toList());

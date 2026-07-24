@@ -120,8 +120,8 @@ public class AdminController {
                 .build())
             .collect(Collectors.toList());
 
-        // Compte uniquement les employés de cette entreprise
-        long totalInscrits = alerteRepository.countByEntreprise(entrepriseId);
+        // Compte uniquement les employés (pas l'admin ni le kiné) de cette entreprise
+        long totalInscrits = utilisateurRepository.countByEntrepriseIdAndRole(entrepriseId, Role.EMPLOYE);
 
         return ResponseEntity.ok(DashboardAdminResponse.builder()
             .totalEmployesInscrits(totalInscrits)
