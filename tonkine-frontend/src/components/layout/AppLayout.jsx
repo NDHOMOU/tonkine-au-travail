@@ -23,7 +23,11 @@ const NAV_EMPLOYE = [
 ];
 
 const NAV_ADMIN = [
-  { to: '/admin/dashboard', icon: 'fa-chart-line', label: 'Tableau de bord' },
+  { to: '/admin/dashboard',          icon: 'fa-chart-line',       label: 'Tableau de bord' },
+  { to: '/admin/decision',           icon: 'fa-lightbulb',        label: 'Aide à la décision' },
+  { to: '/admin/comptes',            icon: 'fa-user-shield',      label: 'Comptes admin' },
+  { to: '/admin/journal-connexions', icon: 'fa-clock-rotate-left', label: 'Journal des connexions' },
+  { to: '/admin/entreprise',         icon: 'fa-building',         label: 'Paramètres entreprise' },
 ];
 
 const NAV_KINE = [

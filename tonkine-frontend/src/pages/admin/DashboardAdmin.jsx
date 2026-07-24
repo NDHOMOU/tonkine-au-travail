@@ -1,6 +1,9 @@
 /**
  * DashboardAdmin — Tableau de bord RH
- * Vue globale de la santé posturale de l'entreprise
+ * Vue globale de la santé posturale de l'entreprise (aperçu du jour).
+ * Les autres sections (entreprise, journal, décision, comptes) ont leur
+ * propre onglet dans la sidebar — voir ParametresEntreprise, JournalConnexions,
+ * AideDecision, GestionComptesAdmin.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { adminApi }  from '../../api/adminApi';
@@ -13,28 +16,6 @@ export default function DashboardAdmin() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [envoi,   setEnvoi]   = useState(false);
-
-  // ── Gestion des comptes admin ──
-  const [comptesAdmin, setComptesAdmin]     = useState([]);
-  const [showFormAdmin, setShowFormAdmin]   = useState(false);
-  const [formAdmin, setFormAdmin]           = useState({ prenom:'', nom:'', email:'' });
-  const [creationEnCours, setCreationEnCours] = useState(false);
-  const [reinitEnCours, setReinitEnCours]   = useState(null); // id en cours de reset
-  const [suppressionEnCours, setSuppressionEnCours] = useState(null); // id en cours de suppression
-  const [motDePasseRevele, setMotDePasseRevele] = useState(null); // { email, motDePasseTemporaire }
-
-  // ── Paramètres entreprise ──
-  const [entreprise, setEntreprise]       = useState(null);
-  const [entrepriseModif, setEntrepriseModif] = useState(null);
-  const [sauvegardeEnCours, setSauvegardeEnCours] = useState(false);
-
-  // ── Journal des connexions ──
-  const [journal, setJournal] = useState([]);
-
-  // ── Aide à la décision ──
-  const [analyseDecision, setAnalyseDecision] = useState(null);
-
-  // ── Rapport ──
   const [telechargementEnCours, setTelechargementEnCours] = useState(false);
 
   const charger = useCallback(async () => {
@@ -45,53 +26,7 @@ export default function DashboardAdmin() {
     finally { setLoading(false); }
   }, []);
 
-  const chargerComptesAdmin = useCallback(async () => {
-    try {
-      const { data: comptes } = await adminApi.listerComptesAdmin();
-      setComptesAdmin(comptes);
-    } catch { toast.error('Impossible de charger les comptes admin.'); }
-  }, []);
-
-  const chargerEntreprise = useCallback(async () => {
-    try {
-      const { data } = await adminApi.getEntreprise();
-      setEntreprise(data);
-      setEntrepriseModif(data);
-    } catch { toast.error('Impossible de charger les paramètres de l\'entreprise.'); }
-  }, []);
-
-  const chargerJournal = useCallback(async () => {
-    try {
-      const { data } = await adminApi.getJournalConnexions();
-      setJournal(data);
-    } catch { toast.error('Impossible de charger le journal des connexions.'); }
-  }, []);
-
-  const chargerAnalyseDecision = useCallback(async () => {
-    try {
-      const { data } = await adminApi.getAnalyseDecision();
-      setAnalyseDecision(data);
-    } catch { toast.error('Impossible de charger l\'analyse de tendance.'); }
-  }, []);
-
-  useEffect(() => {
-    charger(); chargerComptesAdmin(); chargerEntreprise(); chargerJournal(); chargerAnalyseDecision();
-  }, [charger, chargerComptesAdmin, chargerEntreprise, chargerJournal, chargerAnalyseDecision]);
-
-  const sauvegarderEntreprise = async (e) => {
-    e.preventDefault();
-    setSauvegardeEnCours(true);
-    try {
-      const { data } = await adminApi.mettreAJourEntreprise(entrepriseModif);
-      setEntreprise(data);
-      setEntrepriseModif(data);
-      toast.success('Paramètres de l\'entreprise mis à jour.');
-    } catch {
-      toast.error('Impossible d\'enregistrer les paramètres.');
-    } finally {
-      setSauvegardeEnCours(false);
-    }
-  };
+  useEffect(() => { charger(); }, [charger]);
 
   const telechargerRapport = async () => {
     setTelechargementEnCours(true);
@@ -105,52 +40,6 @@ export default function DashboardAdmin() {
     }
   };
 
-  const creerAdmin = async (e) => {
-    e.preventDefault();
-    if (!formAdmin.prenom.trim() || !formAdmin.nom.trim() || !formAdmin.email.trim()) {
-      toast.error('Remplissez tous les champs.'); return;
-    }
-    setCreationEnCours(true);
-    try {
-      const { data: r } = await adminApi.creerCompteAdmin(formAdmin.prenom, formAdmin.nom, formAdmin.email);
-      setMotDePasseRevele(r);
-      setFormAdmin({ prenom:'', nom:'', email:'' });
-      setShowFormAdmin(false);
-      chargerComptesAdmin();
-    } catch (err) {
-      toast.error(err.response?.data?.erreur || 'Impossible de créer ce compte.');
-    } finally {
-      setCreationEnCours(false);
-    }
-  };
-
-  const reinitialiserMotDePasse = async (compte) => {
-    setReinitEnCours(compte.id);
-    try {
-      const { data: r } = await adminApi.reinitialiserMotDePasse(compte.id);
-      setMotDePasseRevele(r);
-      chargerComptesAdmin();
-    } catch {
-      toast.error('Impossible de réinitialiser ce mot de passe.');
-    } finally {
-      setReinitEnCours(null);
-    }
-  };
-
-  const supprimerCompteAdmin = async (compte) => {
-    if (!window.confirm(`Supprimer définitivement le compte de ${compte.prenom} ${compte.nom} (${compte.email}) ?`)) return;
-    setSuppressionEnCours(compte.id);
-    try {
-      await adminApi.supprimerCompteAdmin(compte.id);
-      toast.success('Compte supprimé.');
-      chargerComptesAdmin();
-    } catch (err) {
-      toast.error(err.response?.data?.erreur || 'Impossible de supprimer ce compte.');
-    } finally {
-      setSuppressionEnCours(null);
-    }
-  };
-
   const envoyerAlerte = async () => {
     if (!message.trim()) { toast.error('Rédigez un message.'); return; }
     setEnvoi(true);
@@ -158,7 +47,6 @@ export default function DashboardAdmin() {
       const { data: r } = await adminApi.envoyerAlerteCollective(message);
       toast.success(`Message envoyé à ${r.envoyees} employé(s) actifs.`);
       setMessage('');
-      chargerAnalyseDecision();
     } catch { toast.error('Impossible d\'envoyer l\'alerte.'); }
     finally { setEnvoi(false); }
   };
@@ -363,296 +251,6 @@ export default function DashboardAdmin() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Paramètres de l'entreprise ── */}
-      <div className="card" style={{ marginTop:20 }}>
-        <div className="card-head"><h3>Paramètres de l'entreprise</h3></div>
-        {entrepriseModif && (
-          <form onSubmit={sauvegarderEntreprise} style={{ padding:'0 20px 20px', display:'grid',
-            gridTemplateColumns:'repeat(auto-fit, minmax(220px,1fr))', gap:14 }}>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Nom de l'entreprise</div>
-              <input className="form-input" value={entrepriseModif.nom || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, nom: e.target.value }))} required />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Nom affiché de l'application</div>
-              <input className="form-input" value={entrepriseModif.nomApp || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, nomApp: e.target.value }))} />
-            </label>
-            <label style={{ gridColumn:'1 / -1' }}>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Slogan</div>
-              <input className="form-input" value={entrepriseModif.slogan || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, slogan: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>URL du logo</div>
-              <input className="form-input" value={entrepriseModif.logoUrl || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, logoUrl: e.target.value }))} placeholder="https://…" />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Secteur d'activité</div>
-              <input className="form-input" value={entrepriseModif.secteurActivite || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, secteurActivite: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Couleur primaire</div>
-              <input className="form-input" type="color" style={{ height:40, padding:4 }}
-                value={entrepriseModif.couleurPrimaire || '#1353A4'}
-                onChange={e => setEntrepriseModif(v => ({ ...v, couleurPrimaire: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Couleur secondaire</div>
-              <input className="form-input" type="color" style={{ height:40, padding:4 }}
-                value={entrepriseModif.couleurSecondaire || '#0B9B8A'}
-                onChange={e => setEntrepriseModif(v => ({ ...v, couleurSecondaire: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Ville</div>
-              <input className="form-input" value={entrepriseModif.ville || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, ville: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Pays</div>
-              <input className="form-input" value={entrepriseModif.pays || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, pays: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Téléphone</div>
-              <input className="form-input" value={entrepriseModif.telephone || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, telephone: e.target.value }))} />
-            </label>
-            <label>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Email de contact</div>
-              <input className="form-input" type="email" value={entrepriseModif.emailContact || ''}
-                onChange={e => setEntrepriseModif(v => ({ ...v, emailContact: e.target.value }))} />
-            </label>
-            <div style={{ gridColumn:'1 / -1' }}>
-              <button className="btn btn-primary" disabled={sauvegardeEnCours} type="submit">
-                {sauvegardeEnCours ? 'Enregistrement…' : 'Enregistrer'}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-
-      {/* ── Journal des connexions ── */}
-      <div className="card" style={{ marginTop:20 }}>
-        <div className="card-head"><h3>Journal des connexions</h3></div>
-        <div style={{ padding:'8px 0 0' }}>
-          {journal.length === 0 ? (
-            <div className="empty-state" style={{ padding:30 }}>
-              <i className="fa-solid fa-clock-rotate-left" />
-              <p>Aucune connexion enregistrée pour l'instant.</p>
-            </div>
-          ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr><th>Utilisateur</th><th>Rôle</th><th>Adresse IP</th><th>Date</th></tr>
-                </thead>
-                <tbody>
-                  {journal.map((j, i) => (
-                    <tr key={i}>
-                      <td style={{ fontWeight:600 }}>{j.nomComplet}</td>
-                      <td><span className="badge gray">{j.role}</span></td>
-                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{j.adresseIp || '—'}</td>
-                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>
-                        {new Date(j.dateConnexion).toLocaleString('fr-FR')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Aide à la décision ── */}
-      <div className="card" style={{ marginTop:20 }}>
-        <div className="card-head"><h3>Aide à la décision — tendances</h3></div>
-        <div style={{ padding:'8px 20px 20px' }}>
-          {!analyseDecision || analyseDecision.donneesInsuffisantes ? (
-            <div className="empty-state" style={{ padding:30 }}>
-              <i className="fa-solid fa-chart-line" />
-              <p>Pas encore assez de sessions enregistrées sur plusieurs semaines pour dégager une tendance fiable.</p>
-            </div>
-          ) : (
-            <>
-              {analyseDecision.tendanceParDepartement.length > 0 && (
-                <div style={{ marginBottom: 24 }}>
-                  <h4 style={{ fontSize:'.85rem', marginBottom:10 }}>Score de posture moyen par département</h4>
-                  {analyseDecision.tendanceParDepartement.map(dept => (
-                    <div key={dept.departement} style={{ marginBottom:14 }}>
-                      <div style={{ fontSize:'.78rem', fontWeight:600, marginBottom:4 }}>{dept.departement}</div>
-                      <div style={{ display:'flex', gap:6, alignItems:'flex-end', height:60 }}>
-                        {dept.points.map((p, i) => (
-                          <div key={i} title={`${p.semaine} : ${p.valeur ?? '—'}%`}
-                            style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-                            <div style={{
-                              width:'100%', maxWidth:28,
-                              height: p.valeur != null ? Math.max((p.valeur/100)*50, 3) : 2,
-                              background: p.valeur == null ? 'var(--ink-10, #eee)'
-                                : p.valeur < 60 ? '#C0392B' : p.valeur < 80 ? '#E1A100' : '#0B9B8A',
-                              borderRadius:3,
-                            }} />
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{ display:'flex', gap:6 }}>
-                        {dept.points.map((p, i) => (
-                          <div key={i} style={{ flex:1, textAlign:'center', fontSize:'.65rem', color:'var(--ink-60)' }}>
-                            {p.valeur != null ? `${p.valeur}%` : '—'}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div style={{ marginBottom: 24 }}>
-                <h4 style={{ fontSize:'.85rem', marginBottom:10 }}>Employés dont la posture se dégrade</h4>
-                {analyseDecision.employesADegradation.length === 0 ? (
-                  <p style={{ fontSize:'.8rem', color:'var(--ink-60)' }}>Aucun signal de dégradation détecté sur la période.</p>
-                ) : (
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr><th>Employé</th><th>Département</th><th>2 dern. semaines</th><th>2 semaines préc.</th><th>Variation</th></tr>
-                      </thead>
-                      <tbody>
-                        {analyseDecision.employesADegradation.map((e, i) => (
-                          <tr key={i}>
-                            <td style={{ fontWeight:600 }}>{e.nomComplet}</td>
-                            <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{e.departement || '—'}</td>
-                            <td>{e.scoreRecent}%</td>
-                            <td>{e.scorePrecedent}%</td>
-                            <td><span className="badge" style={{ background:'#FCE8E6', color:'#C0392B' }}>{e.variation}%</span></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h4 style={{ fontSize:'.85rem', marginBottom:10 }}>Taux d'alertes suivies d'une pause</h4>
-                <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-                  {analyseDecision.tauxSuiviAlertes.map((p, i) => (
-                    <div key={i} style={{ fontSize:'.78rem', color:'var(--ink-60)' }}>
-                      {p.semaine} : <strong style={{ color:'var(--ink-90, #111)' }}>{p.valeur != null ? `${p.valeur}%` : '—'}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ── Gestion des comptes admin ── */}
-      <div className="card" style={{ marginTop:20 }}>
-        <div className="card-head" style={{ paddingBottom:0 }}>
-          <h3>Gestion des comptes admin</h3>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowFormAdmin(v => !v)}>
-            <i className="fa-solid fa-user-plus" /> Nouvel admin
-          </button>
-        </div>
-
-        {showFormAdmin && (
-          <form onSubmit={creerAdmin} style={{ padding:'16px 20px', borderBottom:'1px solid var(--ink-10, #eee)', display:'flex', gap:10, flexWrap:'wrap', alignItems:'flex-end' }}>
-            <label style={{ flex:'1 1 140px' }}>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Prénom</div>
-              <input className="form-input" value={formAdmin.prenom}
-                onChange={e => setFormAdmin(f => ({ ...f, prenom: e.target.value }))} required />
-            </label>
-            <label style={{ flex:'1 1 140px' }}>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Nom</div>
-              <input className="form-input" value={formAdmin.nom}
-                onChange={e => setFormAdmin(f => ({ ...f, nom: e.target.value }))} required />
-            </label>
-            <label style={{ flex:'2 1 220px' }}>
-              <div style={{ fontSize:'.78rem', marginBottom:4 }}>Email professionnel</div>
-              <input className="form-input" type="email" value={formAdmin.email}
-                onChange={e => setFormAdmin(f => ({ ...f, email: e.target.value }))} required />
-            </label>
-            <button className="btn btn-primary" disabled={creationEnCours} type="submit">
-              {creationEnCours ? 'Création…' : 'Créer le compte'}
-            </button>
-          </form>
-        )}
-
-        <div style={{ padding:'8px 0 0' }}>
-          {comptesAdmin.length === 0 ? (
-            <div className="empty-state" style={{ padding:30 }}>
-              <i className="fa-solid fa-user-shield" />
-              <p>Aucun autre compte admin pour l'instant.</p>
-            </div>
-          ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr><th>Nom</th><th>Email</th><th>Statut</th><th></th></tr>
-                </thead>
-                <tbody>
-                  {comptesAdmin.map(c => (
-                    <tr key={c.id}>
-                      <td style={{ fontWeight:600 }}>{c.prenom} {c.nom}</td>
-                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{c.email}</td>
-                      <td>
-                        <span className={`badge ${c.motDePasseTemporaire ? 'warn' : 'green'}`}>
-                          {c.motDePasseTemporaire ? 'Mot de passe temporaire' : 'Actif'}
-                        </span>
-                      </td>
-                      <td style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                        <button className="btn btn-outline btn-sm"
-                          disabled={reinitEnCours === c.id}
-                          onClick={() => reinitialiserMotDePasse(c)}>
-                          {reinitEnCours === c.id ? 'Réinitialisation…' : 'Réinitialiser le mot de passe'}
-                        </button>
-                        <button className="btn btn-outline btn-sm" style={{ color:'var(--danger, #C0392B)' }}
-                          disabled={suppressionEnCours === c.id}
-                          onClick={() => supprimerCompteAdmin(c)}>
-                          {suppressionEnCours === c.id ? 'Suppression…' : 'Supprimer'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Mot de passe temporaire révélé (une seule fois) ── */}
-      {motDePasseRevele && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(20,20,30,.55)', display:'flex',
-          alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}>
-          <div className="card" style={{ maxWidth:440, width:'100%' }}>
-            <div className="card-head"><h3>Mot de passe temporaire créé</h3></div>
-            <div style={{ padding:'0 20px 20px' }}>
-              <p style={{ fontSize:'.85rem', color:'var(--ink-60)', marginBottom:14 }}>
-                Communiquez-le vous-même à <strong>{motDePasseRevele.email}</strong> — il ne sera
-                plus jamais affiché après fermeture de cette fenêtre. La personne devra le
-                changer dès sa première connexion.
-              </p>
-              <div style={{ background:'var(--sand)', borderRadius:8, padding:'12px 14px',
-                fontFamily:'monospace', fontSize:'1rem', fontWeight:700, letterSpacing:'.5px',
-                userSelect:'all', marginBottom:16, wordBreak:'break-all' }}>
-                {motDePasseRevele.motDePasseTemporaire}
-              </div>
-              <button className="btn btn-primary" style={{ width:'100%' }}
-                onClick={() => setMotDePasseRevele(null)}>
-                J'ai noté le mot de passe, fermer
-              </button>
             </div>
           </div>
         </div>

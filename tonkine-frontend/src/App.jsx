@@ -29,7 +29,11 @@ const ProtocolesCuratifs = lazy(() => import('./pages/employe/ProtocolesCuratifs
 const PriseRdvKine       = lazy(() => import('./pages/employe/PriseRdvKine'));
 
 // Admin RH
-const DashboardAdmin     = lazy(() => import('./pages/admin/DashboardAdmin'));
+const DashboardAdmin       = lazy(() => import('./pages/admin/DashboardAdmin'));
+const AideDecision         = lazy(() => import('./pages/admin/AideDecision'));
+const GestionComptesAdmin  = lazy(() => import('./pages/admin/GestionComptesAdmin'));
+const JournalConnexions    = lazy(() => import('./pages/admin/JournalConnexions'));
+const ParametresEntreprise = lazy(() => import('./pages/admin/ParametresEntreprise'));
 
 // Kinésithérapeute
 const DashboardKine      = lazy(() => import('./pages/kine/DashboardKine'));
@@ -75,7 +79,11 @@ export default function App() {
 
             {/* ── Espace Admin RH ── */}
             <Route element={<ProtectedRoute requiredRole="ADMIN_RH" />}>
-              <Route path="/admin/dashboard"   element={<DashboardAdmin />} />
+              <Route path="/admin/dashboard"          element={<DashboardAdmin />} />
+              <Route path="/admin/decision"           element={<AideDecision />} />
+              <Route path="/admin/comptes"            element={<GestionComptesAdmin />} />
+              <Route path="/admin/journal-connexions" element={<JournalConnexions />} />
+              <Route path="/admin/entreprise"         element={<ParametresEntreprise />} />
             </Route>
 
             {/* ── Espace Kinésithérapeute ── */}
