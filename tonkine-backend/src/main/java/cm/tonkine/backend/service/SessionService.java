@@ -123,11 +123,14 @@ public class SessionService {
             alerte.setDateReponse(LocalDateTime.now());
             alerteRepository.save(alerte);
 
-            // Incrémenter le compteur de pauses de la session
-            alerte.getSession().setNombrePausesEffectuees(
-                alerte.getSession().getNombrePausesEffectuees() + 1
-            );
-            sessionRepository.save(alerte.getSession());
+            // Incrémenter le compteur de pauses de la session (certaines alertes,
+            // ex. surveillance indisponible, n'ont pas de session associée)
+            if (alerte.getSession() != null) {
+                alerte.getSession().setNombrePausesEffectuees(
+                    alerte.getSession().getNombrePausesEffectuees() + 1
+                );
+                sessionRepository.save(alerte.getSession());
+            }
         });
     }
 
