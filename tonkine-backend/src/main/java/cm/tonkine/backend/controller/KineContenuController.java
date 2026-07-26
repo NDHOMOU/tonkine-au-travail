@@ -111,6 +111,7 @@ public class KineContenuController {
     // ── Protocoles curatifs ──
 
     @GetMapping("/protocoles")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ProtocoleResponse>> listerProtocoles(@AuthenticationPrincipal Utilisateur kine) {
         Long entrepriseId = entrepriseId(kine);
         return ResponseEntity.ok(protocoleRepository.findByEntrepriseIdOrderByTitreAsc(entrepriseId)

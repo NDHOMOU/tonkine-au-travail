@@ -12,6 +12,7 @@ import cm.tonkine.backend.repository.ProtocoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -37,6 +38,7 @@ public class CuratifController {
      * ajoutée par le kiné de son entreprise), filtrables par zone.
      */
     @GetMapping("/protocoles")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ProtocoleResponse>> getProtocoles(
             @RequestParam(required = false) ZoneCorps zone,
             @AuthenticationPrincipal Utilisateur utilisateur) {
@@ -54,6 +56,7 @@ public class CuratifController {
      * Progressions de l'employé connecté sur tous ses protocoles en cours.
      */
     @GetMapping("/mes-progressions")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ProgressionProtocoleResponse>> getMesProgressions(
             @AuthenticationPrincipal Utilisateur utilisateur) {
 
@@ -70,6 +73,7 @@ public class CuratifController {
      * Démarre un protocole pour l'employé connecté (ou reprend si déjà existant).
      */
     @PostMapping("/protocoles/{id}/demarrer")
+    @Transactional
     public ResponseEntity<ProgressionProtocoleResponse> demarrerProtocole(
             @PathVariable Long id,
             @AuthenticationPrincipal Utilisateur utilisateur) {

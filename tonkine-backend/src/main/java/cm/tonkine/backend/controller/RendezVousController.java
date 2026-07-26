@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -136,6 +137,7 @@ public class RendezVousController {
      * Historique et prochains RDV de l'employé connecté.
      */
     @GetMapping("/mes-rdv")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> getMesRdv(
             @AuthenticationPrincipal Utilisateur employe) {
 
