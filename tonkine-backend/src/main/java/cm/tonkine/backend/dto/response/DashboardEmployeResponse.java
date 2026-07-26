@@ -12,6 +12,7 @@ public class DashboardEmployeResponse {
     private Long    userId;
     private String  nomComplet;
     private String  departement;
+    private String  douleursDeclarees;
 
     // ── Scores posture du jour ──
     private Double scoreDosColonne;

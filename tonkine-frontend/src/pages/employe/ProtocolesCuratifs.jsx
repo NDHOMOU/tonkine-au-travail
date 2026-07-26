@@ -22,7 +22,8 @@ export default function ProtocolesCuratifs() {
   const [protocoles,    setProtocoles]    = useState([]);
   const [progressions,  setProgressions]  = useState([]);
   const [loading,       setLoading]       = useState(true);
-  const [alerteDouleur, setAlerteDouleur] = useState(true);
+  const [alerteDouleur, setAlerteDouleur] = useState(false);
+  const [douleurs,      setDouleurs]      = useState('');
 
   const charger = useCallback(async () => {
     try {
@@ -37,6 +38,19 @@ export default function ProtocolesCuratifs() {
   }, [zoneActive]);
 
   useEffect(() => { charger(); }, [charger]);
+
+  // La bannière ne s'affiche que si l'employé a réellement déclaré une douleur
+  // dans son profil (pas un simple avertissement générique pour tout le monde).
+  useEffect(() => {
+    client.get('/dashboard/employe')
+      .then(r => {
+        if (r.data?.douleursDeclarees) {
+          setDouleurs(r.data.douleursDeclarees);
+          setAlerteDouleur(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const demarrerProtocole = async (protocoleId) => {
     try {
@@ -59,7 +73,7 @@ export default function ProtocolesCuratifs() {
           <div style={{ flex:1 }}>
             <strong>Douleur active détectée</strong>
             <div style={{ fontSize:'.78rem', marginTop:2 }}>
-              Votre profil indique des douleurs déclarées. Ces protocoles sont des compléments — consultez votre kinésithérapeute pour un suivi personnalisé.
+              Votre profil indique : « {douleurs} ». Ces protocoles sont des compléments — consultez votre kinésithérapeute pour un suivi personnalisé.
             </div>
           </div>
           <button className="btn btn-outline btn-sm" style={{ flexShrink:0 }}

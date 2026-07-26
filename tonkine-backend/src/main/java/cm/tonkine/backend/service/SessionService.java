@@ -217,6 +217,7 @@ public class SessionService {
             .userId(utilisateur.getId())
             .nomComplet(utilisateur.getNomComplet())
             .departement(utilisateur.getDepartement())
+            .douleursDeclarees(profil != null ? profil.getDouleursDeclarees() : null)
             .scoreDosColonne(session != null ? session.getScoreDosColonne() : null)
             .scoreNuque(session != null ? session.getScoreNuque() : null)
             .scoreEpaules(session != null ? session.getScoreEpaules() : null)
