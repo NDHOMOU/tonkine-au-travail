@@ -184,7 +184,7 @@ export default function DashboardKine() {
                           <span style={{ fontWeight:700, fontSize:'.92rem' }}>{p.nomComplet}</span>
                           <span className="badge gray">{p.departement}</span>
                           <span className="badge gray">{p.poste}</span>
-                          {p.aConseilEnAttente && (
+                          {p.conseilEnAttente && (
                             <span className={p.niveauUrgenceConseil === 'URGENT' ? 'pill-urgent' : 'badge warn'}>
                               <i className="fa-solid fa-comment-medical" style={{ marginRight:3 }} />
                               {p.niveauUrgenceConseil === 'URGENT' ? 'Conseil urgent' : 'Conseil en attente'}

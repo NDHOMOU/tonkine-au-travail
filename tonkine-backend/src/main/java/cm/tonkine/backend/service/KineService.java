@@ -79,7 +79,7 @@ public class KineService {
                 .douleursDeclarees(
                     u.getProfil() != null ? u.getProfil().getDouleursDeclarees() : null
                 )
-                .aConseilEnAttente(false)
+                .conseilEnAttente(false)
                 .build())
             .collect(Collectors.toList());
 
@@ -201,7 +201,7 @@ public class KineService {
             .douleursDeclarees(
                 employe.getProfil() != null ? employe.getProfil().getDouleursDeclarees() : null
             )
-            .aConseilEnAttente(aConseil)
+            .conseilEnAttente(aConseil)
             .niveauUrgenceConseil(urgenceConseil)
             .build();
     }

@@ -40,6 +40,10 @@ public class PatientSuiviKineResponse {
     private String douleursDeclarees;
 
     // ── Conseil en attente pour cet employé ──
-    private boolean aConseilEnAttente;
+    // Nommé sans article ("conseil" pas "aConseil") : un champ booléen dont le nom
+    // commence par deux majuscules consécutives après le préfixe "is" du getter
+    // (isAConseilEnAttente) est mal décapitalisé par Jackson ("aconseilEnAttente"),
+    // ce qui cassait la lecture côté frontend (p.aConseilEnAttente restait undefined).
+    private boolean conseilEnAttente;
     private String niveauUrgenceConseil;         // NORMAL ou URGENT
 }
