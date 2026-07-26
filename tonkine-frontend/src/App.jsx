@@ -40,7 +40,6 @@ const ParametresEntreprise = lazy(() => import('./pages/admin/ParametresEntrepri
 const DashboardKine      = lazy(() => import('./pages/kine/DashboardKine'));
 const ConseilsKine       = lazy(() => import('./pages/kine/ConseilsKine'));
 const ExercicesKine      = lazy(() => import('./pages/kine/ExercicesKine'));
-const ProtocolesKine     = lazy(() => import('./pages/kine/ProtocolesKine'));
 const ProduitsKine       = lazy(() => import('./pages/kine/ProduitsKine'));
 
 const Loading = () => (
@@ -97,7 +96,7 @@ export default function App() {
               <Route path="/kine/dashboard"  element={<DashboardKine />} />
               <Route path="/kine/conseils"   element={<ConseilsKine />} />
               <Route path="/kine/exercices"  element={<ExercicesKine />} />
-              <Route path="/kine/protocoles" element={<ProtocolesKine />} />
+              <Route path="/kine/protocoles" element={<Navigate to="/kine/exercices" replace />} />
               <Route path="/kine/produits"   element={<ProduitsKine />} />
             </Route>
 

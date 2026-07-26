@@ -34,8 +34,7 @@ const NAV_ADMIN = [
 const NAV_KINE = [
   { to: '/kine/dashboard',  icon: 'fa-stethoscope',      label: 'Tableau de bord'  },
   { to: '/kine/conseils',   icon: 'fa-comment-medical',  label: 'Conseils'         },
-  { to: '/kine/exercices',  icon: 'fa-dumbbell',         label: 'Bibliothèque exercices' },
-  { to: '/kine/protocoles', icon: 'fa-kit-medical',      label: 'Protocoles curatifs' },
+  { to: '/kine/exercices',  icon: 'fa-dumbbell',         label: 'Exercices & protocoles' },
   { to: '/kine/produits',   icon: 'fa-briefcase-medical', label: 'Recommandations produits' },
 ];
 
