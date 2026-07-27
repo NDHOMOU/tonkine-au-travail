@@ -8,4 +8,8 @@ export const exerciceApi = {
   /** GET /api/exercices/personnalises — filtrés selon les hobbies du profil */
   getExercicesPersonnalises: () =>
     client.get('/exercices/personnalises'),
+
+  /** POST /api/exercices/:id/terminer */
+  terminerExercice: (id) =>
+    client.post(`/exercices/${id}/terminer`),
 };

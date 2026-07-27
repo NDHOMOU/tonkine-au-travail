@@ -232,6 +232,19 @@ public class SessionService {
     }
 
     /**
+     * L'employé marque un exercice comme terminé — incrémente le compteur du
+     * jour sur sa session en cours (sans session ouverte, ne fait rien : pas
+     * de journée de travail en cours à laquelle rattacher le geste).
+     */
+    @Transactional
+    public void marquerExerciceComplete(Utilisateur utilisateur) {
+        sessionRepository.findByUtilisateurAndDateFinIsNull(utilisateur).ifPresent(session -> {
+            session.setNombreExercicesCompletes(session.getNombreExercicesCompletes() + 1);
+            sessionRepository.save(session);
+        });
+    }
+
+    /**
      * Construit le DTO du tableau de bord employé.
      */
     @Transactional(readOnly = true)
@@ -274,6 +287,7 @@ public class SessionService {
             .nombrePausesEffectuees(session != null ? session.getNombrePausesEffectuees() : 0)
             .nombrePausesObjectif(4)
             .nombreAlertesIgnorees(session != null ? session.getNombreAlertesIgnorees() : 0)
+            .exercicesCompletesAujourdhui(session != null ? session.getNombreExercicesCompletes() : 0)
             .exercicesDuJour(exercicesDuJour)
             .alertesSession(alertesSession)
             .hauteurSiegeRecommandeCm(profil != null ? profil.getHauteurSiegeRecommandeCm() : null)

@@ -6,6 +6,7 @@ import cm.tonkine.backend.entity.Utilisateur;
 import cm.tonkine.backend.enums.ZoneCorps;
 import cm.tonkine.backend.repository.ExerciceRepository;
 import cm.tonkine.backend.repository.ProfilErgonomiqueRepository;
+import cm.tonkine.backend.service.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +28,7 @@ public class ExerciceController {
 
     private final ExerciceRepository       exerciceRepository;
     private final ProfilErgonomiqueRepository profilRepository;
+    private final SessionService           sessionService;
 
     /**
      * GET /api/exercices
@@ -75,6 +78,20 @@ public class ExerciceController {
                 return ResponseEntity.ok(resultats);
             })
             .orElseGet(() -> ResponseEntity.ok(List.of()));
+    }
+
+    /**
+     * POST /api/exercices/{id}/terminer
+     * L'employé marque un exercice comme terminé — incrémente le compteur
+     * "Exercices complétés" du jour (auparavant purement cosmétique côté
+     * frontend, jamais envoyé au serveur).
+     */
+    @PostMapping("/{id}/terminer")
+    public ResponseEntity<Map<String, String>> terminerExercice(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+        sessionService.marquerExerciceComplete(utilisateur);
+        return ResponseEntity.ok(Map.of("message", "Exercice enregistré comme terminé"));
     }
 
     private ExerciceResponse toResponse(Exercice e) {

@@ -5,6 +5,10 @@ export const dashboardApi = {
   getDashboardEmploye: () =>
     client.get('/dashboard/employe'),
 
+  /** GET /api/dashboard/mes-progres — évolution personnelle sur plusieurs semaines */
+  getMesProgres: () =>
+    client.get('/dashboard/mes-progres'),
+
   /** GET /api/admin/dashboard — vue RH complète */
   getDashboardAdmin: () =>
     client.get('/admin/dashboard'),

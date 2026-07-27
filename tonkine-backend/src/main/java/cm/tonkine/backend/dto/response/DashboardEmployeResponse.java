@@ -33,6 +33,7 @@ public class DashboardEmployeResponse {
     private int    nombrePausesObjectif;
     private int    nombreAlertesIgnorees;
     private int    joursConsecutifsSansAlerteCritique;
+    private int    exercicesCompletesAujourdhui;
 
     // ── Exercices du jour ──
     private List<ExerciceResponse> exercicesDuJour;

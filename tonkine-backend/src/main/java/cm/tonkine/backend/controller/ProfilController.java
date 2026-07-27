@@ -2,10 +2,13 @@ package cm.tonkine.backend.controller;
 
 import cm.tonkine.backend.dto.request.ChangerMotDePasseRequest;
 import cm.tonkine.backend.dto.request.Confirmer2FARequest;
+import cm.tonkine.backend.dto.request.MettreAJourProfilRequest;
 import cm.tonkine.backend.dto.request.PhotoProfilRequest;
 import cm.tonkine.backend.dto.response.Activer2FAResponse;
+import cm.tonkine.backend.dto.response.MonProfilResponse;
 import cm.tonkine.backend.entity.Utilisateur;
 import cm.tonkine.backend.service.AuthService;
+import cm.tonkine.backend.service.ProfilErgonomiqueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,30 @@ import java.util.Map;
 public class ProfilController {
 
     private final AuthService authService;
+    private final ProfilErgonomiqueService profilErgonomiqueService;
+
+    /**
+     * GET /api/profil/mon-profil
+     * Profil ergonomique complet de l'utilisateur connecté (mesures,
+     * poste actuel, douleurs déclarées, hobbies, planning).
+     */
+    @GetMapping("/mon-profil")
+    public ResponseEntity<MonProfilResponse> getMonProfil(
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+        return ResponseEntity.ok(profilErgonomiqueService.getMonProfil(utilisateur));
+    }
+
+    /**
+     * PUT /api/profil/ergonomique
+     * Met à jour son propre profil ergonomique — recalcule automatiquement
+     * la configuration de poste recommandée (hauteur siège/bureau/écran).
+     */
+    @PutMapping("/ergonomique")
+    public ResponseEntity<MonProfilResponse> mettreAJourProfil(
+            @Valid @RequestBody MettreAJourProfilRequest request,
+            @AuthenticationPrincipal Utilisateur utilisateur) {
+        return ResponseEntity.ok(profilErgonomiqueService.mettreAJourProfil(utilisateur, request));
+    }
 
     /**
      * PUT /api/profil/mot-de-passe

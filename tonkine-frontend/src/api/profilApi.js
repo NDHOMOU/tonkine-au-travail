@@ -15,9 +15,9 @@ export const profilApi = {
     });
   },
 
-  /** PUT /api/profil/hobbies */
-  mettreAJourHobbies: (hobbies) =>
-    client.put('/profil/hobbies', { hobbies }),
+  /** PUT /api/profil/ergonomique */
+  mettreAJourProfil: (profil) =>
+    client.put('/profil/ergonomique', profil),
 
   /** PUT /api/profil/mot-de-passe */
   changerMotDePasse: (ancienMotDePasse, nouveauMotDePasse) =>

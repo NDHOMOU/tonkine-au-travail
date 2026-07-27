@@ -43,6 +43,10 @@ public class SessionTravail {
     @Builder.Default
     private Integer nombrePausesEffectuees = 0;
 
+    /** Nombre d'exercices marqués comme terminés aujourd'hui */
+    @Builder.Default
+    private Integer nombreExercicesCompletes = 0;
+
     /** Nombre d'alertes envoyées */
     @Builder.Default
     private Integer nombreAlertesEnvoyees = 0;

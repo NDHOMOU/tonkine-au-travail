@@ -41,6 +41,16 @@ export default function Exercices() {
     setEtapeIdx(0);
   };
 
+  const terminer = async (ex) => {
+    setEnCours(null);
+    try {
+      await exerciceApi.terminerExercice(ex.id);
+      toast.success('Exercice terminé ! Bien joué 💪');
+    } catch {
+      toast.error('Terminé, mais impossible d\'enregistrer côté serveur.');
+    }
+  };
+
   const etapes = enCours
     ? (typeof enCours.etapesJson === 'string'
         ? JSON.parse(enCours.etapesJson || '[]')
@@ -176,7 +186,7 @@ export default function Exercices() {
                 </div>
                 <h3 style={{ fontFamily:'var(--f-serif)', fontSize:'1.1rem', fontWeight:300 }}>{enCours.titre}</h3>
               </div>
-              <button className="btn btn-outline btn-sm" onClick={() => { setEnCours(null); toast.success('Exercice terminé ! Bien joué 💪'); }}>
+              <button className="btn btn-outline btn-sm" onClick={() => terminer(enCours)}>
                 ✕ Terminer
               </button>
             </div>
@@ -211,7 +221,7 @@ export default function Exercices() {
                   </button>
                 ) : (
                   <button className="btn btn-primary" style={{ flex:1 }}
-                    onClick={() => { setEnCours(null); toast.success('Exercice terminé ! Bien joué 💪'); }}>
+                    onClick={() => terminer(enCours)}>
                     <i className="fa-solid fa-check" /> Terminer
                   </button>
                 )}

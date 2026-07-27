@@ -15,6 +15,7 @@ const TAILLE_MAX_PHOTO = 2 * 1024 * 1024; // 2 Mo
 // ── Navigation par rôle ──
 const NAV_EMPLOYE = [
   { to: '/employe/dashboard',  icon: 'fa-gauge',       label: 'Tableau de bord'     },
+  { to: '/employe/progres',    icon: 'fa-chart-line',  label: 'Mes progrès'          },
   { to: '/employe/posture',    icon: 'fa-person-rays', label: 'Ma posture'           },
   { to: '/employe/exercices',  icon: 'fa-dumbbell',    label: 'Exercices'            },
   { to: '/employe/curatif',    icon: 'fa-kit-medical', label: 'Protocoles curatifs'  },
@@ -22,6 +23,7 @@ const NAV_EMPLOYE = [
   { to: '/employe/ajustement-poste', icon: 'fa-chair', label: 'Ajuster mon poste' },
   { to: '/employe/rdv',        icon: 'fa-calendar-check', label: 'Mon kiné / RDV'   },
   { to: '/employe/conseils',   icon: 'fa-comment-medical', label: 'Conseils santé'  },
+  { to: '/employe/profil',     icon: 'fa-id-card',     label: 'Mon profil'          },
 ];
 
 const NAV_ADMIN = [
