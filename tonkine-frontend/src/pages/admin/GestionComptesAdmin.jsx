@@ -9,19 +9,25 @@ import toast          from 'react-hot-toast';
 
 export default function GestionComptesAdmin() {
   const [comptesAdmin, setComptesAdmin]     = useState([]);
+  const [employes,      setEmployes]        = useState([]);
   const [loading, setLoading]               = useState(true);
   const [showFormAdmin, setShowFormAdmin]   = useState(false);
   const [formAdmin, setFormAdmin]           = useState({ prenom:'', nom:'', email:'' });
   const [creationEnCours, setCreationEnCours] = useState(false);
   const [reinitEnCours, setReinitEnCours]   = useState(null);
   const [suppressionEnCours, setSuppressionEnCours] = useState(null);
+  const [desactivationEnCours, setDesactivationEnCours] = useState(null);
   const [motDePasseRevele, setMotDePasseRevele] = useState(null);
 
   const charger = useCallback(async () => {
     try {
-      const { data: comptes } = await adminApi.listerComptesAdmin();
+      const [{ data: comptes }, { data: emps }] = await Promise.all([
+        adminApi.listerComptesAdmin(),
+        adminApi.listerEmployes(),
+      ]);
       setComptesAdmin(comptes);
-    } catch { toast.error('Impossible de charger les comptes admin.'); }
+      setEmployes(emps);
+    } catch { toast.error('Impossible de charger les comptes.'); }
     finally { setLoading(false); }
   }, []);
 
@@ -70,6 +76,20 @@ export default function GestionComptesAdmin() {
       toast.error(err.response?.data?.erreur || 'Impossible de supprimer ce compte.');
     } finally {
       setSuppressionEnCours(null);
+    }
+  };
+
+  const desactiverEmploye = async (emp) => {
+    if (!window.confirm(`Désactiver le compte de ${emp.prenom} ${emp.nom} (${emp.email}) ? Il ne pourra plus se connecter, mais son historique est conservé.`)) return;
+    setDesactivationEnCours(emp.id);
+    try {
+      await adminApi.desactiverEmploye(emp.id);
+      toast.success('Compte désactivé.');
+      charger();
+    } catch (err) {
+      toast.error(err.response?.data?.erreur || 'Impossible de désactiver ce compte.');
+    } finally {
+      setDesactivationEnCours(null);
     }
   };
 
@@ -141,6 +161,54 @@ export default function GestionComptesAdmin() {
                           onClick={() => supprimerCompteAdmin(c)}>
                           {suppressionEnCours === c.id ? 'Suppression…' : 'Supprimer'}
                         </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop:20 }}>
+        <div className="card-head"><h3>Comptes employés ({employes.length})</h3></div>
+        <div style={{ padding:'8px 0 0' }}>
+          {employes.length === 0 ? (
+            <div className="empty-state" style={{ padding:30 }}>
+              <i className="fa-solid fa-users" />
+              <p>Aucun employé inscrit pour l'instant.</p>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Nom</th><th>Email</th><th>Département</th><th>Statut</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {employes.map(e => (
+                    <tr key={e.id}>
+                      <td style={{ fontWeight:600 }}>{e.prenom} {e.nom}</td>
+                      <td style={{ color:'var(--ink-60)', fontSize:'.78rem' }}>{e.email}</td>
+                      <td>{e.departement || '—'}</td>
+                      <td>
+                        <span className={`badge ${e.actif ? 'green' : 'gray'}`}>
+                          {e.actif ? 'Actif' : 'Désactivé'}
+                        </span>
+                      </td>
+                      <td style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                        <button className="btn btn-outline btn-sm"
+                          disabled={reinitEnCours === e.id}
+                          onClick={() => reinitialiserMotDePasse(e)}>
+                          {reinitEnCours === e.id ? 'Réinitialisation…' : 'Réinitialiser le mot de passe'}
+                        </button>
+                        {e.actif && (
+                          <button className="btn btn-outline btn-sm" style={{ color:'var(--danger, #C0392B)' }}
+                            disabled={desactivationEnCours === e.id}
+                            onClick={() => desactiverEmploye(e)}>
+                            {desactivationEnCours === e.id ? 'Désactivation…' : 'Désactiver'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

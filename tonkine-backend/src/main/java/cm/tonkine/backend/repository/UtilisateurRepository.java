@@ -29,6 +29,9 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     /** Tous les employés actifs d'une entreprise, par rôle */
     List<Utilisateur> findByEntrepriseIdAndRoleAndActifTrue(Long entrepriseId, Role role);
 
+    /** Tous les employés d'une entreprise (actifs et désactivés), par rôle — gestion des comptes */
+    List<Utilisateur> findByEntrepriseIdAndRoleOrderByNomAsc(Long entrepriseId, Role role);
+
     /** Tous les utilisateurs actifs d'une entreprise (tous rôles) */
     List<Utilisateur> findByEntrepriseIdAndActifTrue(Long entrepriseId);
 

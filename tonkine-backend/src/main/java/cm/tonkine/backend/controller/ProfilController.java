@@ -35,7 +35,7 @@ public class ProfilController {
             @Valid @RequestBody ChangerMotDePasseRequest request,
             @AuthenticationPrincipal Utilisateur utilisateur) {
 
-        authService.changerMotDePasse(utilisateur, request.getNouveauMotDePasse());
+        authService.changerMotDePasse(utilisateur, request.getAncienMotDePasse(), request.getNouveauMotDePasse());
         return ResponseEntity.ok(Map.of("message", "Mot de passe mis à jour"));
     }
 

@@ -120,8 +120,8 @@ public class AdminController {
                 .build())
             .collect(Collectors.toList());
 
-        // Compte uniquement les employés (pas l'admin ni le kiné) de cette entreprise
-        long totalInscrits = utilisateurRepository.countByEntrepriseIdAndRole(entrepriseId, Role.EMPLOYE);
+        // Compte uniquement les employés actifs (pas l'admin ni le kiné, pas les désactivés)
+        long totalInscrits = utilisateurRepository.countByEntrepriseIdAndRoleAndActifTrue(entrepriseId, Role.EMPLOYE);
 
         return ResponseEntity.ok(DashboardAdminResponse.builder()
             .totalEmployesInscrits(totalInscrits)
@@ -318,6 +318,69 @@ public class AdminController {
 
         auditService.enregistrer(adminRh, "SUPPRESSION_COMPTE_ADMIN",
             "Compte admin supprimé : " + emailSupprime);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * GET /api/admin/employes
+     * Liste tous les employés (actifs et désactivés) de l'entreprise, pour
+     * la gestion des comptes — pas seulement ceux actifs aujourd'hui.
+     */
+    @GetMapping("/employes")
+    public ResponseEntity<List<EmployeCompteResponse>> listerEmployes(
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Long entrepriseId = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        if (entrepriseId == null) return ResponseEntity.status(403).build();
+
+        List<EmployeCompteResponse> employes = utilisateurRepository
+            .findByEntrepriseIdAndRoleOrderByNomAsc(entrepriseId, Role.EMPLOYE).stream()
+            .map(u -> EmployeCompteResponse.builder()
+                .id(u.getId())
+                .prenom(u.getPrenom())
+                .nom(u.getNom())
+                .email(u.getEmail())
+                .departement(u.getDepartement())
+                .poste(u.getPoste())
+                .actif(u.isActif())
+                .dateCreation(u.getDateCreation())
+                .build())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(employes);
+    }
+
+    /**
+     * DELETE /api/admin/employes/{id}
+     * Désactive un compte employé (départ, doublon, compte de test) — pas de
+     * suppression physique : l'historique de posture/RDV/conseils reste
+     * conservé. Le compte désactivé ne peut plus se connecter.
+     */
+    @DeleteMapping("/employes/{id}")
+    @Transactional
+    public ResponseEntity<Void> desactiverEmploye(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Utilisateur adminRh) {
+
+        Utilisateur cible = utilisateurRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        Long entrepriseAdmin = adminRh.getEntreprise() != null ? adminRh.getEntreprise().getId() : null;
+        Long entrepriseCible = cible.getEntreprise()   != null ? cible.getEntreprise().getId()   : null;
+        if (entrepriseAdmin == null || !entrepriseAdmin.equals(entrepriseCible)) {
+            throw new AccessDeniedException("Cet utilisateur n'appartient pas à votre entreprise");
+        }
+
+        if (cible.getRole() != Role.EMPLOYE) {
+            throw new IllegalArgumentException("Seuls les comptes employés peuvent être désactivés ici");
+        }
+
+        cible.setActif(false);
+        utilisateurRepository.save(cible);
+
+        auditService.enregistrer(adminRh, "DESACTIVATION_COMPTE_EMPLOYE",
+            "Compte employé désactivé : " + cible.getEmail());
 
         return ResponseEntity.noContent().build();
     }

@@ -20,8 +20,8 @@ export const profilApi = {
     client.put('/profil/hobbies', { hobbies }),
 
   /** PUT /api/profil/mot-de-passe */
-  changerMotDePasse: (nouveauMotDePasse) =>
-    client.put('/profil/mot-de-passe', { nouveauMotDePasse }),
+  changerMotDePasse: (ancienMotDePasse, nouveauMotDePasse) =>
+    client.put('/profil/mot-de-passe', { ancienMotDePasse, nouveauMotDePasse }),
 
   /** PUT /api/profil/avatar — photo de profil (identification professionnelle) */
   mettreAJourAvatar: (photoBase64) =>

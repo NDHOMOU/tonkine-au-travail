@@ -13,6 +13,7 @@ export default function ChangerMotDePasseObligatoire() {
   const { user, isAuthenticated, updateUser } = useAuth();
   const navigate = useNavigate();
 
+  const [ancienMotDePasse, setAncienMotDePasse] = useState('');
   const [motDePasse, setMotDePasse]         = useState('');
   const [confirmation, setConfirmation]     = useState('');
   const [loading, setLoading]               = useState(false);
@@ -37,7 +38,7 @@ export default function ChangerMotDePasseObligatoire() {
 
     setLoading(true);
     try {
-      await profilApi.changerMotDePasse(motDePasse);
+      await profilApi.changerMotDePasse(ancienMotDePasse, motDePasse);
       updateUser({ motDePasseTemporaire: false });
       toast.success('Mot de passe mis à jour !');
 
@@ -79,6 +80,19 @@ export default function ChangerMotDePasseObligatoire() {
 
         <form onSubmit={handleSubmit}>
           <label>
+            Mot de passe actuel (communiqué par votre administrateur)
+            <input
+              type="password"
+              value={ancienMotDePasse}
+              onChange={e => setAncienMotDePasse(e.target.value)}
+              placeholder="Mot de passe temporaire"
+              required
+              autoComplete="current-password"
+              autoFocus
+            />
+          </label>
+
+          <label>
             Nouveau mot de passe
             <input
               type="password"
@@ -87,7 +101,6 @@ export default function ChangerMotDePasseObligatoire() {
               placeholder="8 caractères minimum"
               required
               autoComplete="new-password"
-              autoFocus
             />
           </label>
 

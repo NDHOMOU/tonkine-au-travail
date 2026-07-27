@@ -186,9 +186,14 @@ public class AuthService {
     /**
      * Change le mot de passe de l'utilisateur connecté et lève le drapeau
      * "mot de passe temporaire" (première connexion après création/reset par un admin).
+     * SÉCURITÉ : exige l'ancien mot de passe — un jeton JWT volé ne doit pas
+     * suffire à lui seul pour prendre le contrôle définitif d'un compte.
      */
     @Transactional
-    public void changerMotDePasse(Utilisateur utilisateur, String nouveauMotDePasse) {
+    public void changerMotDePasse(Utilisateur utilisateur, String ancienMotDePasse, String nouveauMotDePasse) {
+        if (!passwordEncoder.matches(ancienMotDePasse, utilisateur.getMotDePasse())) {
+            throw new IllegalArgumentException("Mot de passe actuel incorrect");
+        }
         utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
         utilisateur.setMotDePasseTemporaire(false);
         utilisateurRepository.save(utilisateur);

@@ -25,6 +25,14 @@ export const adminApi = {
   supprimerCompteAdmin: (userId) =>
     client.delete(`/admin/comptes-admin/${userId}`),
 
+  /** GET /api/admin/employes */
+  listerEmployes: () =>
+    client.get('/admin/employes'),
+
+  /** DELETE /api/admin/employes/{id} — désactivation, pas de suppression physique */
+  desactiverEmploye: (userId) =>
+    client.delete(`/admin/employes/${userId}`),
+
   /** GET /api/admin/entreprise */
   getEntreprise: () =>
     client.get('/admin/entreprise'),
