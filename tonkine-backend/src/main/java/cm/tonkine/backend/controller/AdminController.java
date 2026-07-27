@@ -18,6 +18,7 @@ import cm.tonkine.backend.repository.UtilisateurRepository;
 import cm.tonkine.backend.service.AnalyseDecisionService;
 import cm.tonkine.backend.service.AuditService;
 import cm.tonkine.backend.service.RapportService;
+import cm.tonkine.backend.service.SessionService;
 import cm.tonkine.backend.util.MotDePasseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,7 @@ public class AdminController {
     private final RapportService             rapportService;
     private final AnalyseDecisionService      analyseDecisionService;
     private final AuditService               auditService;
+    private final SessionService             sessionService;
     private final PasswordEncoder            passwordEncoder;
 
     /**
@@ -378,6 +380,7 @@ public class AdminController {
 
         cible.setActif(false);
         utilisateurRepository.save(cible);
+        sessionService.fermerSessionSiOuverte(cible);
 
         auditService.enregistrer(adminRh, "DESACTIVATION_COMPTE_EMPLOYE",
             "Compte employé désactivé : " + cible.getEmail());

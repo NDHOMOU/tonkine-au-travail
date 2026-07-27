@@ -90,6 +90,22 @@ public class SessionService {
     }
 
     /**
+     * Ferme la session ouverte d'un employé, si elle existe — appelé quand
+     * un admin désactive son compte. Sans ça, la session resterait "ouverte"
+     * pour toujours : l'employé ne peut plus se connecter pour déclencher la
+     * fermeture automatique du garde-fou de ouvrirSession(), et continuerait
+     * donc à apparaître comme "actif aujourd'hui" indéfiniment.
+     */
+    @Transactional
+    public void fermerSessionSiOuverte(Utilisateur utilisateur) {
+        sessionRepository.findByUtilisateurAndDateFinIsNull(utilisateur).ifPresent(session -> {
+            session.setDateFin(LocalDateTime.now());
+            session.calculerScoreGlobal();
+            sessionRepository.save(session);
+        });
+    }
+
+    /**
      * Enregistre une mesure posture (envoyée par TensorFlow.js React) toutes
      * les ~5 secondes pendant la surveillance webcam. Déclenche une alerte si
      * score critique ou seuil 2h de position assise atteint — et retourne
