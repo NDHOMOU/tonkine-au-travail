@@ -2,6 +2,7 @@ package cm.tonkine.backend.controller;
 
 import cm.tonkine.backend.dto.request.MesurePostureRequest;
 import cm.tonkine.backend.dto.request.SignalerIndisponibiliteRequest;
+import cm.tonkine.backend.dto.response.AlerteResponse;
 import cm.tonkine.backend.entity.Utilisateur;
 import cm.tonkine.backend.service.SessionService;
 import jakarta.validation.Valid;
@@ -29,11 +30,11 @@ public class PostureController {
      * Appelé environ toutes les 5 secondes pendant la surveillance webcam.
      */
     @PostMapping("/mesure")
-    public ResponseEntity<Void> enregistrerMesure(
+    public ResponseEntity<AlerteResponse> enregistrerMesure(
             @Valid @RequestBody MesurePostureRequest req,
             @AuthenticationPrincipal Utilisateur utilisateur) {
-        sessionService.enregistrerMesure(req, utilisateur);
-        return ResponseEntity.ok().build();
+        AlerteResponse alerte = sessionService.enregistrerMesure(req, utilisateur);
+        return ResponseEntity.ok(alerte);
     }
 
     /**

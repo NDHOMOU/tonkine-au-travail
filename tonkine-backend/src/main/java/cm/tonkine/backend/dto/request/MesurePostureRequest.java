@@ -16,4 +16,7 @@ public class MesurePostureRequest {
 
     private Double angleDegres;
     private Double angleReferenceNorme;
+
+    /** true si la personne vient d'être détectée debout — remet le temps assis à zéro côté serveur */
+    private Boolean estDebout = false;
 }

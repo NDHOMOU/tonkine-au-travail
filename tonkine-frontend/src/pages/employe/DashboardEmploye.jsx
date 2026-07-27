@@ -18,27 +18,33 @@ export default function DashboardEmploye() {
   const [alerteOuverte, setAlerteOuverte] = useState(false);
   const [alerteActive, setAlerteActive]   = useState(null);
 
+  // ── Timer 2h — l'affichage se recale sur la vraie durée suivie par le
+  // serveur au chargement, plutôt que de toujours repartir de zéro ──
+  const { formatted, progressPct, reset: resetTimer, synchroniser: synchroniserTimer } = useTimer({
+    onAlert: () => {
+      // Repli purement local si la webcam est désactivée (aucune donnée ne
+      // remonte au serveur dans ce cas — impossible de faire mieux)
+      if (!alerteActive) {
+        setAlerteOuverte(true);
+        jouerSon();
+      }
+    },
+  });
+
   // ── Charge les données du tableau de bord ──
   const chargerDashboard = useCallback(async () => {
     try {
       const { data } = await dashboardApi.getDashboardEmploye();
       setDashboard(data);
+      synchroniserTimer(data.dureeAssisCourantSecondes ?? 0);
     } catch (err) {
       toast.error('Impossible de charger le tableau de bord.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [synchroniserTimer]);
 
   useEffect(() => { chargerDashboard(); }, [chargerDashboard]);
-
-  // ── Timer 2h ──
-  const { formatted, progressPct, reset: resetTimer } = useTimer({
-    onAlert: () => {
-      setAlerteOuverte(true);
-      jouerSon();
-    },
-  });
 
   // ── Détection posture TensorFlow.js ──
   const { isActive, activer, desactiver, lastScores, videoRef } =
@@ -50,8 +56,17 @@ export default function DashboardEmploye() {
         setDashboard(prev => prev ? { ...prev, ...scores } : prev);
       },
       onStanding: () => {
-        // Détection debout → remet le timer à zéro
+        // Détection debout → remet le timer à zéro (le serveur se remet
+        // aussi à zéro via le flag estDebout envoyé avec la mesure)
         resetTimer();
+      },
+      onAlertePause: (alerte) => {
+        // Alerte réelle créée par le serveur (temps assis suivi côté
+        // serveur, pas le minuteur local) — celle-ci a un vrai id, donc
+        // confirmerPause()/snoozer() agissent pour de bon.
+        setAlerteActive(alerte);
+        setAlerteOuverte(true);
+        jouerSon();
       },
     });
 
@@ -63,6 +78,7 @@ export default function DashboardEmploye() {
       }
       resetTimer();
       setAlerteOuverte(false);
+      setAlerteActive(null);
       toast.success('Pause enregistrée — bon retour au travail !');
       chargerDashboard(); // Rafraîchit les stats
     } catch {
@@ -78,9 +94,11 @@ export default function DashboardEmploye() {
         await postureApi.snoozer(alerteActive.id, 600);
       }
       setAlerteOuverte(false);
+      setAlerteActive(null);
       toast('Rappel dans 10 minutes.', { icon: '⏱' });
     } catch {
       setAlerteOuverte(false);
+      setAlerteActive(null);
     }
   };
 

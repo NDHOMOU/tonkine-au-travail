@@ -20,7 +20,7 @@ const SEND_INTERVAL_MS    = 5000;  // Envoie une mesure toutes les 5 secondes
 const STANDING_THRESHOLD  = 0.3;   // Score de confiance minimum pour considérer la personne debout
 const MODEL_URL = '/models/movenet-singlepose-lightning/model.json';
 
-export function usePostureDetection({ sessionId, profil, onPostureChange, onStanding }) {
+export function usePostureDetection({ sessionId, profil, onPostureChange, onStanding, onAlertePause }) {
   const [isActive,    setIsActive]    = useState(false);
   const [detector,    setDetector]    = useState(null);
   const [lastScores,  setLastScores]  = useState(null);
@@ -111,7 +111,9 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
 
   /**
    * Détecte si la personne est debout (vs assise).
-   * Si debout → appelle onStanding() pour réinitialiser le minuteur.
+   * Si debout → appelle onStanding() pour réinitialiser le minuteur affiché,
+   * et retourne true pour que l'appelant informe aussi le serveur (source de
+   * vérité du temps assis, pas le minuteur local).
    */
   const detecterDebout = useCallback((keypoints) => {
     const kp = {};
@@ -125,7 +127,9 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
       // Si les hanches sont près des genoux → assis, sinon debout
       const isDebout = (ankleY - hipY) > (kneeY - hipY) * 2.5;
       if (isDebout) onStanding?.();
+      return isDebout;
     }
+    return false;
   }, [onStanding]);
 
   /** Boucle de détection continue */
@@ -143,7 +147,7 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
       if (poses.length > 0) {
         const { keypoints } = poses[0];
         const scores = calculerScores(keypoints);
-        detecterDebout(keypoints);
+        const estDebout = detecterDebout(keypoints);
         setLastScores(scores);
         onPostureChange?.(scores);
 
@@ -152,7 +156,8 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
         if (sessionId && now - lastSendRef.current > SEND_INTERVAL_MS) {
           lastSendRef.current = now;
           Object.entries(scores).forEach(([zone, score]) => {
-            postureApi.envoyerMesure({ sessionId, zone, score })
+            postureApi.envoyerMesure({ sessionId, zone, score, estDebout })
+              .then(({ data }) => { if (data?.id) onAlertePause?.(data); })
               .catch(() => {}); // Silencieux — la connexion peut être momentanément interrompue
           });
         }
@@ -162,7 +167,7 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
     }
 
     animFrameRef.current = requestAnimationFrame(detecterPosture);
-  }, [detector, isActive, sessionId, calculerScores, detecterDebout, onPostureChange]);
+  }, [detector, isActive, sessionId, calculerScores, detecterDebout, onPostureChange, onAlertePause]);
 
   useEffect(() => {
     if (isActive && detector) {

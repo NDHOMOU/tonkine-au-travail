@@ -47,17 +47,18 @@ export default function MaPosture() {
   const [loading, setLoading]     = useState(true);
   const [liveScores, setLiveScores] = useState({});
 
+  const { formatted, progressPct, reset: resetTimer, synchroniser: synchroniserTimer } = useTimer({ onAlert: () => {} });
+
   const charger = useCallback(async () => {
     try {
       const { data } = await dashboardApi.getDashboardEmploye();
       setDashboard(data);
+      synchroniserTimer(data.dureeAssisCourantSecondes ?? 0);
     } catch { toast.error('Impossible de charger les données posturales.'); }
     finally { setLoading(false); }
-  }, []);
+  }, [synchroniserTimer]);
 
   useEffect(() => { charger(); }, [charger]);
-
-  const { formatted, progressPct, reset: resetTimer } = useTimer({ onAlert: () => {} });
 
   const { isActive, activer, desactiver, lastScores, videoRef } = usePostureDetection({
     sessionId: dashboard?.sessionId,
@@ -190,8 +191,8 @@ export default function MaPosture() {
         </div>
         <div style={{ padding:'8px 20px 20px', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px,1fr))', gap:12 }}>
           {[
-            { icon:'fa-chair', title:'Hauteur du siège', tip: `Réglez votre siège à ${dashboard?.profil?.hauteurSiegeRecommandeCm || '—'} cm — genoux à 90°, pieds à plat.` },
-            { icon:'fa-desktop', title:'Position de l\'écran', tip: `Écran à ${dashboard?.profil?.hauteurEcranRecommandeCm || '—'} cm — sommet de l'écran au niveau des yeux.` },
+            { icon:'fa-chair', title:'Hauteur du siège', tip: `Réglez votre siège à ${dashboard?.hauteurSiegeRecommandeCm || '—'} cm — genoux à 90°, pieds à plat.` },
+            { icon:'fa-desktop', title:'Position de l\'écran', tip: `Écran à ${dashboard?.hauteurEcranRecommandeCm || '—'} cm — sommet de l'écran au niveau des yeux.` },
             { icon:'fa-keyboard', title:'Poignets', tip:'Poignets dans le prolongement des avant-bras — pas de flexion ni d\'extension.' },
             { icon:'fa-eye', title:'Règle 20-20-20', tip:'Toutes les 20 min, regardez à 6 m pendant 20 sec pour reposer vos yeux.' },
           ].map(c => (

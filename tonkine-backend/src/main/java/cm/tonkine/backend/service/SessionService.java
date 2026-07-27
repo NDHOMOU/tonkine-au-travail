@@ -35,21 +35,41 @@ public class SessionService {
     private static final long SEUIL_PAUSE_SECONDES = 7200L;
     /** Score posture critique (déclenche alerte) */
     private static final double SEUIL_SCORE_CRITIQUE = 60.0;
+    /** Intervalle entre deux envois de mesure côté navigateur (usePostureDetection.js) */
+    private static final long INTERVALLE_MESURE_SECONDES = 5L;
 
     /**
      * Ouvre ou récupère la session de travail du jour.
+     * Personne n'appelle jamais /posture/session/fermer en pratique (pas de
+     * hook à la déconnexion, pas de tâche planifiée) — sans ce garde-fou, une
+     * session ouverte un jour resterait "ouverte" indéfiniment et serait
+     * réutilisée les jours suivants : son dateDebut resterait bloqué dans le
+     * passé, et l'employé deviendrait invisible dans les vues "actif
+     * aujourd'hui" du kiné/admin alors qu'il utilise l'appli à l'instant même.
+     * On détecte donc ici une session laissée ouverte d'un jour précédent et
+     * on la referme proprement avant d'en ouvrir une nouvelle pour aujourd'hui.
      */
     @Transactional
     public SessionTravail ouvrirSession(Utilisateur utilisateur) {
-        return sessionRepository
-            .findByUtilisateurAndDateFinIsNull(utilisateur)
-            .orElseGet(() -> {
-                SessionTravail session = SessionTravail.builder()
-                    .utilisateur(utilisateur)
-                    .dateDebut(LocalDateTime.now())
-                    .build();
-                return sessionRepository.save(session);
-            });
+        var sessionExistante = sessionRepository.findByUtilisateurAndDateFinIsNull(utilisateur);
+
+        if (sessionExistante.isPresent()) {
+            SessionTravail session = sessionExistante.get();
+            if (session.getDateDebut().toLocalDate().isEqual(LocalDateTime.now().toLocalDate())) {
+                return session;
+            }
+            // Session d'un jour précédent jamais fermée — on la clôture à la
+            // fin de sa propre journée (on ne connaît pas l'heure réelle de départ).
+            session.setDateFin(session.getDateDebut().toLocalDate().atTime(23, 59, 59));
+            session.calculerScoreGlobal();
+            sessionRepository.save(session);
+        }
+
+        SessionTravail nouvelle = SessionTravail.builder()
+            .utilisateur(utilisateur)
+            .dateDebut(LocalDateTime.now())
+            .build();
+        return sessionRepository.save(nouvelle);
     }
 
     /**
@@ -70,11 +90,14 @@ public class SessionService {
     }
 
     /**
-     * Enregistre une mesure posture (envoyée par TensorFlow.js React).
-     * Déclenche une alerte si score critique ou seuil 2h atteint.
+     * Enregistre une mesure posture (envoyée par TensorFlow.js React) toutes
+     * les ~5 secondes pendant la surveillance webcam. Déclenche une alerte si
+     * score critique ou seuil 2h de position assise atteint — et retourne
+     * cette alerte pour que le frontend l'utilise comme véritable identifiant
+     * (au lieu du minuteur purement local d'avant, jamais relié au serveur).
      */
     @Transactional
-    public void enregistrerMesure(MesurePostureRequest req, Utilisateur utilisateur) {
+    public AlerteResponse enregistrerMesure(MesurePostureRequest req, Utilisateur utilisateur) {
         SessionTravail session = sessionRepository.findById(req.getSessionId())
             .orElseThrow(() -> new IllegalArgumentException("Session introuvable"));
 
@@ -98,6 +121,23 @@ public class SessionService {
         // Mise à jour du score de la zone dans la session
         mettreAJourScoreZone(session, req.getZone(), req.getScore());
         session.calculerScoreGlobal();
+
+        // Temps assis suivi côté serveur (source de vérité, pas un minuteur
+        // navigateur qui se remet à zéro à chaque rechargement de page).
+        // Une seule des zones envoyées à chaque cycle sert de "tic" pour ne
+        // pas compter plusieurs fois le même intervalle de 5s.
+        AlerteResponse alertePause = null;
+        if (req.getZone() == ZoneCorps.DOS_LOMBAIRES) {
+            if (Boolean.TRUE.equals(req.getEstDebout())) {
+                session.setDureeAssisTotalSecondes(0L);
+            } else {
+                session.setDureeAssisTotalSecondes(session.getDureeAssisTotalSecondes() + INTERVALLE_MESURE_SECONDES);
+                if (session.getDureeAssisTotalSecondes() >= SEUIL_PAUSE_SECONDES) {
+                    alertePause = creerAlertePauseSiAbsente(utilisateur, session);
+                }
+            }
+        }
+
         sessionRepository.save(session);
 
         // Alerte si score critique sur une zone prioritaire
@@ -106,6 +146,8 @@ public class SessionService {
              req.getZone() == ZoneCorps.DOS_LOMBAIRES)) {
             creerAlertePosture(utilisateur, session, req.getScore());
         }
+
+        return alertePause;
     }
 
     /**
@@ -123,12 +165,14 @@ public class SessionService {
             alerte.setDateReponse(LocalDateTime.now());
             alerteRepository.save(alerte);
 
-            // Incrémenter le compteur de pauses de la session (certaines alertes,
-            // ex. surveillance indisponible, n'ont pas de session associée)
+            // Incrémenter le compteur de pauses et remettre le temps assis à
+            // zéro côté serveur (certaines alertes, ex. surveillance
+            // indisponible, n'ont pas de session associée)
             if (alerte.getSession() != null) {
                 alerte.getSession().setNombrePausesEffectuees(
                     alerte.getSession().getNombrePausesEffectuees() + 1
                 );
+                alerte.getSession().setDureeAssisTotalSecondes(0L);
                 sessionRepository.save(alerte.getSession());
             }
         });
@@ -239,6 +283,40 @@ public class SessionService {
     }
 
     // ── Méthodes privées ──
+
+    /**
+     * Crée l'alerte "2h de position assise" si aucune n'est déjà en attente
+     * pour cette session — évite d'en recréer une à chaque mesure de 5s tant
+     * que l'employé n'a pas confirmé sa pause.
+     */
+    private AlerteResponse creerAlertePauseSiAbsente(Utilisateur u, SessionTravail s) {
+        boolean dejaActive = alerteRepository.existsBySessionIdAndTypeAndStatutIn(
+            s.getId(), TypeAlerte.PAUSE_DEUX_HEURES,
+            List.of(StatutAlerte.ENVOYEE, StatutAlerte.VUE, StatutAlerte.SNOOZEE));
+        if (dejaActive) return null;
+
+        Exercice exercice = choisirExercicePourAlerte(u, s);
+        Alerte alerte = Alerte.builder()
+            .utilisateur(u)
+            .session(s)
+            .type(TypeAlerte.PAUSE_DEUX_HEURES)
+            .statut(StatutAlerte.ENVOYEE)
+            .exerciceSuggere(exercice)
+            .dureeAssiAvantAlerteSecondes(s.getDureeAssisTotalSecondes())
+            .build();
+        alerteRepository.save(alerte);
+        s.setNombreAlertesEnvoyees(s.getNombreAlertesEnvoyees() + 1);
+
+        return AlerteResponse.builder()
+            .id(alerte.getId())
+            .type(alerte.getType())
+            .statut(alerte.getStatut())
+            .message(alerte.getMessage())
+            .dateEnvoi(alerte.getDateEnvoi())
+            .exerciceSuggere(exercice != null ? toExerciceResponse(exercice) : null)
+            .dureeAssiAvantAlerteSecondes(alerte.getDureeAssiAvantAlerteSecondes())
+            .build();
+    }
 
     private void creerAlertePosture(Utilisateur u, SessionTravail s, double score) {
         Exercice exercice = choisirExercicePourAlerte(u, s);

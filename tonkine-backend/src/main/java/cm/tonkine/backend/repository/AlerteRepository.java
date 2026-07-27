@@ -14,6 +14,9 @@ public interface AlerteRepository extends JpaRepository<Alerte, Long> {
 
     List<Alerte> findByUtilisateurIdOrderByDateEnvoiDesc(Long utilisateurId);
 
+    /** Une alerte de ce type est-elle déjà en attente sur cette session ? Évite les doublons. */
+    boolean existsBySessionIdAndTypeAndStatutIn(Long sessionId, TypeAlerte type, List<StatutAlerte> statuts);
+
     List<Alerte> findByStatutIn(List<StatutAlerte> statuts);
 
     /** Toutes alertes non traitées — usage interne uniquement (sans filtre tenant). */

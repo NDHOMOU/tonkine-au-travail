@@ -9,14 +9,22 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const TWO_HOURS_SECONDS = 7200;
 
-export function useTimer({ onAlert, autoStart = true }) {
-  const [seconds,    setSeconds]    = useState(0);
+export function useTimer({ onAlert, autoStart = true, initialSeconds = 0 }) {
+  const [seconds,    setSeconds]    = useState(initialSeconds);
   const [isRunning,  setIsRunning]  = useState(autoStart);
-  const [alertFired, setAlertFired] = useState(false);
+  const [alertFired, setAlertFired] = useState(initialSeconds >= TWO_HOURS_SECONDS);
   const intervalRef = useRef(null);
 
   const start = useCallback(() => setIsRunning(true),  []);
   const stop  = useCallback(() => setIsRunning(false), []);
+
+  // Recale l'affichage sur la vraie durée suivie par le serveur (ex. après
+  // le chargement du tableau de bord) — le minuteur local seul ne doit pas
+  // prétendre repartir de zéro à chaque rechargement de page.
+  const synchroniser = useCallback((valeurServeur) => {
+    setSeconds(valeurServeur);
+    setAlertFired(valeurServeur >= TWO_HOURS_SECONDS);
+  }, []);
 
   const reset = useCallback(() => {
     setSeconds(0);
@@ -52,5 +60,5 @@ export function useTimer({ onAlert, autoStart = true }) {
 
   const progressPct = Math.min((seconds / TWO_HOURS_SECONDS) * 100, 100);
 
-  return { seconds, formatted, progressPct, isRunning, start, stop, reset };
+  return { seconds, formatted, progressPct, isRunning, start, stop, reset, synchroniser };
 }
