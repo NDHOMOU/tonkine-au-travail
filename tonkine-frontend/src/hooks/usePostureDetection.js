@@ -24,6 +24,7 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
   const [isActive,    setIsActive]    = useState(false);
   const [detector,    setDetector]    = useState(null);
   const [lastScores,  setLastScores]  = useState(null);
+  const [angleGenou,  setAngleGenou]  = useState(null);
   const videoRef      = useRef(null);
   const streamRef     = useRef(null);
   const animFrameRef  = useRef(null);
@@ -110,6 +111,22 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
   }, [calculerAngle]);
 
   /**
+   * Angle du genou (hanche-genou-cheville), en degrés — utilisé pour évaluer
+   * si un siège/bureau candidat convient (voir /ergonomie/evaluer-poste).
+   * Une webcam 2D ne mesure pas de distances réelles, seulement des angles :
+   * c'est pour ça qu'on évalue la posture plutôt que de prédire une hauteur.
+   */
+  const calculerAngleGenou = useCallback((keypoints) => {
+    const kp = {};
+    keypoints.forEach(k => { kp[k.name] = k; });
+    if (kp.left_hip && kp.left_knee && kp.left_ankle &&
+        kp.left_hip.score > 0.4 && kp.left_knee.score > 0.4) {
+      return calculerAngle(kp.left_hip, kp.left_knee, kp.left_ankle);
+    }
+    return null;
+  }, [calculerAngle]);
+
+  /**
    * Détecte si la personne est debout (vs assise).
    * Si debout → appelle onStanding() pour réinitialiser le minuteur affiché,
    * et retourne true pour que l'appelant informe aussi le serveur (source de
@@ -148,6 +165,7 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
         const { keypoints } = poses[0];
         const scores = calculerScores(keypoints);
         const estDebout = detecterDebout(keypoints);
+        setAngleGenou(calculerAngleGenou(keypoints));
         setLastScores(scores);
         onPostureChange?.(scores);
 
@@ -167,7 +185,7 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
     }
 
     animFrameRef.current = requestAnimationFrame(detecterPosture);
-  }, [detector, isActive, sessionId, calculerScores, detecterDebout, onPostureChange, onAlertePause]);
+  }, [detector, isActive, sessionId, calculerScores, calculerAngleGenou, detecterDebout, onPostureChange, onAlertePause]);
 
   useEffect(() => {
     if (isActive && detector) {
@@ -200,5 +218,5 @@ export function usePostureDetection({ sessionId, profil, onPostureChange, onStan
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
-  return { isActive, activer, desactiver, lastScores, videoRef };
+  return { isActive, activer, desactiver, lastScores, angleGenou, videoRef };
 }

@@ -19,6 +19,7 @@ const NAV_EMPLOYE = [
   { to: '/employe/exercices',  icon: 'fa-dumbbell',    label: 'Exercices'            },
   { to: '/employe/curatif',    icon: 'fa-kit-medical', label: 'Protocoles curatifs'  },
   { to: '/employe/produits',   icon: 'fa-briefcase-medical', label: 'Recommandations' },
+  { to: '/employe/ajustement-poste', icon: 'fa-chair', label: 'Ajuster mon poste' },
   { to: '/employe/rdv',        icon: 'fa-calendar-check', label: 'Mon kiné / RDV'   },
   { to: '/employe/conseils',   icon: 'fa-comment-medical', label: 'Conseils santé'  },
 ];

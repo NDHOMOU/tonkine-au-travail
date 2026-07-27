@@ -27,6 +27,7 @@ const MaPosture          = lazy(() => import('./pages/employe/MaPosture'));
 const Exercices          = lazy(() => import('./pages/employe/Exercices'));
 const ProtocolesCuratifs = lazy(() => import('./pages/employe/ProtocolesCuratifs'));
 const RecommandationsProduits = lazy(() => import('./pages/employe/RecommandationsProduits'));
+const AjustementPoste    = lazy(() => import('./pages/employe/AjustementPoste'));
 const PriseRdvKine       = lazy(() => import('./pages/employe/PriseRdvKine'));
 
 // Admin RH
@@ -77,6 +78,7 @@ export default function App() {
               <Route path="/employe/exercices" element={<Exercices />} />
               <Route path="/employe/curatif"   element={<ProtocolesCuratifs />} />
               <Route path="/employe/produits"  element={<RecommandationsProduits />} />
+              <Route path="/employe/ajustement-poste" element={<AjustementPoste />} />
               {/* PriseRdvKine gère aussi l'onglet Conseils santé */}
               <Route path="/employe/rdv"       element={<PriseRdvKine />} />
               <Route path="/employe/conseils"  element={<PriseRdvKine defaultTab="conseils" />} />
