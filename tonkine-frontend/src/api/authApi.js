@@ -9,6 +9,10 @@ export const authApi = {
   inscrire: (inscriptionData) =>
     client.post('/auth/inscription', inscriptionData),
 
+  /** POST /api/auth/inscrire-entreprise */
+  inscrireEntreprise: (data) =>
+    client.post('/auth/inscrire-entreprise', data),
+
   /** GET /api/auth/entreprises — liste publique pour le formulaire d'inscription */
   getEntreprises: () =>
     client.get('/auth/entreprises'),

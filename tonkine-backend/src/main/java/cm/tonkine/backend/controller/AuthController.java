@@ -1,6 +1,7 @@
 package cm.tonkine.backend.controller;
 
 import cm.tonkine.backend.dto.request.ConnexionRequest;
+import cm.tonkine.backend.dto.request.InscrireEntrepriseRequest;
 import cm.tonkine.backend.dto.request.InscriptionRequest;
 import cm.tonkine.backend.dto.response.AuthResponse;
 import cm.tonkine.backend.entity.Entreprise;
@@ -59,6 +60,18 @@ public class AuthController {
     public ResponseEntity<AuthResponse> inscrire(
             @Valid @RequestBody InscriptionRequest request) {
         AuthResponse response = authService.inscrire(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * POST /api/auth/inscrire-entreprise
+     * Inscrit une nouvelle entreprise cliente — l'auteur devient
+     * automatiquement son premier Admin RH.
+     */
+    @PostMapping("/inscrire-entreprise")
+    public ResponseEntity<AuthResponse> inscrireEntreprise(
+            @Valid @RequestBody InscrireEntrepriseRequest request) {
+        AuthResponse response = authService.inscrireEntreprise(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

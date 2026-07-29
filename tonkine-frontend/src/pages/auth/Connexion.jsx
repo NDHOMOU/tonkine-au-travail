@@ -157,6 +157,10 @@ export default function Connexion() {
               Première connexion ?{' '}
               <Link to="/inscription">Créer mon profil →</Link>
             </p>
+            <p className="form-footer">
+              Votre entreprise n'est pas encore inscrite ?{' '}
+              <Link to="/inscrire-entreprise">Créer mon entreprise →</Link>
+            </p>
           </>
         ) : (
           <>

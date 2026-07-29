@@ -1,6 +1,7 @@
 package cm.tonkine.backend.service;
 
 import cm.tonkine.backend.dto.request.ConnexionRequest;
+import cm.tonkine.backend.dto.request.InscrireEntrepriseRequest;
 import cm.tonkine.backend.dto.request.InscriptionRequest;
 import cm.tonkine.backend.dto.response.Activer2FAResponse;
 import cm.tonkine.backend.dto.response.AuthResponse;
@@ -115,6 +116,61 @@ public class AuthService {
             .couleurPrimaire(ent != null ? ent.getCouleurPrimaire() : "#1353A4")
             .couleurSecondaire(ent != null ? ent.getCouleurSecondaire() : "#0B9B8A")
             .logoUrl(ent != null ? ent.getLogoUrl() : null)
+            .build();
+    }
+
+    /**
+     * Inscrit une toute nouvelle entreprise cliente et crée son premier
+     * compte Admin RH dans la foulée — jusqu'ici, aucune entreprise ne
+     * pouvait être créée autrement qu'à la main en base de données, ce qui
+     * bloquait l'arrivée de toute nouvelle entreprise cliente.
+     */
+    @Transactional
+    public AuthResponse inscrireEntreprise(InscrireEntrepriseRequest req) {
+        if (utilisateurRepository.existsByEmail(req.getEmail())) {
+            throw new IllegalArgumentException(
+                "Un compte existe déjà avec cet email : " + req.getEmail()
+            );
+        }
+
+        Entreprise entreprise = Entreprise.builder()
+            .nom(req.getNomEntreprise())
+            .ville(req.getVille())
+            .secteurActivite(req.getSecteurActivite())
+            .build();
+        entreprise = entrepriseRepository.save(entreprise);
+
+        Utilisateur admin = Utilisateur.builder()
+            .prenom(req.getPrenom())
+            .nom(req.getNom())
+            .email(req.getEmail())
+            .motDePasse(passwordEncoder.encode(req.getMotDePasse()))
+            .role(Role.ADMIN_RH)
+            .langue("fr")
+            .entreprise(entreprise)
+            .doitConfigurer2FA(true)
+            .build();
+        admin = utilisateurRepository.save(admin);
+
+        String token = jwtService.generateToken(admin,
+            Map.of("role", admin.getRole().name(), "userId", admin.getId()));
+
+        return AuthResponse.builder()
+            .token(token)
+            .userId(admin.getId())
+            .prenom(admin.getPrenom())
+            .nom(admin.getNom())
+            .email(admin.getEmail())
+            .role(admin.getRole())
+            .langue(admin.getLangue())
+            .profilComplet(true)
+            .doitConfigurer2FA(true)
+            .entrepriseId(entreprise.getId())
+            .nomEntreprise(entreprise.getNom())
+            .nomApp(entreprise.getNomApp())
+            .couleurPrimaire(entreprise.getCouleurPrimaire())
+            .couleurSecondaire(entreprise.getCouleurSecondaire())
+            .logoUrl(entreprise.getLogoUrl())
             .build();
     }
 

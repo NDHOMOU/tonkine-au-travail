@@ -232,6 +232,12 @@ export default function Inscription() {
                     </span>
                   )}
                   {errors.entrepriseId && <span className="err">{errors.entrepriseId}</span>}
+                  {!entreprisesLoading && (
+                    <span className="hint">
+                      Votre entreprise n'apparaît pas dans la liste ?{' '}
+                      <Link to="/inscrire-entreprise">Créez-la →</Link>
+                    </span>
+                  )}
                 </label>
                 <label>Département *
                   <select value={form.departement} onChange={e=>upd('departement',e.target.value)}>

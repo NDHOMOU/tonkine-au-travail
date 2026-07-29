@@ -50,6 +50,7 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ROUTES = {
         "/auth/connexion",
         "/auth/inscription",
+        "/auth/inscrire-entreprise",
         "/auth/entreprises",       // liste des entreprises pour le formulaire d'inscription
         "/h2-console/**",
         "/actuator/health"
