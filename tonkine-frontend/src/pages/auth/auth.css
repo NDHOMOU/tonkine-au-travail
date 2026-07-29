@@ -14,7 +14,8 @@
 
 .connexion-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden; /* la page elle-même ne défile jamais */
   font-family: var(--f-sans, 'Inter', system-ui, sans-serif);
 }
 
@@ -24,16 +25,18 @@
   position: relative;
   overflow: hidden;
   display: none; /* masqué sur mobile */
+  height: 100%;
+  background: var(--ink, #0F1923); /* comble les bandes si la photo ne remplit pas tout le panneau */
 }
 
 @media (min-width: 900px) {
-  .connexion-photo { display: block; }
+  .connexion-photo { display: flex; align-items: center; justify-content: center; }
 }
 
 .connexion-photo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* photo entièrement visible, jamais rognée */
   display: block;
 }
 
@@ -98,6 +101,8 @@
   flex-direction: column;
   justify-content: center;
   background: white;
+  height: 100%;
+  overflow-y: auto; /* si le contenu déborde, seul ce panneau défile — jamais la page entière */
 }
 
 @media (min-width: 900px) {

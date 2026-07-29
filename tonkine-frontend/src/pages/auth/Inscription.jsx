@@ -44,13 +44,22 @@ export default function Inscription() {
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState({});
   const [entreprises, setEntreprises] = useState([]);
+  const [entreprisesLoading, setEntreprisesLoading] = useState(true);
+  const [entreprisesErreur, setEntreprisesErreur] = useState(false);
 
-  // Chargement de la liste des entreprises (endpoint public)
-  useEffect(() => {
+  // Chargement de la liste des entreprises (endpoint public). Le serveur
+  // gratuit peut mettre jusqu'à ~50s à se réveiller s'il était inactif —
+  // sans indicateur, la liste vide donne l'impression que le champ est cassé.
+  const chargerEntreprises = () => {
+    setEntreprisesLoading(true);
+    setEntreprisesErreur(false);
     authApi.getEntreprises()
       .then(r => setEntreprises(r.data || []))
-      .catch(() => {}); // silencieux
-  }, []);
+      .catch(() => setEntreprisesErreur(true))
+      .finally(() => setEntreprisesLoading(false));
+  };
+
+  useEffect(() => { chargerEntreprises(); }, []);
 
   // Données du formulaire
   const [form, setForm] = useState({
@@ -199,12 +208,29 @@ export default function Inscription() {
                   {errors.motDePasse && <span className="err">{errors.motDePasse}</span>}
                 </label>
                 <label>Votre entreprise *
-                  <select value={form.entrepriseId} onChange={e=>upd('entrepriseId', e.target.value)}>
-                    <option value="">Sélectionner votre entreprise…</option>
+                  <select value={form.entrepriseId} onChange={e=>upd('entrepriseId', e.target.value)}
+                    disabled={entreprisesLoading}>
+                    <option value="">
+                      {entreprisesLoading ? 'Chargement des entreprises…' : 'Sélectionner votre entreprise…'}
+                    </option>
                     {entreprises.map(ent => (
                       <option key={ent.id} value={ent.id}>{ent.nom}</option>
                     ))}
                   </select>
+                  {entreprisesLoading && (
+                    <span className="hint">
+                      <i className="fa-solid fa-spinner fa-spin" /> Ça peut prendre jusqu'à une minute au premier chargement…
+                    </span>
+                  )}
+                  {entreprisesErreur && (
+                    <span className="err">
+                      Impossible de charger la liste des entreprises. <button type="button"
+                        onClick={chargerEntreprises}
+                        style={{ background:'none', border:'none', color:'inherit', textDecoration:'underline', cursor:'pointer', padding:0, font:'inherit' }}>
+                        Réessayer
+                      </button>
+                    </span>
+                  )}
                   {errors.entrepriseId && <span className="err">{errors.entrepriseId}</span>}
                 </label>
                 <label>Département *
