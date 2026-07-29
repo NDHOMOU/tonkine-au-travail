@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +26,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
+
     private final JwtService       jwtService;
     private final UserDetailsService userDetailsService;
 
@@ -42,23 +46,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String jwt   = authHeader.substring(7);
-        final String email = jwtService.extractEmail(jwt);
+        final String jwt = authHeader.substring(7);
 
-        // Authentifie si email extrait et pas encore authentifié dans ce contexte
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        // Un token périmé/malformé/signé avec une autre clé fait lever une
+        // exception (ExpiredJwtException...) à l'analyse — sans ce try/catch,
+        // elle remonte hors du filtre et fait échouer la requête en 403 AVANT
+        // même d'atteindre authorizeHttpRequests, y compris sur les routes
+        // publiques (ex. /auth/entreprises) : un simple vieux token oublié en
+        // localStorage suffisait à casser des pages accessibles à tous.
+        try {
+            final String email = jwtService.extractEmail(jwt);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
+            // Authentifie si email extrait et pas encore authentifié dans ce contexte
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                        );
+                    authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
                     );
-                authToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (Exception e) {
+            // Token invalide : on continue simplement sans authentification.
+            // Les routes protégées seront rejetées normalement par
+            // authorizeHttpRequests ; les routes publiques restent accessibles.
+            log.debug("Token JWT ignoré ({}) : {}", e.getClass().getSimpleName(), e.getMessage());
         }
 
         filterChain.doFilter(request, response);
