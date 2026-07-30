@@ -18,6 +18,8 @@ import Connexion    from './pages/auth/Connexion';
 import { lazy, Suspense } from 'react';
 const Inscription               = lazy(() => import('./pages/auth/Inscription'));
 const InscrireEntreprise        = lazy(() => import('./pages/auth/InscrireEntreprise'));
+const MotDePasseOublie          = lazy(() => import('./pages/auth/MotDePasseOublie'));
+const ReinitialiserMotDePasse   = lazy(() => import('./pages/auth/ReinitialiserMotDePasse'));
 const ChangerMotDePasseObligatoire = lazy(() => import('./pages/auth/ChangerMotDePasseObligatoire'));
 const ConfigurerDeuxFAObligatoire  = lazy(() => import('./pages/auth/ConfigurerDeuxFAObligatoire'));
 const ParametresSecurite           = lazy(() => import('./pages/parametres/ParametresSecurite'));
@@ -65,6 +67,8 @@ export default function App() {
             <Route path="/connexion"   element={<Connexion />} />
             <Route path="/inscription" element={<Inscription />} />
             <Route path="/inscrire-entreprise" element={<InscrireEntreprise />} />
+            <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+            <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
             {/* Accessible dès qu'on est authentifié, quel que soit le rôle — pas de ProtectedRoute
                 (elle redirigerait ici même tant que le mot de passe est temporaire) */}
             <Route path="/changer-mot-de-passe" element={<ChangerMotDePasseObligatoire />} />

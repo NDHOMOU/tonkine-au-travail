@@ -1,8 +1,10 @@
 package cm.tonkine.backend.controller;
 
 import cm.tonkine.backend.dto.request.ConnexionRequest;
+import cm.tonkine.backend.dto.request.DemandeReinitialisationRequest;
 import cm.tonkine.backend.dto.request.InscrireEntrepriseRequest;
 import cm.tonkine.backend.dto.request.InscriptionRequest;
+import cm.tonkine.backend.dto.request.ReinitialiserMotDePasseRequest;
 import cm.tonkine.backend.dto.response.AuthResponse;
 import cm.tonkine.backend.entity.Entreprise;
 import cm.tonkine.backend.repository.EntrepriseRepository;
@@ -101,5 +103,31 @@ public class AuthController {
         ).collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * POST /api/auth/mot-de-passe-oublie
+     * Envoie un e-mail de réinitialisation si le compte existe. La réponse
+     * est toujours la même, que l'e-mail corresponde à un compte ou non —
+     * afin de ne jamais révéler quels e-mails sont enregistrés.
+     */
+    @PostMapping("/mot-de-passe-oublie")
+    public ResponseEntity<Map<String, String>> motDePasseOublie(
+            @Valid @RequestBody DemandeReinitialisationRequest request) {
+        authService.demanderReinitialisationMotDePasse(request.getEmail());
+        return ResponseEntity.ok(Map.of(
+            "message", "Si un compte existe avec cet e-mail, un lien de réinitialisation vient d'être envoyé."
+        ));
+    }
+
+    /**
+     * POST /api/auth/reinitialiser-mot-de-passe
+     * Corps : { "jeton": "...", "nouveauMotDePasse": "..." }
+     */
+    @PostMapping("/reinitialiser-mot-de-passe")
+    public ResponseEntity<Map<String, String>> reinitialiserMotDePasse(
+            @Valid @RequestBody ReinitialiserMotDePasseRequest request) {
+        authService.reinitialiserMotDePasseAvecJeton(request.getJeton(), request.getNouveauMotDePasse());
+        return ResponseEntity.ok(Map.of("message", "Mot de passe réinitialisé. Vous pouvez vous connecter."));
     }
 }

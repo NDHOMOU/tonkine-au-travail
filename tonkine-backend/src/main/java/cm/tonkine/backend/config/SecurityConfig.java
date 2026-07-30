@@ -52,6 +52,8 @@ public class SecurityConfig {
         "/auth/inscription",
         "/auth/inscrire-entreprise",
         "/auth/entreprises",       // liste des entreprises pour le formulaire d'inscription
+        "/auth/mot-de-passe-oublie",
+        "/auth/reinitialiser-mot-de-passe",
         "/h2-console/**",
         "/actuator/health"
     };

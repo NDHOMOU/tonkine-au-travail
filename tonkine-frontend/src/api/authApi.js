@@ -16,4 +16,12 @@ export const authApi = {
   /** GET /api/auth/entreprises — liste publique pour le formulaire d'inscription */
   getEntreprises: () =>
     client.get('/auth/entreprises'),
+
+  /** POST /api/auth/mot-de-passe-oublie */
+  motDePasseOublie: (email) =>
+    client.post('/auth/mot-de-passe-oublie', { email }),
+
+  /** POST /api/auth/reinitialiser-mot-de-passe */
+  reinitialiserMotDePasse: (jeton, nouveauMotDePasse) =>
+    client.post('/auth/reinitialiser-mot-de-passe', { jeton, nouveauMotDePasse }),
 };

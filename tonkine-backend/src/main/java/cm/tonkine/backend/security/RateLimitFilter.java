@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * - Max {@value #MAX_TENTATIVES} tentatives en {@value #FENETRE_SECONDES} secondes
  * - Dépasser ce seuil retourne HTTP 429 pendant {@value #BLOCAGE_SECONDES} secondes
  *
- * Routes protégées : POST /auth/connexion, POST /auth/inscription
+ * Routes protégées : POST /auth/connexion, POST /auth/inscription, POST /auth/mot-de-passe-oublie
  *
  * En production, préférer un rate-limiter distribué (Redis + Bucket4j)
  * si vous avez plusieurs instances backend.
@@ -50,7 +50,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         // Appliquer uniquement sur les endpoints d'authentification en POST
         return !("POST".equals(method) &&
-                 (path.contains("/auth/connexion") || path.contains("/auth/inscription")));
+                 (path.contains("/auth/connexion") || path.contains("/auth/inscription")
+                  || path.contains("/auth/mot-de-passe-oublie")));
     }
 
     @Override

@@ -146,6 +146,10 @@ export default function Connexion() {
                 />
               </label>
 
+              <p style={{ textAlign: 'right', marginTop: -8 }}>
+                <Link to="/mot-de-passe-oublie" style={{ fontSize: '.82rem' }}>Mot de passe oublié ?</Link>
+              </p>
+
               <button type="submit" disabled={loading} className="btn-submit">
                 {loading ? 'Vérification…' : 'Se connecter →'}
               </button>

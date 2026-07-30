@@ -6,23 +6,29 @@ import cm.tonkine.backend.dto.request.InscriptionRequest;
 import cm.tonkine.backend.dto.response.Activer2FAResponse;
 import cm.tonkine.backend.dto.response.AuthResponse;
 import cm.tonkine.backend.entity.Entreprise;
+import cm.tonkine.backend.entity.JetonReinitialisationMotDePasse;
 import cm.tonkine.backend.entity.JournalConnexion;
 import cm.tonkine.backend.entity.ProfilErgonomique;
 import cm.tonkine.backend.entity.Utilisateur;
 import cm.tonkine.backend.enums.Role;
 import cm.tonkine.backend.repository.EntrepriseRepository;
+import cm.tonkine.backend.repository.JetonReinitialisationMotDePasseRepository;
 import cm.tonkine.backend.repository.JournalConnexionRepository;
 import cm.tonkine.backend.repository.ProfilErgonomiqueRepository;
 import cm.tonkine.backend.repository.UtilisateurRepository;
 import cm.tonkine.backend.security.JwtService;
 import cm.tonkine.backend.util.TotpUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Map;
 
 @Service
@@ -33,9 +39,17 @@ public class AuthService {
     private final ProfilErgonomiqueRepository profilRepository;
     private final EntrepriseRepository        entrepriseRepository;
     private final JournalConnexionRepository  journalConnexionRepository;
+    private final JetonReinitialisationMotDePasseRepository jetonReinitialisationRepository;
     private final PasswordEncoder             passwordEncoder;
     private final JwtService                  jwtService;
     private final AuthenticationManager       authenticationManager;
+    private final EmailService                emailService;
+
+    @Value("${tonkine.frontend.url}")
+    private String frontendUrl;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final long JETON_VALIDITE_MINUTES = 60;
 
     /**
      * Inscription d'un nouvel employé (étapes 1+3+4 du wizard).
@@ -299,5 +313,63 @@ public class AuthService {
         utilisateur.setDeuxFAActif(false);
         utilisateur.setSecret2FA(null);
         utilisateurRepository.save(utilisateur);
+    }
+
+    /**
+     * Demande de réinitialisation de mot de passe ("mot de passe oublié").
+     * Ne révèle jamais si l'e-mail correspond à un compte existant — l'appelant
+     * doit toujours afficher le même message générique, que l'e-mail soit
+     * parti ou non.
+     */
+    @Transactional
+    public void demanderReinitialisationMotDePasse(String email) {
+        utilisateurRepository.findByEmail(email).ifPresent(utilisateur -> {
+            byte[] octets = new byte[32];
+            RANDOM.nextBytes(octets);
+            String jeton = Base64.getUrlEncoder().withoutPadding().encodeToString(octets);
+
+            JetonReinitialisationMotDePasse entite = JetonReinitialisationMotDePasse.builder()
+                .utilisateur(utilisateur)
+                .jeton(jeton)
+                .dateExpiration(LocalDateTime.now().plusMinutes(JETON_VALIDITE_MINUTES))
+                .build();
+            jetonReinitialisationRepository.save(entite);
+
+            String lien = frontendUrl + "/reinitialiser-mot-de-passe?jeton=" + jeton;
+            emailService.envoyer(
+                utilisateur.getEmail(),
+                "Réinitialisation de votre mot de passe — TonKiné au Travail",
+                "Bonjour " + utilisateur.getPrenom() + ",\n\n"
+                    + "Une demande de réinitialisation de mot de passe a été effectuée pour votre compte.\n"
+                    + "Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe (valable "
+                    + JETON_VALIDITE_MINUTES + " minutes) :\n\n"
+                    + lien + "\n\n"
+                    + "Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail — "
+                    + "votre mot de passe actuel reste inchangé.\n\n"
+                    + "— TonKiné au Travail"
+            );
+        });
+    }
+
+    /** Réinitialise le mot de passe à partir d'un jeton reçu par e-mail. */
+    @Transactional
+    public void reinitialiserMotDePasseAvecJeton(String jeton, String nouveauMotDePasse) {
+        JetonReinitialisationMotDePasse entite = jetonReinitialisationRepository.findByJeton(jeton)
+            .orElseThrow(() -> new IllegalArgumentException("Lien de réinitialisation invalide."));
+
+        if (entite.isUtilise()) {
+            throw new IllegalArgumentException("Ce lien de réinitialisation a déjà été utilisé.");
+        }
+        if (entite.getDateExpiration().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Ce lien de réinitialisation a expiré. Faites une nouvelle demande.");
+        }
+
+        Utilisateur utilisateur = entite.getUtilisateur();
+        utilisateur.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        utilisateur.setMotDePasseTemporaire(false);
+        utilisateurRepository.save(utilisateur);
+
+        entite.setUtilise(true);
+        jetonReinitialisationRepository.save(entite);
     }
 }
