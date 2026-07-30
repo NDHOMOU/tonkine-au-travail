@@ -7,6 +7,7 @@ import { useState }            from 'react';
 import { useNavigate, Link }   from 'react-router-dom';
 import { useAuth }             from '../../context/AuthContext';
 import { authApi }             from '../../api/authApi';
+import PasswordInput           from '../../components/ui/PasswordInput';
 import toast                   from 'react-hot-toast';
 import './auth.css';
 
@@ -135,8 +136,7 @@ export default function InscrireEntreprise() {
 
           <label>
             Mot de passe
-            <input
-              type="password"
+            <PasswordInput
               value={form.motDePasse}
               onChange={e => upd('motDePasse', e.target.value)}
               placeholder="8 caractères minimum"

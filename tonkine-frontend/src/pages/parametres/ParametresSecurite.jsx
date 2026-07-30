@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useAuth }  from '../../context/AuthContext';
 import { profilApi } from '../../api/profilApi';
 import AppLayout    from '../../components/layout/AppLayout';
+import QRCode        from '../../components/ui/QRCode';
 import toast         from 'react-hot-toast';
 
 export default function ParametresSecurite() {
@@ -78,15 +79,25 @@ export default function ParametresSecurite() {
             </>
           ) : activation ? (
             <>
-              <p style={{ fontSize: '.85rem', marginBottom: 10 }}>
+              <p style={{ fontSize: '.85rem', marginBottom: 12 }}>
                 1. Ouvrez votre application d'authentification<br />
-                2. Ajoutez un compte manuellement et saisissez cette clé :
+                2. Scannez ce QR code :
               </p>
-              <div style={{ background: 'var(--sand)', borderRadius: 8, padding: '12px 14px',
-                fontFamily: 'monospace', fontSize: '1rem', fontWeight: 700, letterSpacing: '.5px',
-                userSelect: 'all', marginBottom: 16, wordBreak: 'break-all' }}>
-                {activation.secret}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                <div style={{ padding: 12, background: 'white', border: '1px solid rgba(15,25,35,.1)', borderRadius: 10 }}>
+                  <QRCode value={activation.otpauthUri} size={170} />
+                </div>
               </div>
+              <details style={{ marginBottom: 16 }}>
+                <summary style={{ fontSize: '.78rem', color: 'var(--ink-60)', cursor: 'pointer' }}>
+                  Impossible de scanner ? Saisir la clé manuellement
+                </summary>
+                <div style={{ background: 'var(--sand)', borderRadius: 8, padding: '12px 14px',
+                  fontFamily: 'monospace', fontSize: '.9rem', fontWeight: 700, letterSpacing: '.5px',
+                  userSelect: 'all', marginTop: 8, wordBreak: 'break-all' }}>
+                  {activation.secret}
+                </div>
+              </details>
               <p style={{ fontSize: '.85rem', marginBottom: 10 }}>
                 3. Entrez le code à 6 chiffres généré par l'application pour confirmer :
               </p>

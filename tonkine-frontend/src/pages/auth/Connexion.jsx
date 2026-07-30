@@ -5,6 +5,7 @@ import { useState }            from 'react';
 import { useNavigate, Link }   from 'react-router-dom';
 import { useAuth }             from '../../context/AuthContext';
 import { authApi }             from '../../api/authApi';
+import PasswordInput           from '../../components/ui/PasswordInput';
 import toast                   from 'react-hot-toast';
 import './auth.css';
 
@@ -96,8 +97,6 @@ export default function Connexion() {
 
       {/* Panneau droit : formulaire */}
       <div className="connexion-form-panel">
-        <Link to="/" className="back-link">← Retour à l'accueil</Link>
-
         {!requiert2FA ? (
           <>
             <h1>Bon retour,<br /><em>connectez-vous</em></h1>
@@ -138,8 +137,7 @@ export default function Connexion() {
 
               <label>
                 Mot de passe
-                <input
-                  type="password"
+                <PasswordInput
                   value={form.motDePasse}
                   onChange={e => setForm(f => ({ ...f, motDePasse: e.target.value }))}
                   placeholder="••••••••"

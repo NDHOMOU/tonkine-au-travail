@@ -6,6 +6,7 @@ import { useState }        from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth }         from '../../context/AuthContext';
 import { profilApi }       from '../../api/profilApi';
+import PasswordInput       from '../../components/ui/PasswordInput';
 import toast                from 'react-hot-toast';
 import './auth.css';
 
@@ -81,8 +82,7 @@ export default function ChangerMotDePasseObligatoire() {
         <form onSubmit={handleSubmit}>
           <label>
             Mot de passe actuel (communiqué par votre administrateur)
-            <input
-              type="password"
+            <PasswordInput
               value={ancienMotDePasse}
               onChange={e => setAncienMotDePasse(e.target.value)}
               placeholder="Mot de passe temporaire"
@@ -94,8 +94,7 @@ export default function ChangerMotDePasseObligatoire() {
 
           <label>
             Nouveau mot de passe
-            <input
-              type="password"
+            <PasswordInput
               value={motDePasse}
               onChange={e => setMotDePasse(e.target.value)}
               placeholder="8 caractères minimum"
@@ -106,8 +105,7 @@ export default function ChangerMotDePasseObligatoire() {
 
           <label>
             Confirmer le mot de passe
-            <input
-              type="password"
+            <PasswordInput
               value={confirmation}
               onChange={e => setConfirmation(e.target.value)}
               placeholder="••••••••"

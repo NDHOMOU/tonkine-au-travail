@@ -8,6 +8,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth }           from '../../context/AuthContext';
 import { authApi }           from '../../api/authApi';
 import { profilApi }         from '../../api/profilApi';
+import PasswordInput         from '../../components/ui/PasswordInput';
 import toast                 from 'react-hot-toast';
 import './auth.css';
 
@@ -204,7 +205,7 @@ export default function Inscription() {
                   {errors.email && <span className="err">{errors.email}</span>}
                 </label>
                 <label>Mot de passe *
-                  <input type="password" value={form.motDePasse} onChange={e=>upd('motDePasse',e.target.value)} placeholder="Min. 8 caractères" />
+                  <PasswordInput value={form.motDePasse} onChange={e=>upd('motDePasse',e.target.value)} placeholder="Min. 8 caractères" />
                   {errors.motDePasse && <span className="err">{errors.motDePasse}</span>}
                 </label>
                 <label>Votre entreprise *
