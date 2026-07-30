@@ -7,6 +7,7 @@ import { useAuth }  from '../../context/AuthContext';
 import { profilApi } from '../../api/profilApi';
 import AppLayout    from '../../components/layout/AppLayout';
 import QRCode        from '../../components/ui/QRCode';
+import PasswordInput from '../../components/ui/PasswordInput';
 import toast         from 'react-hot-toast';
 
 export default function ParametresSecurite() {
@@ -15,6 +16,32 @@ export default function ParametresSecurite() {
   const [activation, setActivation]   = useState(null); // { secret, otpauthUri }
   const [code, setCode]               = useState('');
   const [enCours, setEnCours]         = useState(false);
+  const [confirmationDesactivation, setConfirmationDesactivation] = useState(false);
+
+  const [motDePasseForm, setMotDePasseForm] = useState({ ancien: '', nouveau: '', confirmation: '' });
+  const [motDePasseEnCours, setMotDePasseEnCours] = useState(false);
+
+  const soumettreChangementMotDePasse = async (e) => {
+    e.preventDefault();
+    if (motDePasseForm.nouveau.length < 8) {
+      toast.error('Le nouveau mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+    if (motDePasseForm.nouveau !== motDePasseForm.confirmation) {
+      toast.error('Les deux mots de passe ne correspondent pas.');
+      return;
+    }
+    setMotDePasseEnCours(true);
+    try {
+      await profilApi.changerMotDePasse(motDePasseForm.ancien, motDePasseForm.nouveau);
+      toast.success('Mot de passe mis à jour !');
+      setMotDePasseForm({ ancien: '', nouveau: '', confirmation: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.erreur || 'Mot de passe actuel incorrect.');
+    } finally {
+      setMotDePasseEnCours(false);
+    }
+  };
 
   const demarrerActivation = async () => {
     setEnCours(true);
@@ -45,11 +72,11 @@ export default function ParametresSecurite() {
   };
 
   const desactiver = async () => {
-    if (!window.confirm('Désactiver la double authentification sur ce compte ?')) return;
     setEnCours(true);
     try {
       await profilApi.desactiverDeuxFA();
       updateUser({ deuxFAActif: false });
+      setConfirmationDesactivation(false);
       toast.success('Double authentification désactivée.');
     } catch {
       toast.error('Impossible de désactiver la 2FA.');
@@ -71,11 +98,27 @@ export default function ParametresSecurite() {
           {user?.deuxFAActif ? (
             <>
               <div className="badge green" style={{ marginBottom: 16 }}>● Activée</div>
-              <div>
-                <button className="btn btn-outline" disabled={enCours} onClick={desactiver}>
-                  {enCours ? 'Désactivation…' : 'Désactiver la 2FA'}
-                </button>
-              </div>
+              {!confirmationDesactivation ? (
+                <div>
+                  <button className="btn btn-outline" onClick={() => setConfirmationDesactivation(true)}>
+                    Désactiver la 2FA
+                  </button>
+                </div>
+              ) : (
+                <div style={{ background: 'var(--sand)', borderRadius: 8, padding: '14px 16px' }}>
+                  <p style={{ fontSize: '.85rem', marginBottom: 12 }}>
+                    Confirmer la désactivation de la double authentification sur ce compte ?
+                  </p>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button className="btn btn-primary" disabled={enCours} onClick={desactiver}>
+                      {enCours ? 'Désactivation…' : 'Oui, désactiver'}
+                    </button>
+                    <button className="btn btn-outline" disabled={enCours} onClick={() => setConfirmationDesactivation(false)}>
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           ) : activation ? (
             <>
@@ -130,6 +173,46 @@ export default function ParametresSecurite() {
             </>
           )}
         </div>
+      </div>
+
+      <div className="card" style={{ maxWidth: 560, marginTop: 20 }}>
+        <div className="card-head"><h3>Changer mon mot de passe</h3></div>
+        <form onSubmit={soumettreChangementMotDePasse} style={{ padding: '0 20px 20px' }}>
+          <label>
+            Mot de passe actuel
+            <PasswordInput
+              value={motDePasseForm.ancien}
+              onChange={e => setMotDePasseForm(f => ({ ...f, ancien: e.target.value }))}
+              required
+              autoComplete="current-password"
+            />
+          </label>
+
+          <label>
+            Nouveau mot de passe
+            <PasswordInput
+              value={motDePasseForm.nouveau}
+              onChange={e => setMotDePasseForm(f => ({ ...f, nouveau: e.target.value }))}
+              placeholder="8 caractères minimum"
+              required
+              autoComplete="new-password"
+            />
+          </label>
+
+          <label>
+            Confirmer le nouveau mot de passe
+            <PasswordInput
+              value={motDePasseForm.confirmation}
+              onChange={e => setMotDePasseForm(f => ({ ...f, confirmation: e.target.value }))}
+              required
+              autoComplete="new-password"
+            />
+          </label>
+
+          <button className="btn btn-primary" disabled={motDePasseEnCours} type="submit" style={{ marginTop: 6 }}>
+            {motDePasseEnCours ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
+          </button>
+        </form>
       </div>
     </AppLayout>
   );
